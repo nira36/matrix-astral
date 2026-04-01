@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Numerology Chart
 
 A modern, dark-themed web app that generates a full numerology chart from a birth date and name.
@@ -102,3 +103,7 @@ All numerology logic lives in `lib/numerology.ts`. Key functions:
 | `calculate(dateStr, name)` | Main entry point |
 
 The `LETTER_VALUES` map at the top of `numerology.ts` uses the Pythagorean system. Swap it for Chaldean values if desired.
+=======
+# CosmicLove-Matrix
+Decode the numbers encoded in your birth date and name. Discover your life path, personal strengths, and the cycles shaping your journey.
+>>>>>>> 80ed6b410f04ae9040b67fe7a47bf13e80152de7

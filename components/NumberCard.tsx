@@ -42,7 +42,7 @@ export default function NumberCard({
 
       <Tooltip content={tooltip}>
         <div className="flex items-center gap-1.5 cursor-help w-fit">
-          <span className="text-[10px] font-semibold tracking-widest uppercase text-slate-500">
+          <span className="text-[12px] font-semibold tracking-widest uppercase text-slate-500">
             {label}
           </span>
           <svg className="w-3 h-3 text-slate-600" fill="currentColor" viewBox="0 0 20 20">
@@ -61,21 +61,21 @@ export default function NumberCard({
         <>
           <div className="flex items-baseline gap-2">
             <span
-              className="text-5xl font-bold tabular-nums leading-none"
+              className="text-6xl font-bold tabular-nums leading-none"
               style={{ color }}
             >
               {value}
             </span>
             {isMaster && (
               <span
-                className="text-[10px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded-full border"
+                className="text-[12px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full border"
                 style={{ color, borderColor: `${color}44`, background: `${color}11` }}
               >
                 master
               </span>
             )}
           </div>
-          <p className="text-xs text-slate-500 leading-relaxed">{meaning}</p>
+          <p className="text-sm text-slate-500 leading-relaxed">{meaning}</p>
         </>
       )}
     </div>

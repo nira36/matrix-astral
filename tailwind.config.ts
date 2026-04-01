@@ -10,19 +10,19 @@ const config: Config = {
     extend: {
       colors: {
         bg: {
-          primary: '#03040d',
-          card: '#0d0f1e',
-          elevated: '#12152a',
+          primary: '#010208',
+          card: '#0a0b16',
+          elevated: '#0f1122',
         },
         accent: {
-          purple: '#8b5cf6',
-          indigo: '#6366f1',
+          purple: '#7C3AED',   // More saturated, less neon
+          indigo: '#4338CA',   // Muted indigo
         },
-        masc: '#60a5fa',
-        fem: '#f472b6',
-        pinnacle: '#fbbf24',
-        challenge: '#f87171',
-        cycle: '#34d399',
+        masc: '#1E40AF',       // Midnight Blue
+        fem: '#9D174D',        // Deep Rose
+        pinnacle: '#B45309',   // Amber
+        challenge: '#991B1B',  // Garnet
+        cycle: '#065F46',      // Dark Jade
       },
       animation: {
         'fade-up': 'fadeUp 0.6s ease forwards',

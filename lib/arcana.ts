@@ -60,10 +60,10 @@ export const ARCANA: Record<number, ArcanaData> = {
     energy: 'masculine', element: 'water', planet: 'Cancer / Moon', color: '#38bdf8',
   },
   8: {
-    number: 8, roman: 'VIII', name: 'Strength',
-    keywords: ['courage', 'patience', 'inner power', 'compassion'],
-    description: 'Quiet courage over brute force. True power flows from the heart — through patience, compassion, and taming the wild within.',
-    energy: 'feminine', element: 'fire', planet: 'Leo / Sun', color: '#fb923c',
+    number: 8, roman: 'VIII', name: 'Justice',
+    keywords: ['balance', 'truth', 'cause & effect', 'clarity'],
+    description: 'The law of perfect cosmic balance. Every action seeds its consequence. Align with truth and act with integrity to create just outcomes.',
+    energy: 'neutral', element: 'air', planet: 'Libra / Venus', color: '#a78bfa',
   },
   9: {
     number: 9, roman: 'IX', name: 'The Hermit',
@@ -78,10 +78,10 @@ export const ARCANA: Record<number, ArcanaData> = {
     energy: 'neutral', element: 'fire', planet: 'Jupiter', color: '#fbbf24',
   },
   11: {
-    number: 11, roman: 'XI', name: 'Justice',
-    keywords: ['balance', 'truth', 'cause & effect', 'clarity'],
-    description: 'The law of perfect cosmic balance. Every action seeds its consequence. Align with truth and act with integrity to create just outcomes.',
-    energy: 'neutral', element: 'air', planet: 'Libra / Venus', color: '#a78bfa',
+    number: 11, roman: 'XI', name: 'Strength / Force',
+    keywords: ['courage', 'patience', 'inner power', 'compassion'],
+    description: 'Quiet courage over brute force. True power flows from the heart — through patience, compassion, and taming the wild within.',
+    energy: 'feminine', element: 'fire', planet: 'Leo / Sun', color: '#fb923c',
   },
   12: {
     number: 12, roman: 'XII', name: 'The Hanged Man',

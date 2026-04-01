@@ -9,31 +9,35 @@ import BirthDateInput from '@/components/BirthDateInput'
 import NumberCard from '@/components/NumberCard'
 import RadarChart from '@/components/RadarChart'
 import LifePhaseCircle from '@/components/LifePhaseCircle'
-import DestinyMatrixChart from '@/components/DestinyMatrixChart'
+import EsotericMatrix from '@/components/EsotericMatrix'
 import ArcanaGrid from '@/components/ArcanaGrid'
 import ChakraDisplay from '@/components/ChakraDisplay'
+import PurposeDisplay from '@/components/PurposeDisplay'
+import PrognosisDisplay from '@/components/PrognosisDisplay'
+import MatrixSummary from '@/components/MatrixSummary'
+import InterpretationAccordion from '@/components/InterpretationAccordion'
 import { getArcana } from '@/lib/arcana'
 
 type Tab = 'matrix' | 'numerology'
 
 const CARD_COLORS: Record<string, string> = {
-  lifePath:       '#8b5cf6',
-  expression:     '#60a5fa',
-  soulUrge:       '#f472b6',
-  personality:    '#34d399',
-  birthDayNumber: '#fbbf24',
-  maturityNumber: '#fb923c',
+  lifePath: '#4C1D95',       // Amethyst
+  expression: '#1E3A8A',    // Sapphire
+  soulUrge: '#831843',      // Deep Rose
+  personality: '#064E3B',   // Jade
+  birthDayNumber: '#854D0E', // Amber
+  maturityNumber: '#9A3412', // Tiger's Eye
 }
 
 export default function Home() {
-  const [dateStr,  setDateStr]  = useState('')
-  const [name,     setName]     = useState('')
+  const [dateStr, setDateStr] = useState('')
+  const [name, setName] = useState('')
   const [numResult, setNumResult] = useState<NumerologyResult | null>(null)
   const [matResult, setMatResult] = useState<DestinyMatrixResult | null>(null)
-  const [error,    setError]    = useState('')
-  const [loading,  setLoading]  = useState(false)
-  const [tab,      setTab]      = useState<Tab>('matrix')
-  const [calcKey,  setCalcKey]  = useState(0)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [tab, setTab] = useState<Tab>('matrix')
+  const [calcKey, setCalcKey] = useState(0)
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -47,9 +51,9 @@ export default function Home() {
         setLoading(false)
         return
       }
-      const day   = parseInt(parts[0], 10)
+      const day = parseInt(parts[0], 10)
       const month = parseInt(parts[1], 10)
-      const year  = parseInt(parts[2], 10)
+      const year = parseInt(parts[2], 10)
 
       const nr = calculate(dateStr, name)
       const mr = calcDestinyMatrix(day, month, year)
@@ -81,7 +85,7 @@ export default function Home() {
         </div>
 
         <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-4">
-          <span className="text-white">CosmicLove</span>{' '}
+          <span className="text-white">Cosmic Love</span>{' '}
           <span style={{
             background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #c084fc 100%)',
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
@@ -147,8 +151,8 @@ export default function Home() {
           {loading ? (
             <span className="flex items-center justify-center gap-2">
               <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
               </svg>
               Calculating...
             </span>
@@ -166,7 +170,7 @@ export default function Home() {
           <div className="flex justify-center">
             <div className="flex gap-1 p-1 rounded-xl border border-white/[0.07] bg-bg-card">
               {([
-                { key: 'matrix',    label: 'Destiny Matrix' },
+                { key: 'matrix', label: 'Destiny Matrix' },
                 { key: 'numerology', label: 'Numerology Chart' },
               ] as { key: Tab; label: string }[]).map(t => (
                 <button
@@ -189,60 +193,64 @@ export default function Home() {
           {/* TAB: DESTINY MATRIX                                                */}
           {/* ─────────────────────────────────────────────────────────────────── */}
           {tab === 'matrix' && (
-            <div className="flex flex-col gap-8 animate-fade-up">
+            <div className="flex flex-col gap-6 animate-fade-up">
+              {/* Octagram Section - Full Width & Centered (TOP) */}
+              <div className="animate-fade-up flex flex-col items-center">
+                <SectionLabel>The Octagram</SectionLabel>
+                <EsotericMatrix result={matResult} className="max-w-5xl" />
+              </div>
 
-              {/* Quick stats banner */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+
+              {/* Core Cards Section */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {[
-                  { label: 'Soul Code',       value: matResult.center.number,   color: '#c084fc' },
-                  { label: 'Life Purpose',     value: matResult.lifePurpose,      color: '#8b5cf6' },
-                  { label: 'Karmic Task',      value: matResult.karmicTask,       color: '#f97316' },
-                  { label: `Year ${new Date().getFullYear()}`, value: matResult.personalYear, color: '#fbbf24' },
+                  { label: 'Comfort Zone', value: matResult.points.E.number, color: '#854D0E' },
+                  { label: 'Soul/Day', value: matResult.points.A.number, color: '#4C1D95' },
+                  { label: 'Karmic Tail', value: matResult.points.D.number, color: '#7F1D1D' },
+                  { label: `Year ${new Date().getFullYear()}`, value: matResult.personalYear, color: '#A16207' },
                 ].map(({ label, value, color }) => (
                   <div key={label}
-                    className="rounded-xl border border-white/[0.07] bg-bg-card px-4 py-3 flex flex-col gap-1">
-                    <span className="text-[9px] font-bold tracking-widest uppercase"
+                    className="rounded-xl border border-white/[0.07] bg-bg-card px-5 py-4 flex flex-col gap-1">
+                    <span className="text-[12px] font-bold tracking-widest uppercase"
                       style={{ color }}>{label}</span>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-3xl font-bold" style={{ color }}>{value}</span>
-                      <span className="text-xs text-slate-600">{getArcana(value).name}</span>
+                      <span className="text-4xl font-bold" style={{ color }}>{value}</span>
+                      <span className="text-sm text-slate-500 font-medium">{getArcana(value).name}</span>
                     </div>
                   </div>
                 ))}
               </div>
 
-              {/* Octagram + Chakra side by side */}
-              <div className="grid lg:grid-cols-[1fr_340px] gap-6">
-                <Card>
-                  <SectionLabel>The Octagram</SectionLabel>
-                  <DestinyMatrixChart result={matResult} />
-                </Card>
-                <Card>
+              <div className="flex flex-col gap-8">
+                {/* Chakra Alignment Section */}
+                <div className="animate-fade-up">
+                  <SectionLabel>Esoteric Chakra Map (Energy Proportions)</SectionLabel>
                   <ChakraDisplay result={matResult} />
-                </Card>
-              </div>
+                </div>
 
-              {/* Arcana grid */}
-              <Card>
-                <ArcanaGrid result={matResult} />
-              </Card>
+                {/* Arcana grid */}
+                <div className="animate-fade-up">
+                  <SectionLabel>Key Points & Evolutionary Arcs</SectionLabel>
+                  <Card>
+                    <ArcanaGrid result={matResult} />
+                  </Card>
+                </div>
 
-              {/* Raw inputs info */}
-              <div className="flex flex-wrap gap-3 justify-center">
-                {[
-                  { label: 'Day (reduced)',   value: matResult.d },
-                  { label: 'Month',           value: matResult.m },
-                  { label: 'Year (reduced)',  value: matResult.y },
-                ].map(({ label, value }) => (
-                  <div key={label}
-                    className="rounded-lg border border-white/[0.06] px-4 py-2 flex items-center gap-2">
-                    <span className="text-[9px] uppercase tracking-widest text-slate-600">{label}</span>
-                    <span className="text-lg font-bold text-accent-purple">{value}</span>
-                    <span className="text-[9px] text-slate-600">
-                      {getArcana(value).roman} · {getArcana(value).name}
-                    </span>
-                  </div>
-                ))}
+                {/* New Purpose Display */}
+                <PurposeDisplay result={matResult} />
+
+                {/* Prognosis of Life */}
+                <PrognosisDisplay result={matResult} />
+
+                <div className="w-full h-px bg-white/[0.08] my-12" />
+
+                {/* Summary of the Matrix */}
+                <MatrixSummary result={matResult} />
+
+                <div className="w-full h-px bg-white/[0.08] my-12" />
+
+                {/* Analysis & Interpretation */}
+                <InterpretationAccordion result={matResult} />
               </div>
             </div>
           )}
@@ -257,7 +265,7 @@ export default function Home() {
               <section>
                 <SectionLabel>Core Numbers</SectionLabel>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 stagger">
-                  {(Object.entries(CORE_DESCRIPTIONS) as Array<[keyof typeof CORE_DESCRIPTIONS, typeof CORE_DESCRIPTIONS[keyof typeof CORE_DESCRIPTIONS]]>)
+                  {numResult && (Object.entries(CORE_DESCRIPTIONS) as Array<[keyof typeof CORE_DESCRIPTIONS, typeof CORE_DESCRIPTIONS[keyof typeof CORE_DESCRIPTIONS]]>)
                     .map(([key, meta]) => (
                       <NumberCard
                         key={key}
@@ -290,13 +298,15 @@ export default function Home() {
                         className="flex items-center gap-3 rounded-xl px-4 py-3 border transition-all"
                         style={{
                           borderColor: p.isActive ? 'rgba(251,191,36,0.3)' : 'rgba(255,255,255,0.06)',
-                          background:  p.isActive ? 'rgba(251,191,36,0.06)' : 'transparent',
+                          background: p.isActive ? 'rgba(251,191,36,0.06)' : 'transparent',
                         }}
                       >
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center
                                         font-bold text-sm shrink-0"
-                          style={{ background:'rgba(251,191,36,0.1)', color:'#fbbf24',
-                                   border:'1px solid rgba(251,191,36,0.2)' }}>
+                          style={{
+                            background: 'rgba(251,191,36,0.1)', color: '#fbbf24',
+                            border: '1px solid rgba(251,191,36,0.2)'
+                          }}>
                           {p.number}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -339,8 +349,10 @@ export default function Home() {
                                                  border border-white/[0.06] px-4 py-3">
                           <div className="w-8 h-8 rounded-lg flex items-center justify-center
                                           font-bold text-sm shrink-0"
-                            style={{ background:'rgba(52,211,153,0.1)', color:'#34d399',
-                                     border:'1px solid rgba(52,211,153,0.2)' }}>
+                            style={{
+                              background: 'rgba(52,211,153,0.1)', color: '#34d399',
+                              border: '1px solid rgba(52,211,153,0.2)'
+                            }}>
                             {c.number}
                           </div>
                           <div>
@@ -360,12 +372,12 @@ export default function Home() {
               <Card>
                 <SectionLabel>Life Phase Breakdown (Ages 0–70)</SectionLabel>
                 <div className="overflow-x-auto -mx-1">
-                  <table className="w-full text-xs">
+                  <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-white/[0.06]">
                         {['Age', 'Pinnacle', 'Challenge', 'Life Cycle'].map(h => (
-                          <th key={h} className="text-left py-2 px-3 text-[10px] font-semibold
-                                                  tracking-widest uppercase text-slate-600">
+                          <th key={h} className="text-left py-3 px-4 text-[12px] font-bold
+                                                  tracking-widest uppercase text-slate-500">
                             {h}
                           </th>
                         ))}
@@ -375,10 +387,10 @@ export default function Home() {
                       {numResult.lifePhasePoints.map(p => (
                         <tr key={p.age}
                           className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
-                          <td className="py-2.5 px-3 font-mono text-slate-400">{p.age}</td>
-                          <td className="py-2.5 px-3"><span className="font-bold text-pinnacle">{p.pinnacle}</span></td>
-                          <td className="py-2.5 px-3"><span className="font-bold text-challenge">{p.challenge}</span></td>
-                          <td className="py-2.5 px-3"><span className="font-bold text-cycle">{p.cycle}</span></td>
+                          <td className="py-3 px-4 font-mono text-slate-400 text-base">{p.age}</td>
+                          <td className="py-3 px-4"><span className="font-bold text-pinnacle text-base">{p.pinnacle}</span></td>
+                          <td className="py-3 px-4"><span className="font-bold text-challenge text-base">{p.challenge}</span></td>
+                          <td className="py-3 px-4"><span className="font-bold text-cycle text-base">{p.cycle}</span></td>
                         </tr>
                       ))}
                     </tbody>
@@ -410,7 +422,7 @@ function Card({ children }: { children: React.ReactNode }) {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="text-[10px] font-semibold tracking-widest uppercase text-slate-500 mb-4">
+    <h2 className="text-[13px] font-bold tracking-widest uppercase text-slate-400 mb-6">
       {children}
     </h2>
   )

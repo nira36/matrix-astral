@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'CosmicLove Matrix',
+  title: 'Cosmic Love Matrix',
   description: 'Discover your cosmic blueprint — calculate your core numerology numbers and life phases.',
   keywords: ['numerology', 'life path', 'birth chart', 'astrology', 'spiritual'],
 }
