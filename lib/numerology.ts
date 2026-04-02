@@ -76,6 +76,13 @@ export interface LifePhase {
   isActive: boolean
 }
 
+export interface LifePhasePoint {
+  age: number
+  pinnacle: number
+  challenge: number
+  cycle: number
+}
+
 export interface TransitYear {
   year: number
   age: number
@@ -95,6 +102,7 @@ export interface NumerologyResult {
   pinnacles: LifePhase[]
   challenges: number[]
   lifeCycles: LifePhase[]
+  lifePhasePoints: LifePhasePoint[]
   essenceCycle: TransitYear[]
   letterFrequency: LetterFrequency[]
   personalDay: {
@@ -344,6 +352,21 @@ export function calculate(dateStr: string, name: string): NumerologyResult | nul
   const personalMonthVal = reduceNumber(personalYearVal + reduceNumber(currentMonthSelection))
   const personalDayVal = reduceNumber(personalMonthVal + reduceNumber(currentDaySelection))
 
+  const pinnacles = calcPinnacles(day, month, year, lp, year)
+  const challenges = calcChallenges(day, month, year)
+  const lifeCycles = calcLifeCycles(day, month, year, lp)
+
+  const lifePhasePoints: LifePhasePoint[] = [0, 10, 20, 30, 40, 50, 60, 70].map(age => {
+    const pinnIdx = pinnacles.findIndex(p => age >= p.startAge && age < p.endAge)
+    const ci = pinnIdx === -1 ? challenges.length - 1 : Math.min(pinnIdx, challenges.length - 1)
+    return {
+      age,
+      pinnacle: activePhase(pinnacles, age),
+      challenge: challenges[ci],
+      cycle: activePhase(lifeCycles, age),
+    }
+  })
+
   return {
     core: {
       lifePath: lp,
@@ -364,9 +387,10 @@ export function calculate(dateStr: string, name: string): NumerologyResult | nul
       capstone: cleanName ? cleanName.trim().slice(-1).toUpperCase() : '',
       firstVowel: vowelsInName[0] || ''
     },
-    pinnacles: calcPinnacles(day, month, year, lp, year),
-    challenges: calcChallenges(day, month, year),
-    lifeCycles: calcLifeCycles(day, month, year, lp),
+    pinnacles,
+    challenges,
+    lifeCycles,
+    lifePhasePoints,
     essenceCycle: calcEssenceCycle(cleanName, year, currentYearSelection - year, 10).map(t => ({
       ...t,
       personalYear: reduceNumber(reduceNumber(day) + reduceNumber(month) + reduceNumber(t.year))
