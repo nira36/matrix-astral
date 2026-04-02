@@ -1,119 +1,111 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
-import {
-  Chart as ChartJS,
-  RadialLinearScale,
-  PointElement,
-  LineElement,
-  Filler,
-  Tooltip as ChartTooltip,
-  Legend,
-} from 'chart.js'
-import { Radar } from 'react-chartjs-2'
+import React from 'react'
 import type { CoreNumbers } from '@/lib/numerology'
 
-ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, ChartTooltip, Legend)
+export default function RadarChart({ core }: { core: CoreNumbers }) {
+  // Map core numbers to 6-axis radar points
+  const points = [
+    { label: 'LP', value: core.lifePath },
+    { label: 'EX', value: core.expression },
+    { label: 'SU', value: core.soulUrge },
+    { label: 'PE', value: core.personality },
+    { label: 'BD', value: core.birthDayNumber },
+    { label: 'MA', value: core.maturityNumber },
+  ]
 
-interface RadarChartProps {
-  core: CoreNumbers
-}
+  const size = 180
+  const center = size / 2
+  const radius = (size / 2) * 0.75
 
-function normalize(n: number): number {
-  if (n === 0) return 0
-  if (n === 33) return 9
-  if (n === 22) return 8
-  if (n === 11) return 7
-  return Math.min(9, Math.max(1, n))
-}
-
-export default function RadarChart({ core }: RadarChartProps) {
-  const data = {
-    labels: ['Life Path', 'Expression', 'Soul Urge', 'Personality', 'Birth Day', 'Maturity'],
-    datasets: [
-      {
-        label: 'Core Numbers',
-        data: [
-          normalize(core.lifePath),
-          normalize(core.expression),
-          normalize(core.soulUrge),
-          normalize(core.personality),
-          normalize(core.birthDayNumber),
-          normalize(core.maturityNumber),
-        ],
-        backgroundColor: 'rgba(139, 92, 246, 0.15)',
-        borderColor: 'rgba(139, 92, 246, 0.9)',
-        borderWidth: 2,
-        pointBackgroundColor: 'rgba(139, 92, 246, 1)',
-        pointBorderColor: 'rgba(139, 92, 246, 0.5)',
-        pointRadius: 5,
-        pointHoverRadius: 7,
-        pointBorderWidth: 2,
-      },
-    ],
+  // Calculate coordinates for each axis point
+  const getCoordinates = (val: number, i: number, total: number) => {
+    const angle = (Math.PI * 2 * i) / total - Math.PI / 2
+    // Normalize value 1-33 to radius (0.1 to 1.0)
+    const factor = val === 0 ? 0.05 : 0.1 + (val / 33) * 0.9
+    const r = radius * Math.min(factor, 1.1)
+    return {
+      x: center + r * Math.cos(angle),
+      y: center + r * Math.sin(angle),
+    }
   }
 
-  const options = {
-    responsive: true,
-    maintainAspectRatio: true,
-    animation: {
-      duration: 1200,
-      easing: 'easeInOutQuart' as const,
-    },
-    scales: {
-      r: {
-        min: 0,
-        max: 9,
-        ticks: {
-          stepSize: 3,
-          color: 'rgba(255,255,255,0.2)',
-          backdropColor: 'transparent',
-          font: { size: 10 },
-        },
-        grid: {
-          color: 'rgba(255,255,255,0.06)',
-        },
-        angleLines: {
-          color: 'rgba(255,255,255,0.06)',
-        },
-        pointLabels: {
-          color: 'rgba(255,255,255,0.5)',
-          font: { size: 11, family: 'Inter' },
-          padding: 8,
-        },
-      },
-    },
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: 'rgba(13,15,30,0.95)',
-        borderColor: 'rgba(139,92,246,0.3)',
-        borderWidth: 1,
-        titleColor: '#8b5cf6',
-        bodyColor: '#cbd5e1',
-        padding: 10,
-        callbacks: {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          label: (ctx: any) => {
-            const rawValues = [
-              core.lifePath, core.expression, core.soulUrge,
-              core.personality, core.birthDayNumber, core.maturityNumber,
-            ]
-            const v = rawValues[ctx.dataIndex as number]
-            return v === 0 ? ' — requires name' : ` ${v}`
-          },
-        },
-      },
-    },
-  }
+  const polygonPoints = points
+    .map((p, i) => {
+      const { x, y } = getCoordinates(p.value, i, points.length)
+      return `${x},${y}`
+    })
+    .join(' ')
 
   return (
-    <div className="flex flex-col gap-4">
-      <h3 className="text-xs font-semibold tracking-widest uppercase text-slate-500">
-        Core Numbers Radar
-      </h3>
-      <div className="w-full max-w-xs mx-auto">
-        <Radar data={data} options={options} />
+    <div className="flex flex-col items-center gap-4 py-2">
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="overflow-visible">
+        {/* Background hex/circles */}
+        {[0.2, 0.4, 0.6, 0.8, 1].map((f) => (
+          <circle
+            key={f}
+            cx={center}
+            cy={center}
+            r={radius * f}
+            fill="none"
+            stroke="rgba(255,255,255,0.05)"
+            strokeWidth="1"
+          />
+        ))}
+
+        {/* Axis lines */}
+        {points.map((_, i) => {
+          const { x, y } = getCoordinates(33, i, points.length)
+          return (
+            <line
+              key={i}
+              x1={center}
+              y1={center}
+              x2={x}
+              y2={y}
+              stroke="rgba(255,255,255,0.1)"
+              strokeWidth="0.5"
+            />
+          )
+        })}
+
+        {/* Data polygon */}
+        <polygon
+          points={polygonPoints}
+          fill="rgba(139, 92, 246, 0.25)"
+          stroke="#8b5cf6"
+          strokeWidth="2"
+          className="drop-shadow-[0_0_8px_rgba(139,92,246,0.4)] transition-all duration-700"
+        />
+
+        {/* Labels */}
+        {points.map((p, i) => {
+          const { x, y } = getCoordinates(45, i, points.length) // Place labels slightly outside
+          return (
+            <text
+              key={i}
+              x={x}
+              y={y}
+              fill={(p.value ?? 0) > 0 ? "#94a3b8" : "#334155"}
+              fontSize="9"
+              fontWeight="900"
+              textAnchor="middle"
+              dominantBaseline="middle"
+              className="uppercase tracking-widest transition-colors duration-300"
+            >
+              {p.label}
+            </text>
+          )
+        })}
+      </svg>
+      {/* Legend */}
+      <div className="grid grid-cols-3 gap-x-4 gap-y-1 mt-2 text-[8px] uppercase tracking-widest text-slate-600 font-black text-center w-full max-w-[240px]">
+        <span>LP: Life Path</span>
+        <span>EX: Expression</span>
+        <span>SU: Soul Urge</span>
+        <span>PE: Personality</span>
+        <span>BD: Birth Day</span>
+        <span>MA: Maturity</span>
       </div>
     </div>
   )
