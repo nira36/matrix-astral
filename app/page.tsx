@@ -25,6 +25,9 @@ import CoreBlueprint from '@/components/CoreBlueprint'
 import IntensityAnalysis from '@/components/IntensityAnalysis'
 import ActionPlan from '@/components/ActionPlan'
 import NumberCard from '@/components/NumberCard'
+import AdvancedNumerology from '@/components/AdvancedNumerology'
+import GematriaCalculator from '@/components/GematriaCalculator'
+import LunarCycles from '@/components/LunarCycles'
 import { CORE_DESCRIPTIONS } from '@/lib/numerology'
 
 type Tab = 'matrix' | 'numerology'
@@ -285,12 +288,37 @@ export default function Home() {
               {/* SECTION 4: ACTION PLAN */}
               <section className="flex flex-col gap-8">
                 <SectionLabel>4. Your Next Moves</SectionLabel>
+
                 <ActionPlan result={numResult} />
               </section>
 
-              {/* SECTION 5: TRANSITS */}
+              {/* SECTION 5: ADVANCED NUMEROLOGY */}
+              <section className="flex flex-col gap-8">
+                <SectionLabel>5. Advanced Numerology</SectionLabel>
+                <Card>
+                  <AdvancedNumerology result={numResult} />
+                </Card>
+              </section>
+
+              {/* SECTION 6: GEMATRIA */}
+              <section className="flex flex-col gap-8">
+                <SectionLabel>6. Gematria · Sacred Word Values</SectionLabel>
+                <Card>
+                  <GematriaCalculator />
+                </Card>
+              </section>
+
+              {/* SECTION 7: LUNAR CYCLES */}
+              <section className="flex flex-col gap-8">
+                <SectionLabel>7. Lunar Cycles & Personal Transits</SectionLabel>
+                <Card>
+                  <LunarCycles result={numResult} />
+                </Card>
+              </section>
+
+              {/* SECTION 8: TRANSITS */}
               <section className="flex flex-col gap-6">
-                <SectionLabel>5. Current Energy & Annual Transits</SectionLabel>
+                <SectionLabel>8. Current Energy & Annual Transits</SectionLabel>
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                   <div className="lg:col-span-4">
                     <Card>

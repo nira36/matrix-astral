@@ -63,6 +63,8 @@ export interface AdvancedNumbers {
   rationalThought: number
   realization: number
   subconsciousSelf: number
+  shadowNumber: number
+  heritageNumber: number
   cornerstone: string
   capstone: string
   firstVowel: string
@@ -383,6 +385,8 @@ export function calculate(dateStr: string, name: string): NumerologyResult | nul
       rationalThought: reduceNumber(lp + (cleanName ? reduceNumber(name.trim().split(/\s+/)[0].length) : 0)),
       realization: ex > 0 ? reduceNumber(lp + su) : 0,
       subconsciousSelf: cleanName ? reduceNumber(9 - calcKarmicLessons(cleanName).length) : 0,
+      shadowNumber: reduceNumber(9 - (lp === 11 ? 2 : lp === 22 ? 4 : lp === 33 ? 6 : lp)),
+      heritageNumber: reduceNumber(reduceNumber(day) + reduceNumber(month)),
       cornerstone: cleanName ? cleanName.trim()[0].toUpperCase() : '',
       capstone: cleanName ? cleanName.trim().slice(-1).toUpperCase() : '',
       firstVowel: vowelsInName[0] || ''
