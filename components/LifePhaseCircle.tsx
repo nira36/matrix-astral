@@ -1,27 +1,34 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import type { LifePhasePoint, NumerologyResult } from '@/lib/numerology'
+import type { NumerologyResult } from '@/lib/numerology'
+
+interface LifePhasePoint {
+  age: number
+  pinnacle: number
+  challenge: number
+  cycle: number
+}
 import { MASTER_NUMBERS } from '@/lib/numerology'
 
 // ─── SVG constants ────────────────────────────────────────────────────────────
-const SIZE     = 520
-const CX       = SIZE / 2
-const CY       = SIZE / 2
-const OUTER_R  = 185    // outer ring for age labels
-const TICK_R   = 170    // tick marks end
-const MIN_R    = 20     // minimum node radius (for value 0)
-const MAX_R    = 155    // maximum node radius (for value 9)
+const SIZE = 520
+const CX = SIZE / 2
+const CY = SIZE / 2
+const OUTER_R = 185    // outer ring for age labels
+const TICK_R = 170    // tick marks end
+const MIN_R = 20     // minimum node radius (for value 0)
+const MAX_R = 155    // maximum node radius (for value 9)
 
 const COLORS = {
-  pinnacle:  '#fbbf24',  // amber
+  pinnacle: '#fbbf24',  // amber
   challenge: '#f87171',  // coral
-  cycle:     '#34d399',  // emerald
-  masc:      '#60a5fa',  // blue
-  fem:       '#f472b6',  // pink
-  ring:      'rgba(255,255,255,0.04)',
-  spoke:     'rgba(255,255,255,0.06)',
-  label:     'rgba(255,255,255,0.45)',
+  cycle: '#34d399',  // emerald
+  masc: '#60a5fa',  // blue
+  fem: '#f472b6',  // pink
+  ring: 'rgba(255,255,255,0.04)',
+  spoke: 'rgba(255,255,255,0.06)',
+  label: 'rgba(255,255,255,0.45)',
 }
 
 const AGES = [0, 10, 20, 30, 40, 50, 60, 70]
@@ -109,8 +116,8 @@ function DiagonalLines({ animated }: DiagonalLinesProps) {
   const mascA = getPos(1, TICK_R)
   const mascB = getPos(5, TICK_R)
   // Feminine: index 7 (NW, age 70) → index 3 (SE, age 30)
-  const femA  = getPos(7, TICK_R)
-  const femB  = getPos(3, TICK_R)
+  const femA = getPos(7, TICK_R)
+  const femB = getPos(3, TICK_R)
 
   const lineProps = {
     strokeWidth: '1.5',
@@ -189,8 +196,8 @@ interface NodeDotProps {
 
 function NodeDot({ point, index, type, color, animated }: NodeDotProps) {
   const value = point[type]
-  const r     = valueToRadius(value)
-  const pos   = getPos(index, r)
+  const r = valueToRadius(value)
+  const pos = getPos(index, r)
   const DOT_R = 14
 
   if (value === 0) return null
@@ -234,9 +241,9 @@ export default function LifePhaseCircle({ result }: LifePhaseCircleProps) {
   }, [result])
 
   const types = [
-    { key: 'pinnacle'  as const, color: COLORS.pinnacle  },
+    { key: 'pinnacle' as const, color: COLORS.pinnacle },
     { key: 'challenge' as const, color: COLORS.challenge },
-    { key: 'cycle'     as const, color: COLORS.cycle     },
+    { key: 'cycle' as const, color: COLORS.cycle },
   ]
 
   return (
@@ -254,8 +261,8 @@ export default function LifePhaseCircle({ result }: LifePhaseCircleProps) {
         {/* Background radial gradient */}
         <defs>
           <radialGradient id="bgGrad" cx="50%" cy="50%">
-            <stop offset="0%"   stopColor="#1a1040" stopOpacity="0.4" />
-            <stop offset="100%" stopColor="#03040d" stopOpacity="0"   />
+            <stop offset="0%" stopColor="#1a1040" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="#03040d" stopOpacity="0" />
           </radialGradient>
         </defs>
         <circle cx={CX} cy={CY} r={OUTER_R} fill="url(#bgGrad)" />
@@ -311,11 +318,11 @@ export default function LifePhaseCircle({ result }: LifePhaseCircleProps) {
       {/* Legend */}
       <div className="flex items-center justify-center gap-5 flex-wrap">
         {[
-          { label: 'Pinnacle', color: COLORS.pinnacle  },
+          { label: 'Pinnacle', color: COLORS.pinnacle },
           { label: 'Challenge', color: COLORS.challenge },
-          { label: 'Life Cycle', color: COLORS.cycle    },
-          { label: 'Masculine', color: COLORS.masc      },
-          { label: 'Feminine',  color: COLORS.fem       },
+          { label: 'Life Cycle', color: COLORS.cycle },
+          { label: 'Masculine', color: COLORS.masc },
+          { label: 'Feminine', color: COLORS.fem },
         ].map(({ label, color }) => (
           <div key={label} className="flex items-center gap-1.5">
             <div className="w-2.5 h-2.5 rounded-full" style={{ background: color }} />
