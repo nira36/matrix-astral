@@ -63,7 +63,7 @@ function DeckCard({
   return (
     <button
       onClick={onClick}
-      className="group relative flex flex-col items-center cursor-pointer focus:outline-none w-[200px] sm:w-[145px] md:w-[160px]"
+      className="group relative flex flex-col items-center cursor-pointer focus:outline-none w-[260px] sm:w-[165px] md:w-[180px]"
       style={{ '--card-color': arcana?.color ?? '#8b5cf6' } as React.CSSProperties}
     >
       {/* Card frame */}
