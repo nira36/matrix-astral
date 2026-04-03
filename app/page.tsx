@@ -17,7 +17,6 @@ import InterpretationAccordion from '@/components/InterpretationAccordion'
 import { getArcana } from '@/lib/arcana'
 
 // New Numerology Components
-import LetterAnalysis from '@/components/LetterAnalysis'
 import PinnacleTimeline from '@/components/PinnacleTimeline'
 import ChallengeGrid from '@/components/ChallengeGrid'
 import TransitTable from '@/components/TransitTable'
@@ -28,9 +27,10 @@ import NumberCard from '@/components/NumberCard'
 import AdvancedNumerology from '@/components/AdvancedNumerology'
 import GematriaCalculator from '@/components/GematriaCalculator'
 import LunarCycles from '@/components/LunarCycles'
+import DeckGallery from '@/components/DeckGallery'
 import { CORE_DESCRIPTIONS } from '@/lib/numerology'
 
-type Tab = 'matrix' | 'numerology'
+type Tab = 'matrix' | 'numerology' | 'deck'
 
 export default function Home() {
   const [dateStr, setDateStr] = useState('')
@@ -154,30 +154,37 @@ export default function Home() {
         </button>
       </form>
 
-      {/* ── Results ── */}
-      {hasResults && matResult && numResult && (
-        <div key={calcKey} className="max-w-6xl mx-auto flex flex-col gap-8">
+      {/* ── Tab navigation (always visible) ── */}
+      <div className="max-w-6xl mx-auto flex flex-col gap-8">
 
-          {/* Tab navigation */}
-          <div className="flex justify-center mb-4">
-            <div className="flex gap-1 p-1 rounded-xl border border-white/[0.07] bg-bg-card">
-              {(['matrix', 'numerology'] as Tab[]).map(t => (
-                <button
-                  key={t}
-                  onClick={() => setTab(t)}
-                  className="px-6 py-2 rounded-lg text-xs font-bold tracking-widest uppercase
-                             transition-all duration-200"
-                  style={{
-                    background: tab === t ? 'linear-gradient(135deg,#7c3aed,#6366f1)' : 'transparent',
-                    color: tab === t ? '#fff' : '#64748b',
-                  }}
-                >
-                  {t === 'matrix' ? 'Destiny Matrix' : 'Numerology Chart'}
-                </button>
-              ))}
-            </div>
+        {/* Tab navigation */}
+        <div className="flex justify-center mb-4">
+          <div className="flex gap-1 p-1 rounded-xl border border-white/[0.07] bg-bg-card">
+            {(['matrix', 'numerology', 'deck'] as Tab[]).map(t => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className="px-6 py-2 rounded-lg text-xs font-bold tracking-widest uppercase
+                           transition-all duration-200"
+                style={{
+                  background: tab === t ? 'linear-gradient(135deg,#7c3aed,#6366f1)' : 'transparent',
+                  color: tab === t ? '#fff' : '#64748b',
+                }}
+              >
+                {t === 'matrix' ? 'Destiny Matrix' : t === 'numerology' ? 'Numerology Chart' : 'The Deck'}
+              </button>
+            ))}
           </div>
+        </div>
 
+        {tab === 'deck' && (
+          <div className="animate-fade-up">
+            <DeckGallery />
+          </div>
+        )}
+
+        {tab !== 'deck' && hasResults && matResult && numResult && (
+        <div key={calcKey} className="flex flex-col gap-8">
           {tab === 'matrix' ? (
             <div className="flex flex-col gap-10 animate-fade-up">
               {/* Octagram Section */}
@@ -349,12 +356,13 @@ export default function Home() {
               </section>
             </div>
           )}
-
-          <p className="text-center text-[9px] text-slate-700 pb-12 uppercase tracking-[0.3em]">
-            Cosmic Love Matrix · Pythagorean Tradition · Premium Numerology Report
-          </p>
         </div>
-      )}
+        )}
+
+        <p className="text-center text-[9px] text-slate-700 pb-12 uppercase tracking-[0.3em]">
+          Cosmic Love Matrix · Pythagorean Tradition · Premium Numerology Report
+        </p>
+      </div>
     </main>
   )
 }
