@@ -196,10 +196,10 @@ export default function Home() {
               {/* Core Cards */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {[
-                  { label: 'Comfort Zone', value: matResult.points.E.number, color: '#854D0E' },
-                  { label: 'Soul/Day', value: matResult.points.A.number, color: '#4C1D95' },
-                  { label: 'Karmic Tail', value: matResult.points.D.number, color: '#7F1D1D' },
-                  { label: `Year ${new Date().getFullYear()}`, value: matResult.personalYear, color: '#A16207' },
+                  { label: 'Comfort Zone', value: matResult.points.E.number, color: '#D97706' },
+                  { label: 'Soul/Day', value: matResult.points.A.number, color: '#8B5CF6' },
+                  { label: 'Karmic Tail', value: matResult.points.D.number, color: '#EF4444' },
+                  { label: `Year ${new Date().getFullYear()}`, value: matResult.personalYear, color: '#F59E0B' },
                 ].map(({ label, value, color }) => (
                   <div key={label} className="rounded-xl border border-white/[0.07] bg-bg-card px-5 py-4 shadow-lg shadow-black/20">
                     <span className="text-[10px] font-black tracking-widest uppercase mb-1 block" style={{ color }}>{label}</span>

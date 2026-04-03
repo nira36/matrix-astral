@@ -9,7 +9,7 @@ export default function MatrixSummary({ result }: { result: DestinyMatrixResult 
   return (
     <div className="flex flex-col gap-12 py-16 animate-fade-up">
       <div className="text-center flex flex-col gap-3">
-        <h2 className="text-4xl font-bold tracking-tight text-white">
+        <h2 className="text-3xl font-bold tracking-tight text-white">
           Matrix <span className="text-accent-purple">Summary</span>
         </h2>
         <p className="text-slate-400 text-sm max-w-xl mx-auto leading-relaxed">

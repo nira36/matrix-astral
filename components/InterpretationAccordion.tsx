@@ -138,8 +138,8 @@ export default function InterpretationAccordion({ result }: { result: DestinyMat
   return (
     <div className="flex flex-col gap-16 py-16 animate-fade-up">
       <div className="text-center flex flex-col gap-4">
-        <h2 className="text-[12px] font-black tracking-[0.25em] uppercase text-[#8b5cf6]/90">
-          Zones Analysis
+        <h2 className="text-3xl font-bold tracking-tight text-white">
+          Zones <span className="text-accent-purple">Analysis</span>
         </h2>
         <p className="text-slate-500 text-sm font-medium max-w-xl mx-auto">
           Discard the generic spiritual jargon. Here is the raw psychological mechanism of your destiny matrix.

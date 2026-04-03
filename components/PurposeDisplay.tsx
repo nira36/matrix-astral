@@ -9,8 +9,8 @@ export default function PurposeDisplay({ result }: { result: DestinyMatrixResult
   return (
     <div className="flex flex-col gap-10 py-8 animate-fade-up">
       {/* Title */}
-      <h2 className="text-center text-2xl font-bold tracking-tight text-accent-purple">
-        Purpose and Destiny
+      <h2 className="text-center text-3xl font-bold tracking-tight text-white">
+        Purpose and <span className="text-accent-purple">Destiny</span>
       </h2>
 
       {/* Pillars */}
