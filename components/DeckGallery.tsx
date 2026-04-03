@@ -149,7 +149,7 @@ function Lightbox({
           <div
             className="relative rounded-2xl overflow-hidden shadow-2xl"
             style={{
-              height: 'min(55vh, 480px)',
+              height: 'min(45vh, 400px)',
               aspectRatio: '1.8/3',
               boxShadow: `0 0 40px ${arcana?.color ?? '#8b5cf6'}55`
             }}
@@ -215,8 +215,20 @@ function Lightbox({
             </button>
           </div>
 
+          {/* Keywords */}
+          <div className="flex flex-wrap gap-1.5">
+            {arcana?.keywords.map(kw => (
+              <span
+                key={kw}
+                className="px-2 py-0.5 rounded-lg text-[10px] text-slate-400 border border-white/[0.06] bg-white/[0.02]"
+              >
+                {kw}
+              </span>
+            ))}
+          </div>
+
           {/* Description */}
-          <div className="p-5 rounded-2xl border border-white/[0.07] bg-white/[0.02]">
+          <div className="p-4 rounded-2xl border border-white/[0.07] bg-white/[0.02]">
             <p className="text-[11px] text-slate-300 leading-relaxed font-medium">
               {arcana?.description}
             </p>
