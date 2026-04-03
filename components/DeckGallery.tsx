@@ -215,27 +215,6 @@ function Lightbox({
             </button>
           </div>
 
-          {/* Metadata pills */}
-          <div className="flex flex-wrap gap-2">
-            {[
-              arcana?.element,
-              arcana?.planet,
-              arcana?.energy,
-            ].filter(Boolean).map(tag => (
-              <span
-                key={tag}
-                className="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
-                style={{
-                  borderColor: `${arcana?.color}44`,
-                  color: arcana?.color,
-                  background: `${arcana?.color}0d`,
-                }}
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-
           {/* Description */}
           <div className="p-5 rounded-2xl border border-white/[0.07] bg-white/[0.02]">
             <p className="text-[11px] text-slate-300 leading-relaxed font-medium">
