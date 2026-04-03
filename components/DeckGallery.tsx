@@ -63,7 +63,7 @@ function DeckCard({
   return (
     <button
       onClick={onClick}
-      className="group relative flex flex-col items-center cursor-pointer focus:outline-none w-[110px] sm:w-[140px] md:w-[160px]"
+      className="group relative flex flex-col items-center cursor-pointer focus:outline-none w-[200px] sm:w-[145px] md:w-[160px]"
       style={{ '--card-color': arcana?.color ?? '#8b5cf6' } as React.CSSProperties}
     >
       {/* Card frame */}
@@ -234,21 +234,6 @@ function Lightbox({
                 {tag}
               </span>
             ))}
-          </div>
-
-          {/* Keywords */}
-          <div>
-            <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2">Keywords</p>
-            <div className="flex flex-wrap gap-2">
-              {arcana?.keywords.map(kw => (
-                <span
-                  key={kw}
-                  className="px-2 py-0.5 rounded-lg text-[10px] text-slate-400 border border-white/[0.06] bg-white/[0.02]"
-                >
-                  {kw}
-                </span>
-              ))}
-            </div>
           </div>
 
           {/* Description */}
