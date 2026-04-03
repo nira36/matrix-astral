@@ -28,9 +28,14 @@ import AdvancedNumerology from '@/components/AdvancedNumerology'
 import GematriaCalculator from '@/components/GematriaCalculator'
 import LunarCycles from '@/components/LunarCycles'
 import DeckGallery from '@/components/DeckGallery'
+import EvolutionSection from '@/components/EvolutionSection'
+import NatalChartWheel from '@/components/NatalChartWheel'
+import NatalChartTable from '@/components/NatalChartTable'
+import { calcNatalChart } from '@/lib/astrology'
+import type { NatalChartData } from '@/lib/astrology'
 import { CORE_DESCRIPTIONS } from '@/lib/numerology'
 
-type Tab = 'matrix' | 'numerology' | 'deck'
+type Tab = 'matrix' | 'deck' | 'numerology' | 'natal'
 
 export default function Home() {
   const [dateStr, setDateStr] = useState('')
@@ -41,6 +46,11 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [tab, setTab] = useState<Tab>('matrix')
   const [calcKey, setCalcKey] = useState(0)
+
+  // Natal chart extra fields
+  const [birthTime, setBirthTime] = useState('')
+  const [birthPlace, setBirthPlace] = useState('')
+  const [natalData, setNatalData] = useState<NatalChartData | null>(null)
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -67,9 +77,19 @@ export default function Home() {
         return
       }
 
+      // Parse birth time for natal chart
+      let hour = 12, min = 0
+      if (birthTime) {
+        const tp = birthTime.split(':')
+        hour = parseInt(tp[0], 10) || 12
+        min = parseInt(tp[1], 10) || 0
+      }
+      const natal = calcNatalChart(day, month, year, hour, min, birthPlace)
+
       setCalcKey(k => k + 1)
       setNumResult(nr)
       setMatResult(mr)
+      setNatalData(natal)
       setLoading(false)
     }, 350)
   }
@@ -129,6 +149,41 @@ export default function Home() {
           />
         </div>
 
+        {/* Birth time & place (for Natal Chart) */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] font-semibold tracking-widest uppercase text-slate-500">
+              Birth Time{' '}
+              <span className="normal-case text-slate-600 tracking-normal font-normal">(optional)</span>
+            </label>
+            <input
+              type="time"
+              value={birthTime}
+              onChange={e => setBirthTime(e.target.value)}
+              className="w-full bg-[#1f2937] border border-white/[0.08] rounded-xl
+                         px-4 py-3 text-white placeholder-slate-600 text-sm outline-none
+                         transition-all duration-200
+                         focus:border-accent-purple focus:shadow-[0_0_0_3px_rgba(139,92,246,0.15)]"
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] font-semibold tracking-widest uppercase text-slate-500">
+              Birth Place{' '}
+              <span className="normal-case text-slate-600 tracking-normal font-normal">(optional)</span>
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. Rome, Italy"
+              value={birthPlace}
+              onChange={e => setBirthPlace(e.target.value)}
+              className="w-full bg-[#1f2937] border border-white/[0.08] rounded-xl
+                         px-4 py-3 text-white placeholder-slate-600 text-sm outline-none
+                         transition-all duration-200
+                         focus:border-accent-purple focus:shadow-[0_0_0_3px_rgba(139,92,246,0.15)]"
+            />
+          </div>
+        </div>
+
         {error && (
           <p className="text-red-400 text-xs flex items-center gap-1.5">
             <svg className="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -159,19 +214,61 @@ export default function Home() {
 
         {/* Tab navigation */}
         <div className="flex justify-center mb-4">
-          <div className="flex gap-1 p-1 rounded-xl border border-white/[0.07] bg-bg-card">
-            {(['matrix', 'numerology', 'deck'] as Tab[]).map(t => (
+          <div className="flex gap-1 p-1.5 rounded-2xl border border-white/[0.07] bg-bg-card">
+            {([
+              { key: 'matrix' as Tab, label: 'Matrix', icon: (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5" />
+                  <line x1="12" y1="2" x2="12" y2="22" />
+                  <line x1="2" y1="8.5" x2="22" y2="15.5" />
+                  <line x1="22" y1="8.5" x2="2" y2="15.5" />
+                </svg>
+              )},
+              { key: 'deck' as Tab, label: 'Deck', icon: (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="4" y="2" width="16" height="20" rx="2" />
+                  <circle cx="12" cy="12" r="3" />
+                  <line x1="12" y1="5" x2="12" y2="7" />
+                  <line x1="12" y1="17" x2="12" y2="19" />
+                  <line x1="7" y1="12" x2="5" y2="12" />
+                  <line x1="19" y1="12" x2="17" y2="12" />
+                </svg>
+              )},
+              { key: 'numerology' as Tab, label: 'Numbers', icon: (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="3" />
+                  <circle cx="8.5" cy="8.5" r="1" fill="currentColor" stroke="none" />
+                  <circle cx="15.5" cy="8.5" r="1" fill="currentColor" stroke="none" />
+                  <circle cx="8.5" cy="15.5" r="1" fill="currentColor" stroke="none" />
+                  <circle cx="15.5" cy="15.5" r="1" fill="currentColor" stroke="none" />
+                  <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+                </svg>
+              )},
+              { key: 'natal' as Tab, label: 'Chart', icon: (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <circle cx="12" cy="12" r="6" />
+                  <line x1="12" y1="2" x2="12" y2="6" />
+                  <line x1="12" y1="18" x2="12" y2="22" />
+                  <line x1="2" y1="12" x2="6" y2="12" />
+                  <line x1="18" y1="12" x2="22" y2="12" />
+                  <circle cx="9" cy="9" r="1" fill="currentColor" stroke="none" />
+                  <circle cx="15" cy="14" r="1" fill="currentColor" stroke="none" />
+                </svg>
+              )},
+            ]).map(({ key, label, icon }) => (
               <button
-                key={t}
-                onClick={() => setTab(t)}
-                className="px-6 py-2 rounded-lg text-xs font-bold tracking-widest uppercase
+                key={key}
+                onClick={() => setTab(key)}
+                className="flex flex-col items-center gap-1 px-6 py-2.5 rounded-xl
                            transition-all duration-200"
                 style={{
-                  background: tab === t ? 'linear-gradient(135deg,#7c3aed,#6366f1)' : 'transparent',
-                  color: tab === t ? '#fff' : '#64748b',
+                  background: tab === key ? 'linear-gradient(135deg,#7c3aed,#6366f1)' : 'transparent',
+                  color: tab === key ? '#fff' : '#64748b',
                 }}
               >
-                {t === 'matrix' ? 'Destiny Matrix' : t === 'numerology' ? 'Numerology Chart' : 'The Deck'}
+                {icon}
+                <span className="text-[8px] font-black tracking-[0.2em] uppercase">{label}</span>
               </button>
             ))}
           </div>
@@ -183,13 +280,43 @@ export default function Home() {
           </div>
         )}
 
-        {tab !== 'deck' && hasResults && matResult && numResult && (
+        {tab === 'natal' && hasResults && natalData && (
+          <div key={`natal-${calcKey}`} className="flex flex-col gap-12 animate-fade-up">
+            <div className="text-center flex flex-col gap-3">
+              <h2 className="text-3xl font-bold tracking-tight text-white">
+                Natal <span className="text-accent-purple">Chart</span>
+              </h2>
+              <p className="text-slate-500 text-sm max-w-xl mx-auto leading-relaxed">
+                Your sky at the moment of birth. Planetary positions, house placements, and the geometric relationships that define your psychological architecture.
+              </p>
+              {birthTime && birthPlace && (
+                <p className="text-[10px] text-slate-600 font-mono">{dateStr} · {birthTime} · {birthPlace}</p>
+              )}
+            </div>
+
+            <div className="flex flex-col items-center">
+              <NatalChartWheel data={natalData} />
+            </div>
+
+            <NatalChartTable data={natalData} />
+
+            {!birthTime && (
+              <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.04] p-4 text-center">
+                <p className="text-[11px] text-amber-400/80">
+                  For accurate Ascendant and house placements, add your exact birth time and location above, then recalculate.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {(tab === 'matrix' || tab === 'numerology') && hasResults && matResult && numResult && (
         <div key={calcKey} className="flex flex-col gap-8">
           {tab === 'matrix' ? (
             <div className="flex flex-col gap-10 animate-fade-up">
               {/* Octagram Section */}
               <div className="flex flex-col items-center">
-                <SectionLabel>The Octagram</SectionLabel>
+                <SectionLabel>The <span className="text-accent-purple">Octagram</span></SectionLabel>
                 <EsotericMatrix result={matResult} className="max-w-5xl" />
               </div>
 
@@ -224,7 +351,7 @@ export default function Home() {
             <div className="flex flex-col gap-14 animate-fade-up">
               {/* SECTION 1: THE CORE BLUEPRINT */}
               <section className="flex flex-col gap-8">
-                <SectionLabel>1. The Oracle's Blueprint</SectionLabel>
+                <SectionLabel>The Oracle's <span className="text-accent-purple">Blueprint</span></SectionLabel>
                 <CoreBlueprint result={numResult} />
                 
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -249,59 +376,27 @@ export default function Home() {
               {/* SECTION 2: INTENSITY & KARMA */}
               {name.trim() && (
                 <section className="flex flex-col gap-8 animate-fade-up">
-                  <SectionLabel>2. Intensity & Karmic Lessons</SectionLabel>
+                  <SectionLabel>Intensity & Karmic <span className="text-accent-purple">Lessons</span></SectionLabel>
                   <IntensityAnalysis result={numResult} />
                 </section>
               )}
 
               {/* SECTION 3: EVOLUTION */}
-              <section className="flex flex-col gap-6">
-                <SectionLabel>3. Evolution & Life Cycles</SectionLabel>
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                  <div className="lg:col-span-8 flex flex-col gap-6">
-                    <Card>
-                      <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">The 4 Pinnacles</h3>
-                      <PinnacleTimeline pinnacles={numResult.pinnacles} />
-                    </Card>
-                    <Card>
-                      <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">The 4 Challenges</h3>
-                      <ChallengeGrid challenges={numResult.challenges} />
-                    </Card>
-                  </div>
-                  <div className="lg:col-span-4 flex flex-col gap-6">
-                    <Card>
-                      <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">Major Life Cycles</h3>
-                      <div className="flex flex-col gap-4">
-                        {numResult.lifeCycles.map((c, i) => (
-                          <div key={i} className="flex items-center gap-4 p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                            <div className="w-10 h-10 rounded-lg flex items-center justify-center font-black text-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-                              {c.number}
-                            </div>
-                            <div>
-                              <div className="text-xs font-bold text-slate-300">{c.label}</div>
-                              <div className="text-[10px] text-slate-600 font-mono">Age {c.startAge}-{c.endAge >= 100 ? '∞' : c.endAge}</div>
-                            </div>
-                          </div>
-                        ))}
-                        <div className="mt-4 pt-4 border-t border-white/[0.05]">
-                          <RadarChart core={numResult.core} />
-                        </div>
-                      </div>
-                    </Card>
-                  </div>
-                </div>
+              <section className="flex flex-col gap-8">
+                <SectionLabel>Evolution & Life <span className="text-accent-purple">Cycles</span></SectionLabel>
+                <EvolutionSection result={numResult} />
               </section>
 
               {/* SECTION 4: ACTION PLAN */}
               <section className="flex flex-col gap-8">
-                <SectionLabel>4. Your Next Moves</SectionLabel>
+                <SectionLabel>Your Next <span className="text-accent-purple">Moves</span></SectionLabel>
 
                 <ActionPlan result={numResult} />
               </section>
 
               {/* SECTION 5: ADVANCED NUMEROLOGY */}
               <section className="flex flex-col gap-8">
-                <SectionLabel>5. Advanced Numerology</SectionLabel>
+                <SectionLabel>Advanced <span className="text-accent-purple">Numerology</span></SectionLabel>
                 <Card>
                   <AdvancedNumerology result={numResult} />
                 </Card>
@@ -309,7 +404,7 @@ export default function Home() {
 
               {/* SECTION 6: GEMATRIA */}
               <section className="flex flex-col gap-8">
-                <SectionLabel>6. Gematria · Sacred Word Values</SectionLabel>
+                <SectionLabel>Gematria · Sacred Word <span className="text-accent-purple">Values</span></SectionLabel>
                 <Card>
                   <GematriaCalculator />
                 </Card>
@@ -317,7 +412,7 @@ export default function Home() {
 
               {/* SECTION 7: LUNAR CYCLES */}
               <section className="flex flex-col gap-8">
-                <SectionLabel>7. Lunar Cycles & Personal Transits</SectionLabel>
+                <SectionLabel>Lunar Cycles & Personal <span className="text-accent-purple">Transits</span></SectionLabel>
                 <Card>
                   <LunarCycles result={numResult} />
                 </Card>
@@ -325,7 +420,7 @@ export default function Home() {
 
               {/* SECTION 8: TRANSITS */}
               <section className="flex flex-col gap-6">
-                <SectionLabel>8. Current Energy & Annual Transits</SectionLabel>
+                <SectionLabel>Current Energy & Annual <span className="text-accent-purple">Transits</span></SectionLabel>
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                   <div className="lg:col-span-4">
                     <Card>
@@ -377,7 +472,7 @@ function Card({ children }: { children: React.ReactNode }) {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="text-[12px] font-black tracking-[0.25em] uppercase text-[#8b5cf6]/90 mb-4 stagger">
+    <h2 className="text-3xl font-bold tracking-tight text-white text-center mb-4 stagger">
       {children}
     </h2>
   )
