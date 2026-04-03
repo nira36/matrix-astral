@@ -63,8 +63,8 @@ function DeckCard({
   return (
     <button
       onClick={onClick}
-      className="group relative flex flex-col items-center cursor-pointer focus:outline-none"
-      style={{ '--card-color': arcana?.color ?? '#8b5cf6', width: '333px' } as React.CSSProperties}
+      className="group relative flex flex-col items-center cursor-pointer focus:outline-none w-[110px] sm:w-[140px] md:w-[160px]"
+      style={{ '--card-color': arcana?.color ?? '#8b5cf6' } as React.CSSProperties}
     >
       {/* Card frame */}
       <div
@@ -141,14 +141,18 @@ function Lightbox({
       onClick={onClose}
     >
       <div
-        className="relative flex flex-col md:flex-row gap-8 max-w-5xl w-full max-h-[90vh]"
+        className="relative flex flex-col md:flex-row gap-4 md:gap-8 max-w-5xl w-full max-h-[90vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
       >
         {/* Card image */}
         <div className="flex-shrink-0 flex flex-col items-center gap-3">
           <div
-            className="relative w-[333px] aspect-[1.8/3] rounded-2xl overflow-hidden shadow-2xl"
-            style={{ boxShadow: `0 0 40px ${arcana?.color ?? '#8b5cf6'}55` }}
+            className="relative rounded-2xl overflow-hidden shadow-2xl"
+            style={{
+              height: 'min(55vh, 480px)',
+              aspectRatio: '1.8/3',
+              boxShadow: `0 0 40px ${arcana?.color ?? '#8b5cf6'}55`
+            }}
           >
             {hasImage ? (
               <Image
