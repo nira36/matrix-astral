@@ -273,9 +273,8 @@ export default function DeckGallery() {
             Click any card to explore its archetype, symbolism, and interpretation.
           </p>
           <p className="text-[10px] text-slate-700 font-mono">
-            Add your images to <code className="text-slate-600">/public/deck/</code> — named{' '}
-            <code className="text-slate-600">00.jpg</code> through{' '}
-            <code className="text-slate-600">21.jpg</code>
+            
+            
           </p>
         </div>
 

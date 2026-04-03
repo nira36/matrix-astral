@@ -111,26 +111,26 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
     return (
       <g id="geometry-lines" stroke={stroke} strokeWidth="1.5" fill="none">
         {/* Aura Layer 1: Full Octagon Breath (Continuous Glow) */}
-        <polygon 
-          points={octPoints} 
+        <polygon
+          points={octPoints}
           className="animate-aura-breathe"
           stroke="#8B5CF6"
-          strokeWidth="6"
+          strokeWidth="10"
           filter="url(#aura-blur)"
           strokeLinecap="round"
           style={{ vectorEffect: 'non-scaling-stroke' }}
         />
 
         {/* Aura Layer 2: Flowing Energy (Clockwise Trace) */}
-        <polygon 
-          points={octPoints} 
+        <polygon
+          points={octPoints}
           className="animate-aura-trace"
           stroke="#8B5CF6"
-          strokeWidth="8"
+          strokeWidth="14"
           strokeDasharray="600 1850"
           filter="url(#aura-blur)"
           strokeLinecap="round"
-          opacity="0.6"
+          opacity="0.35"
           style={{ vectorEffect: 'non-scaling-stroke' }}
         />
 
@@ -214,8 +214,8 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
               to { stroke-dashoffset: 0; }
             }
             @keyframes aura-breath {
-              0%, 100% { stroke-opacity: 0.3; stroke-width: 6px; }
-              50% { stroke-opacity: 0.8; stroke-width: 12px; }
+              0%, 100% { stroke-opacity: 0.15; stroke-width: 10px; }
+              50% { stroke-opacity: 0.45; stroke-width: 18px; }
             }
             .animate-aura-trace {
               animation: aura-trace 15s linear infinite;
@@ -359,7 +359,7 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
       >
         <defs>
           <filter id="aura-blur" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="6" result="blur" />
+            <feGaussianBlur stdDeviation="18" result="blur" />
           </filter>
           <radialGradient id="grad-center-esoteric" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.15" />

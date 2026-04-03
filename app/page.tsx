@@ -216,8 +216,8 @@ export default function Home() {
                 <Card><ArcanaGrid result={matResult} /></Card>
                 <PurposeDisplay result={matResult} />
                 <PrognosisDisplay result={matResult} />
-                <MatrixSummary result={matResult} />
                 <InterpretationAccordion result={matResult} />
+                <MatrixSummary result={matResult} />
               </div>
             </div>
           ) : (
