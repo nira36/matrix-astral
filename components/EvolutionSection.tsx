@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState } from 'react'
-import type { NumerologyResult, LifePhase, CoreNumbers } from '@/lib/numerology'
+import React from 'react'
+import type { NumerologyResult, LifePhase } from '@/lib/numerology'
 
 // ─── Number meaning database ────────────────────────────────────────────────
 
@@ -90,268 +90,6 @@ function ChallengeCard({ value, index }: { value: number; index: number }) {
   )
 }
 
-// ─── Life Phase Timeline Chart (SVG) ─────────────────────────────────────────
-
-function LifePhaseChart({ pinnacles, challenges, lifeCycles }: { pinnacles: LifePhase[]; challenges: number[]; lifeCycles: LifePhase[] }) {
-  const [hoveredAge, setHoveredAge] = useState<number | null>(null)
-
-  const W = 700
-  const H = 280
-  const padL = 40
-  const padR = 20
-  const padT = 30
-  const padB = 40
-  const chartW = W - padL - padR
-  const chartH = H - padT - padB
-
-  const maxAge = 80
-  const maxVal = 33
-
-  const toX = (age: number) => padL + (age / maxAge) * chartW
-  const toY = (val: number) => padT + chartH - (Math.min(val, maxVal) / maxVal) * chartH
-
-  // Build data points per decade
-  const decades = [0, 10, 20, 30, 40, 50, 60, 70, 80]
-
-  const getPinnacleAt = (age: number) => {
-    const p = pinnacles.find(p => age >= p.startAge && age < p.endAge)
-    return p ? p.number : pinnacles[pinnacles.length - 1]?.number || 0
-  }
-
-  const getCycleAt = (age: number) => {
-    const c = lifeCycles.find(c => age >= c.startAge && age < c.endAge)
-    return c ? c.number : lifeCycles[lifeCycles.length - 1]?.number || 0
-  }
-
-  const getChallengeAt = (age: number) => {
-    if (age < 28) return challenges[0] || 0
-    if (age < 37) return challenges[1] || 0
-    if (age < 55) return challenges[2] || 0
-    return challenges[3] || 0
-  }
-
-  // Build polyline points
-  const pinnaclePoints = decades.map(a => `${toX(a)},${toY(getPinnacleAt(a))}`).join(' ')
-  const cyclePoints = decades.map(a => `${toX(a)},${toY(getCycleAt(a))}`).join(' ')
-  const challengePoints = decades.map(a => `${toX(a)},${toY(getChallengeAt(a))}`).join(' ')
-
-  // Current age indicator
-  const now = new Date()
-  const birthYear = now.getFullYear() - (pinnacles[0]?.endAge || 30) // approximate
-
-  return (
-    <div className="w-full overflow-x-auto">
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        className="w-full min-w-[500px] h-auto"
-        onMouseLeave={() => setHoveredAge(null)}
-      >
-        {/* Grid lines */}
-        {[0, 10, 20, 30, 40, 50, 60, 70, 80].map(age => (
-          <g key={age}>
-            <line x1={toX(age)} y1={padT} x2={toX(age)} y2={padT + chartH} stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-            <text x={toX(age)} y={H - 10} fill="#475569" fontSize="9" fontWeight="700" textAnchor="middle">{age}</text>
-          </g>
-        ))}
-        {[0, 5, 10, 15, 20, 25, 30].map(v => (
-          <g key={v}>
-            <line x1={padL} y1={toY(v)} x2={padL + chartW} y2={toY(v)} stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
-            <text x={padL - 8} y={toY(v) + 3} fill="#334155" fontSize="8" fontWeight="600" textAnchor="end">{v}</text>
-          </g>
-        ))}
-
-        {/* Area fills */}
-        <polygon
-          points={`${toX(0)},${toY(0)} ${pinnaclePoints} ${toX(80)},${toY(0)}`}
-          fill="rgba(139,92,246,0.06)"
-        />
-
-        {/* Lines */}
-        <polyline points={pinnaclePoints} fill="none" stroke="#8B5CF6" strokeWidth="2" strokeLinejoin="round" />
-        <polyline points={cyclePoints} fill="none" stroke="#22D3EE" strokeWidth="1.5" strokeLinejoin="round" strokeDasharray="6 3" />
-        <polyline points={challengePoints} fill="none" stroke="#F87171" strokeWidth="1.5" strokeLinejoin="round" strokeDasharray="3 3" />
-
-        {/* Data points — Pinnacles */}
-        {decades.map(age => (
-          <g key={`p-${age}`}>
-            <circle cx={toX(age)} cy={toY(getPinnacleAt(age))} r="4" fill="#8B5CF6" stroke="#1e1b4b" strokeWidth="1.5" />
-            <text x={toX(age)} y={toY(getPinnacleAt(age)) - 10} fill="#c4b5fd" fontSize="9" fontWeight="800" textAnchor="middle">
-              {getPinnacleAt(age)}
-            </text>
-          </g>
-        ))}
-
-        {/* Data points — Cycles */}
-        {decades.map(age => (
-          <circle key={`c-${age}`} cx={toX(age)} cy={toY(getCycleAt(age))} r="3" fill="#22D3EE" stroke="#1e1b4b" strokeWidth="1.5" />
-        ))}
-
-        {/* Data points — Challenges */}
-        {decades.map(age => (
-          <circle key={`ch-${age}`} cx={toX(age)} cy={toY(getChallengeAt(age))} r="2.5" fill="#F87171" stroke="#1e1b4b" strokeWidth="1.5" />
-        ))}
-
-        {/* Hover zones */}
-        {decades.map(age => (
-          <rect
-            key={`hover-${age}`}
-            x={toX(age) - chartW / 18}
-            y={padT}
-            width={chartW / 9}
-            height={chartH}
-            fill="transparent"
-            onMouseEnter={() => setHoveredAge(age)}
-            className="cursor-crosshair"
-          />
-        ))}
-
-        {/* Hover crosshair */}
-        {hoveredAge !== null && (
-          <g>
-            <line x1={toX(hoveredAge)} y1={padT} x2={toX(hoveredAge)} y2={padT + chartH} stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="4 2" />
-            <rect x={toX(hoveredAge) - 48} y={padT - 2} width="96" height="54" rx="6" fill="rgba(15,15,30,0.95)" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-            <text x={toX(hoveredAge)} y={padT + 12} fill="#c4b5fd" fontSize="8" fontWeight="800" textAnchor="middle">Age {hoveredAge}</text>
-            <text x={toX(hoveredAge)} y={padT + 24} fill="#8B5CF6" fontSize="8" fontWeight="700" textAnchor="middle">
-              Pinnacle: {getPinnacleAt(hoveredAge)}
-            </text>
-            <text x={toX(hoveredAge)} y={padT + 34} fill="#22D3EE" fontSize="8" fontWeight="700" textAnchor="middle">
-              Cycle: {getCycleAt(hoveredAge)}
-            </text>
-            <text x={toX(hoveredAge)} y={padT + 44} fill="#F87171" fontSize="8" fontWeight="700" textAnchor="middle">
-              Challenge: {getChallengeAt(hoveredAge)}
-            </text>
-          </g>
-        )}
-
-        {/* Axis label */}
-        <text x={W / 2} y={H - 0} fill="#334155" fontSize="8" fontWeight="700" textAnchor="middle" letterSpacing="3">AGE</text>
-      </svg>
-
-      {/* Legend */}
-      <div className="flex items-center justify-center gap-6 mt-4">
-        {[
-          { color: '#8B5CF6', label: 'Pinnacle', dash: false },
-          { color: '#22D3EE', label: 'Life Cycle', dash: true },
-          { color: '#F87171', label: 'Challenge', dash: true },
-        ].map(l => (
-          <div key={l.label} className="flex items-center gap-2">
-            <svg width="20" height="2">
-              <line x1="0" y1="1" x2="20" y2="1" stroke={l.color} strokeWidth="2" strokeDasharray={l.dash ? '4 2' : ''} />
-            </svg>
-            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{l.label}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ─── Core Numbers Radar (enhanced) ──────────────────────────────────────────
-
-function EnhancedRadar({ core }: { core: CoreNumbers }) {
-  const [hovered, setHovered] = useState<number | null>(null)
-
-  const points = [
-    { label: 'Life Path', short: 'LP', value: core.lifePath, color: '#8B5CF6' },
-    { label: 'Expression', short: 'EX', value: core.expression, color: '#3B82F6' },
-    { label: 'Soul Urge', short: 'SU', value: core.soulUrge, color: '#F43F5E' },
-    { label: 'Personality', short: 'PE', value: core.personality, color: '#10B981' },
-    { label: 'Birth Day', short: 'BD', value: core.birthDayNumber, color: '#F59E0B' },
-    { label: 'Maturity', short: 'MA', value: core.maturityNumber, color: '#EF4444' },
-  ]
-
-  const size = 240
-  const center = size / 2
-  const radius = size * 0.35
-
-  const getCoord = (val: number, i: number) => {
-    const angle = (Math.PI * 2 * i) / points.length - Math.PI / 2
-    const factor = val === 0 ? 0.05 : 0.1 + (Math.min(val, 33) / 33) * 0.9
-    return {
-      x: center + radius * factor * Math.cos(angle),
-      y: center + radius * factor * Math.sin(angle),
-    }
-  }
-
-  const getLabelCoord = (i: number) => {
-    const angle = (Math.PI * 2 * i) / points.length - Math.PI / 2
-    return {
-      x: center + (radius + 30) * Math.cos(angle),
-      y: center + (radius + 30) * Math.sin(angle),
-    }
-  }
-
-  const polygonPoints = points.map((p, i) => {
-    const { x, y } = getCoord(p.value, i)
-    return `${x},${y}`
-  }).join(' ')
-
-  return (
-    <div className="flex flex-col items-center gap-4">
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="overflow-visible">
-        {/* Grid rings */}
-        {[0.25, 0.5, 0.75, 1].map(f => (
-          <circle key={f} cx={center} cy={center} r={radius * f} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-        ))}
-
-        {/* Axis lines */}
-        {points.map((_, i) => {
-          const angle = (Math.PI * 2 * i) / points.length - Math.PI / 2
-          return (
-            <line key={i} x1={center} y1={center} x2={center + radius * Math.cos(angle)} y2={center + radius * Math.sin(angle)} stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
-          )
-        })}
-
-        {/* Data polygon */}
-        <polygon points={polygonPoints} fill="rgba(139,92,246,0.12)" stroke="#8B5CF6" strokeWidth="1.5" />
-
-        {/* Data points */}
-        {points.map((p, i) => {
-          const { x, y } = getCoord(p.value, i)
-          return (
-            <circle
-              key={i}
-              cx={x} cy={y} r={hovered === i ? 5 : 3.5}
-              fill={p.color}
-              stroke="#0f0f1e"
-              strokeWidth="2"
-              onMouseEnter={() => setHovered(i)}
-              onMouseLeave={() => setHovered(null)}
-              className="cursor-pointer transition-all duration-200"
-            />
-          )
-        })}
-
-        {/* Labels */}
-        {points.map((p, i) => {
-          const { x, y } = getLabelCoord(i)
-          return (
-            <g key={i}>
-              <text x={x} y={y - 5} fill={hovered === i ? p.color : '#64748b'} fontSize="8" fontWeight="800" textAnchor="middle" className="uppercase tracking-widest transition-colors">
-                {p.short}
-              </text>
-              <text x={x} y={y + 6} fill={hovered === i ? '#e2e8f0' : '#334155'} fontSize="10" fontWeight="800" textAnchor="middle" className="transition-colors">
-                {p.value}
-              </text>
-            </g>
-          )
-        })}
-      </svg>
-
-      {/* Hovered detail */}
-      <div className="h-14 flex items-center justify-center">
-        {hovered !== null ? (
-          <div className="text-center animate-fade-up">
-            <span className="text-xs font-bold text-white">{points[hovered].label}: {points[hovered].value}</span>
-            <p className="text-[10px] text-slate-500 mt-0.5">{getMeaning(points[hovered].value).theme}</p>
-          </div>
-        ) : (
-          <p className="text-[10px] text-slate-600 italic">Hover a point to see details</p>
-        )}
-      </div>
-    </div>
-  )
-}
 
 // ─── Main Component ─────────────────────────────────────────────────────────
 
@@ -359,13 +97,7 @@ export default function EvolutionSection({ result }: { result: NumerologyResult 
   return (
     <div className="flex flex-col gap-10">
 
-      {/* Life Phase Timeline Chart */}
-      <div className="rounded-2xl border border-white/[0.07] bg-bg-card p-5 md:p-7 shadow-xl shadow-black/30">
-        <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">Lifetime Energy Map</h3>
-        <LifePhaseChart pinnacles={result.pinnacles} challenges={result.challenges} lifeCycles={result.lifeCycles} />
-      </div>
-
-      {/* Pinnacles — detailed */}
+{/* Pinnacles — detailed */}
       <div className="flex flex-col gap-4">
         <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">The 4 Pinnacles — Peak Energies</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -385,37 +117,28 @@ export default function EvolutionSection({ result }: { result: NumerologyResult 
         </div>
       </div>
 
-      {/* Life Cycles + Radar */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Life Cycles detailed */}
-        <div className="rounded-2xl border border-white/[0.07] bg-bg-card p-5 md:p-7 shadow-xl shadow-black/30">
-          <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">Major Life Cycles</h3>
-          <div className="flex flex-col gap-4">
-            {result.lifeCycles.map((c, i) => {
-              const meaning = getMeaning(c.number)
-              const cycleColors = ['text-cyan-400', 'text-amber-400', 'text-rose-400']
-              const cycleBgs = ['bg-cyan-500/[0.06] border-cyan-500/20', 'bg-amber-500/[0.06] border-amber-500/20', 'bg-rose-500/[0.06] border-rose-500/20']
-              return (
-                <div key={i} className={`p-4 rounded-xl border ${cycleBgs[i] || cycleBgs[0]}`}>
-                  <div className="flex items-center gap-4 mb-3">
-                    <span className={`text-3xl font-black ${cycleColors[i] || cycleColors[0]}`}>{c.number}</span>
-                    <div>
-                      <div className="text-xs font-bold text-slate-300">{c.label}</div>
-                      <div className="text-[10px] text-slate-600 font-mono">Age {c.startAge}–{c.endAge >= 100 ? '∞' : c.endAge}</div>
-                    </div>
+      {/* Life Cycles detailed */}
+      <div className="rounded-2xl border border-white/[0.07] bg-bg-card p-5 md:p-7 shadow-xl shadow-black/30">
+        <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">Major Life Cycles</h3>
+        <div className="flex flex-col gap-4">
+          {result.lifeCycles.map((c, i) => {
+            const meaning = getMeaning(c.number)
+            const cycleColors = ['text-cyan-400', 'text-amber-400', 'text-rose-400']
+            const cycleBgs = ['bg-cyan-500/[0.06] border-cyan-500/20', 'bg-amber-500/[0.06] border-amber-500/20', 'bg-rose-500/[0.06] border-rose-500/20']
+            return (
+              <div key={i} className={`p-4 rounded-xl border ${cycleBgs[i] || cycleBgs[0]}`}>
+                <div className="flex items-center gap-4 mb-3">
+                  <span className={`text-3xl font-black ${cycleColors[i] || cycleColors[0]}`}>{c.number}</span>
+                  <div>
+                    <div className="text-xs font-bold text-slate-300">{c.label}</div>
+                    <div className="text-[10px] text-slate-600 font-mono">Age {c.startAge}–{c.endAge >= 100 ? '∞' : c.endAge}</div>
                   </div>
-                  <p className="text-[10px] text-slate-500 leading-relaxed mb-1">{meaning.theme}</p>
-                  <p className="text-[10px] text-slate-600 italic">"{meaning.lesson}"</p>
                 </div>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Enhanced Radar */}
-        <div className="rounded-2xl border border-white/[0.07] bg-bg-card p-5 md:p-7 shadow-xl shadow-black/30 flex flex-col items-center">
-          <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 self-start">Core Number Profile</h3>
-          <EnhancedRadar core={result.core} />
+                <p className="text-[10px] text-slate-500 leading-relaxed mb-1">{meaning.theme}</p>
+                <p className="text-[10px] text-slate-600 italic">"{meaning.lesson}"</p>
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>

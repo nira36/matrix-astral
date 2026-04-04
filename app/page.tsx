@@ -31,8 +31,12 @@ import DeckGallery from '@/components/DeckGallery'
 import EvolutionSection from '@/components/EvolutionSection'
 import NatalChartWheel from '@/components/NatalChartWheel'
 import NatalChartTable from '@/components/NatalChartTable'
-import { calcNatalChart } from '@/lib/astrology'
+import NatalInterpretation from '@/components/NatalInterpretation'
+import NatalReadings from '@/components/NatalReadings'
+import { calcNatalChart, isDST } from '@/lib/astrology'
 import type { NatalChartData } from '@/lib/astrology'
+import BirthPlaceInput from '@/components/BirthPlaceInput'
+import type { PlaceSelection } from '@/components/BirthPlaceInput'
 import { CORE_DESCRIPTIONS } from '@/lib/numerology'
 
 type Tab = 'matrix' | 'deck' | 'numerology' | 'natal'
@@ -50,48 +54,85 @@ export default function Home() {
   // Natal chart extra fields
   const [birthTime, setBirthTime] = useState('')
   const [birthPlace, setBirthPlace] = useState('')
+  const [selectedPlace, setSelectedPlace] = useState<PlaceSelection | null>(null)
   const [natalData, setNatalData] = useState<NatalChartData | null>(null)
+  const [natalMeta, setNatalMeta] = useState<{ ut: string; lst: string; lat: string; lon: string; tz: string } | null>(null)
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
     setLoading(true)
 
-    setTimeout(() => {
-      const parts = dateStr.split('/')
-      if (parts.length !== 3) {
-        setError('Enter date as DD/MM/YYYY (e.g. 24/03/1990).')
-        setLoading(false)
-        return
-      }
-      const day = parseInt(parts[0], 10)
-      const month = parseInt(parts[1], 10)
-      const year = parseInt(parts[2], 10)
-
-      const nr = calculate(dateStr, name)
-      const mr = calcDestinyMatrix(day, month, year)
-
-      if (!nr || !mr) {
-        setError('Invalid date. Please enter DD/MM/YYYY.')
-        setLoading(false)
-        return
-      }
-
-      // Parse birth time for natal chart
-      let hour = 12, min = 0
-      if (birthTime) {
-        const tp = birthTime.split(':')
-        hour = parseInt(tp[0], 10) || 12
-        min = parseInt(tp[1], 10) || 0
-      }
-      const natal = calcNatalChart(day, month, year, hour, min, birthPlace)
-
-      setCalcKey(k => k + 1)
-      setNumResult(nr)
-      setMatResult(mr)
-      setNatalData(natal)
+    const parts = dateStr.split('/')
+    if (parts.length !== 3) {
+      setError('Enter date as DD/MM/YYYY (e.g. 24/03/1990).')
       setLoading(false)
-    }, 350)
+      return
+    }
+    const day = parseInt(parts[0], 10)
+    const month = parseInt(parts[1], 10)
+    const year = parseInt(parts[2], 10)
+
+    const nr = calculate(dateStr, name)
+    const mr = calcDestinyMatrix(day, month, year)
+
+    if (!nr || !mr) {
+      setError('Invalid date. Please enter DD/MM/YYYY.')
+      setLoading(false)
+      return
+    }
+
+    // Parse birth time for natal chart
+    let hour = 12, min = 0
+    if (birthTime) {
+      const tp = birthTime.split(':')
+      hour = parseInt(tp[0], 10) || 12
+      min = parseInt(tp[1], 10) || 0
+    }
+
+    // Use selected place coordinates or default to Rome
+    let lat = 41.9028, lon = 12.4964, baseTz = 1
+    if (selectedPlace) {
+      lat = selectedPlace.lat
+      lon = selectedPlace.lon
+      baseTz = selectedPlace.tz
+    }
+
+    // Compute UTC offset (base tz + DST correction)
+    let utcOff = baseTz
+    if (isDST(year, month, day, baseTz)) {
+      utcOff = baseTz + 1
+    }
+
+    // Compute UT and store metadata
+    const utHour = hour - utcOff
+    const utMin = min
+    const utDate = new Date(Date.UTC(year, month - 1, day, utHour, utMin, 0))
+    const utStr = `${utDate.getUTCDate().toString().padStart(2, '0')}/${(utDate.getUTCMonth() + 1).toString().padStart(2, '0')}/${utDate.getUTCFullYear()} ${utDate.getUTCHours().toString().padStart(2, '0')}:${utDate.getUTCMinutes().toString().padStart(2, '0')} UT`
+
+    const natal = calcNatalChart(day, month, year, hour, min, lat, lon, utcOff)
+
+    // Compute LST for display
+    const lstDeg = ((natal.ascendantLongitude + 90) % 360) // approximate from ASC
+    const lstH = Math.floor(lstDeg / 15)
+    const lstM = Math.floor((lstDeg / 15 - lstH) * 60)
+
+    const latStr = `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? 'N' : 'S'}`
+    const lonStr = `${Math.abs(lon).toFixed(2)}°${lon >= 0 ? 'E' : 'W'}`
+    const tzSign = utcOff >= 0 ? '+' : ''
+
+    setCalcKey(k => k + 1)
+    setNumResult(nr)
+    setMatResult(mr)
+    setNatalData(natal)
+    setNatalMeta({
+      ut: utStr,
+      lst: `${lstH.toString().padStart(2, '0')}:${lstM.toString().padStart(2, '0')}`,
+      lat: latStr,
+      lon: lonStr,
+      tz: `UTC${tzSign}${utcOff}`,
+    })
+    setLoading(false)
   }
 
   const hasResults = numResult && matResult
@@ -150,11 +191,10 @@ export default function Home() {
         </div>
 
         {/* Birth time & place (for Natal Chart) */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-semibold tracking-widest uppercase text-slate-500">
-              Birth Time{' '}
-              <span className="normal-case text-slate-600 tracking-normal font-normal">(optional)</span>
+              Ora di nascita
             </label>
             <input
               type="time"
@@ -166,22 +206,12 @@ export default function Home() {
                          focus:border-accent-purple focus:shadow-[0_0_0_3px_rgba(139,92,246,0.15)]"
             />
           </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-semibold tracking-widest uppercase text-slate-500">
-              Birth Place{' '}
-              <span className="normal-case text-slate-600 tracking-normal font-normal">(optional)</span>
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. Rome, Italy"
-              value={birthPlace}
-              onChange={e => setBirthPlace(e.target.value)}
-              className="w-full bg-[#1f2937] border border-white/[0.08] rounded-xl
-                         px-4 py-3 text-white placeholder-slate-600 text-sm outline-none
-                         transition-all duration-200
-                         focus:border-accent-purple focus:shadow-[0_0_0_3px_rgba(139,92,246,0.15)]"
-            />
-          </div>
+          <BirthPlaceInput
+            value={birthPlace}
+            onChange={setBirthPlace}
+            onSelect={setSelectedPlace}
+            selectedPlace={selectedPlace}
+          />
         </div>
 
         {error && (
@@ -280,30 +310,45 @@ export default function Home() {
           </div>
         )}
 
-        {tab === 'natal' && hasResults && natalData && (
+        {tab === 'natal' && hasResults && (
           <div key={`natal-${calcKey}`} className="flex flex-col gap-12 animate-fade-up">
             <div className="text-center flex flex-col gap-3">
               <h2 className="text-3xl font-bold tracking-tight text-white">
-                Natal <span className="text-accent-purple">Chart</span>
+                Tema <span className="text-accent-purple">Natale</span>
               </h2>
               <p className="text-slate-500 text-sm max-w-xl mx-auto leading-relaxed">
-                Your sky at the moment of birth. Planetary positions, house placements, and the geometric relationships that define your psychological architecture.
+                Il tuo cielo al momento della nascita. Posizioni planetarie, case e le relazioni geometriche che definiscono la tua architettura psicologica.
               </p>
-              {birthTime && birthPlace && (
-                <p className="text-[10px] text-slate-600 font-mono">{dateStr} · {birthTime} · {birthPlace}</p>
-              )}
             </div>
 
-            <div className="flex flex-col items-center">
-              <NatalChartWheel data={natalData} />
-            </div>
+            {birthTime && selectedPlace && natalData ? (
+              <>
+                <div className="flex flex-col gap-1 items-center">
+                  <p className="text-[10px] text-slate-500 font-mono">
+                    {dateStr} · {birthTime} (locale) · {selectedPlace.display}
+                  </p>
+                  {natalMeta && (
+                    <p className="text-[9px] text-slate-600 font-mono">
+                      {natalMeta.ut} · {natalMeta.tz} · Lat {natalMeta.lat} · Lon {natalMeta.lon} · Placidus
+                    </p>
+                  )}
+                </div>
 
-            <NatalChartTable data={natalData} />
+                <div className="flex flex-col items-center">
+                  <NatalChartWheel data={natalData} />
+                </div>
 
-            {!birthTime && (
-              <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.04] p-4 text-center">
-                <p className="text-[11px] text-amber-400/80">
-                  For accurate Ascendant and house placements, add your exact birth time and location above, then recalculate.
+                <NatalReadings data={natalData} />
+
+                <NatalChartTable data={natalData} />
+
+                <NatalInterpretation data={natalData} />
+              </>
+            ) : (
+              <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.04] p-6 text-center max-w-lg mx-auto">
+                <p className="text-sm text-amber-400/80 mb-2 font-semibold">Dati mancanti</p>
+                <p className="text-[11px] text-amber-400/60 leading-relaxed">
+                  Per calcolare il tema natale servono <strong>ora di nascita</strong> e <strong>luogo di nascita</strong>. Inserisci entrambi nel form sopra e ricalcola.
                 </p>
               </div>
             )}
