@@ -69,20 +69,20 @@ function Overview({ data }: { data: NatalChartData }) {
 
   return (
     <div className="rounded-2xl border border-white/[0.07] bg-bg-card p-5 md:p-7 shadow-xl shadow-black/30">
-      <h3 className="text-[10px] font-black tracking-widest uppercase text-slate-500 mb-5">Panoramica</h3>
+      <h3 className="text-[10px] font-black tracking-widest uppercase text-slate-500 mb-5">Overview</h3>
 
       {/* Synthesis paragraph */}
       <p className="text-[11px] text-slate-400 leading-relaxed mb-6">
-        Sole in <span className="text-white font-semibold">{sun.sign}</span>,
-        Luna in <span className="text-white font-semibold">{moon.sign}</span>,
-        Ascendente <span className="text-white font-semibold">{asc.sign}</span>.
-        {' '}Elemento dominante: <span className={`font-semibold ${elementColors[dominant[0]].text}`}>{translateElement(dominant[0])}</span> ({dominant[1]}/{total}).
+        Sun in <span className="text-white font-semibold">{sun.sign}</span>,
+        Moon in <span className="text-white font-semibold">{moon.sign}</span>,
+        Ascendant <span className="text-white font-semibold">{asc.sign}</span>.
+        {' '}Dominant element: <span className={`font-semibold ${elementColors[dominant[0]].text}`}>{dominant[0]}</span> ({dominant[1]}/{total}).
         {dominantPlanets.length > 0 && (
-          <> Pianeti dominanti per aspetti: <span className="text-white font-semibold">{dominantPlanets.join(' e ')}</span>.</>
+          <> Dominant planets by aspects: <span className="text-white font-semibold">{dominantPlanets.join(' and ')}</span>.</>
         )}
-        {' '}La combinazione {sun.sign}/{asc.sign} suggerisce un nucleo interiore {getElementQuality(ZODIAC_ELEMENTS[sun.sign])} filtrato da una maschera sociale {getElementQuality(ZODIAC_ELEMENTS[asc.sign])}.
+        {' '}The {sun.sign}/{asc.sign} combination suggests an {getElementQuality(ZODIAC_ELEMENTS[sun.sign])} inner core filtered through a {getElementQuality(ZODIAC_ELEMENTS[asc.sign])} social mask.
         {moon.sign !== sun.sign && (
-          <> La Luna in {moon.sign} introduce un bisogno emotivo {getElementQuality(ZODIAC_ELEMENTS[moon.sign])} che non sempre è visibile all'esterno.</>
+          <> Moon in {moon.sign} introduces a {getElementQuality(ZODIAC_ELEMENTS[moon.sign])} emotional need that is not always visible externally.</>
         )}
       </p>
 
@@ -91,7 +91,7 @@ function Overview({ data }: { data: NatalChartData }) {
         {sorted.map(([el, count]) => (
           <div key={el} className="flex items-center gap-3">
             <span className="text-[10px] font-bold w-12 text-right" style={{ color: elementColors[el].bar }}>
-              {translateElement(el)}
+              {el}
             </span>
             <div className="flex-1 h-2.5 rounded-full bg-white/[0.04] overflow-hidden">
               <div
@@ -121,17 +121,12 @@ function Overview({ data }: { data: NatalChartData }) {
   )
 }
 
-function translateElement(el: string): string {
-  const map: Record<string, string> = { Fire: 'Fuoco', Earth: 'Terra', Air: 'Aria', Water: 'Acqua' }
-  return map[el] || el
-}
-
 function getElementQuality(el: string): string {
   const map: Record<string, string> = {
-    Fire: 'impulsivo e vitale',
-    Earth: 'concreto e pragmatico',
-    Air: 'intellettuale e comunicativo',
-    Water: 'emotivo e intuitivo',
+    Fire: 'impulsive and vital',
+    Earth: 'concrete and pragmatic',
+    Air: 'intellectual and communicative',
+    Water: 'emotional and intuitive',
   }
   return map[el] || ''
 }
@@ -202,7 +197,7 @@ function PlanetCards({ data }: { data: NatalChartData }) {
 
                 {aspects.length > 0 && (
                   <div className="flex flex-col gap-1.5">
-                    <span className="text-[9px] font-black tracking-widest uppercase text-slate-600">Aspetti</span>
+                    <span className="text-[9px] font-black tracking-widest uppercase text-slate-600">Aspects</span>
                     {aspects.map((a, i) => {
                       const other = a.planet1 === p.planet ? a.planet2 : a.planet1
                       return (
@@ -236,9 +231,9 @@ function HousesTable({ data }: { data: NatalChartData }) {
         <thead>
           <tr className="border-b border-white/[0.06]">
             <th className="py-2.5 px-3 text-[9px] font-black tracking-widest uppercase text-slate-600 w-12">Casa</th>
-            <th className="py-2.5 px-3 text-[9px] font-black tracking-widest uppercase text-slate-600">Segno</th>
-            <th className="py-2.5 px-3 text-[9px] font-black tracking-widest uppercase text-slate-600">Pianeti</th>
-            <th className="py-2.5 px-3 text-[9px] font-black tracking-widest uppercase text-slate-600">Significato</th>
+            <th className="py-2.5 px-3 text-[9px] font-black tracking-widest uppercase text-slate-600">Sign</th>
+            <th className="py-2.5 px-3 text-[9px] font-black tracking-widest uppercase text-slate-600">Planets</th>
+            <th className="py-2.5 px-3 text-[9px] font-black tracking-widest uppercase text-slate-600">Meaning</th>
           </tr>
         </thead>
         <tbody>
@@ -288,11 +283,11 @@ function AspectsSection({ aspects }: { aspects: Aspect[] }) {
   const major = aspects.filter(a => a.orb <= 6)
 
   const groups: { type: AspectType; label: string; items: Aspect[] }[] = [
-    { type: 'Conjunction', label: 'Congiunzioni', items: major.filter(a => a.type === 'Conjunction') },
-    { type: 'Opposition', label: 'Opposizioni', items: major.filter(a => a.type === 'Opposition') },
-    { type: 'Square', label: 'Quadrature', items: major.filter(a => a.type === 'Square') },
-    { type: 'Trine', label: 'Trigoni', items: major.filter(a => a.type === 'Trine') },
-    { type: 'Sextile', label: 'Sestili', items: major.filter(a => a.type === 'Sextile') },
+    { type: 'Conjunction', label: 'Conjunctions', items: major.filter(a => a.type === 'Conjunction') },
+    { type: 'Opposition', label: 'Oppositions', items: major.filter(a => a.type === 'Opposition') },
+    { type: 'Square', label: 'Squares', items: major.filter(a => a.type === 'Square') },
+    { type: 'Trine', label: 'Trines', items: major.filter(a => a.type === 'Trine') },
+    { type: 'Sextile', label: 'Sextiles', items: major.filter(a => a.type === 'Sextile') },
   ]
 
   return (
@@ -319,7 +314,7 @@ function AspectsSection({ aspects }: { aspects: Aspect[] }) {
                       <span className="text-xs text-white/50">{PLANET_GLYPHS[a.planet2]}</span>
                       <span className="text-[10px] font-mono text-slate-600 ml-auto">orb {a.orb}°</span>
                       <span className={`text-[8px] font-bold uppercase tracking-wider ${a.applying ? 'text-emerald-400/60' : 'text-slate-600'}`}>
-                        {a.applying ? 'Applicante' : 'Separante'}
+                        {a.applying ? 'Applying' : 'Separating'}
                       </span>
                     </div>
                     {interp && (
@@ -343,15 +338,15 @@ export default function NatalChartTable({ data }: { data: NatalChartData }) {
     <div className="flex flex-col gap-6">
       <Overview data={data} />
 
-      <Section title="Pianeti — Ritratto Psicologico" defaultOpen={true}>
+      <Section title="Planets — Psychological Portrait" defaultOpen={true}>
         <PlanetCards data={data} />
       </Section>
 
-      <Section title="Le 12 Case" defaultOpen={false}>
+      <Section title="The 12 Houses" defaultOpen={false}>
         <HousesTable data={data} />
       </Section>
 
-      <Section title="Aspetti — Dinamiche Interiori" defaultOpen={false}>
+      <Section title="Aspects — Inner Dynamics" defaultOpen={false}>
         <AspectsSection aspects={data.aspects} />
       </Section>
     </div>

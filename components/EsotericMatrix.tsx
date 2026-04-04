@@ -115,7 +115,7 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
           points={octPoints}
           className="animate-aura-breathe"
           stroke="#8B5CF6"
-          strokeWidth="10"
+          strokeWidth="6"
           filter="url(#aura-blur)"
           strokeLinecap="round"
           style={{ vectorEffect: 'non-scaling-stroke' }}
@@ -126,11 +126,11 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
           points={octPoints}
           className="animate-aura-trace"
           stroke="#8B5CF6"
-          strokeWidth="14"
+          strokeWidth="8"
           strokeDasharray="600 1850"
           filter="url(#aura-blur)"
           strokeLinecap="round"
-          opacity="0.35"
+          opacity="0.2"
           style={{ vectorEffect: 'non-scaling-stroke' }}
         />
 
@@ -199,12 +199,12 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
               to { transform: rotate(360deg); }
             }
             @keyframes glow-subtle {
-              0% { opacity: 0.4; }
-              50% { opacity: 0.8; }
-              100% { opacity: 0.4; }
+              0% { opacity: 0.3; }
+              50% { opacity: 0.55; }
+              100% { opacity: 0.3; }
             }
             .animate-rotate-slow {
-              animation: rotate-outer 100s linear infinite;
+              animation: rotate-outer 300s linear infinite;
             }
             .animate-glow-pulse {
               animation: glow-subtle 4s ease-in-out infinite;
@@ -214,8 +214,8 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
               to { stroke-dashoffset: 0; }
             }
             @keyframes aura-breath {
-              0%, 100% { stroke-opacity: 0.15; stroke-width: 10px; }
-              50% { stroke-opacity: 0.45; stroke-width: 18px; }
+              0%, 100% { stroke-opacity: 0.08; stroke-width: 6px; }
+              50% { stroke-opacity: 0.25; stroke-width: 10px; }
             }
             .animate-aura-trace {
               animation: aura-trace 15s linear infinite;
@@ -228,7 +228,7 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
               to { transform: rotate(-360deg); }
             }
             .animate-rotate-ccw {
-              animation: rotate-ccw 100s linear infinite;
+              animation: rotate-ccw 240s linear infinite;
             }
             @keyframes node-pulse {
               0%, 100% { transform: scale(1); }
@@ -316,7 +316,7 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
   }
 
   return (
-    <div className={`relative w-full max-w-4xl mx-auto p-4 bg-transparent ${className}`}>
+    <div className={`relative w-full max-w-5xl mx-auto p-2 sm:p-4 bg-transparent ${className}`}>
       {/* Custom Tooltip */}
       {hoveredNode && (() => {
         const c = COORDS[hoveredNode.key]
@@ -359,7 +359,7 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
       >
         <defs>
           <filter id="aura-blur" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="18" result="blur" />
+            <feGaussianBlur stdDeviation="12" result="blur" />
           </filter>
           <radialGradient id="grad-center-esoteric" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.15" />

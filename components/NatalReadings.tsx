@@ -28,14 +28,14 @@ export default function NatalReadings({ data }: { data: NatalChartData }) {
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-3 mb-2">
         <h3 className="text-[10px] font-black tracking-widest uppercase text-slate-500">
-          Interpretazioni — Pianeti nei Segni e nelle Case
+          Interpretations — Planets in Signs and Houses
         </h3>
       </div>
 
       <div className="text-[10px] text-slate-600 leading-relaxed mb-2 max-w-2xl">
-        I pianeti mostrano <span className="text-slate-400 font-bold">COSA</span> succede;
-        i segni mostrano <span className="text-slate-400 font-bold">COME</span> succede;
-        le case mostrano <span className="text-slate-400 font-bold">DOVE</span> succede.
+        Planets show <span className="text-slate-400 font-bold">WHAT</span> happens;
+        signs show <span className="text-slate-400 font-bold">HOW</span> it happens;
+        houses show <span className="text-slate-400 font-bold">WHERE</span> it happens.
       </div>
 
       {planets.map(name => {
@@ -67,7 +67,7 @@ export default function NatalReadings({ data }: { data: NatalChartData }) {
                   <span>{ZODIAC_GLYPHS[pd.sign]} {pd.sign}</span>
                   <span className="font-mono">{pd.signDegree}°{pd.minute.toString().padStart(2, '0')}'</span>
                   <span className="text-slate-600">·</span>
-                  <span>Casa {pd.house}</span>
+                  <span>House {pd.house}</span>
                 </div>
               </div>
               <svg
@@ -93,7 +93,7 @@ export default function NatalReadings({ data }: { data: NatalChartData }) {
                   </h4>
                   {isGenerational && (
                     <p className="text-[9px] text-amber-500/50 mb-2 italic">
-                      Nota: {name} è un pianeta transpersonale lento. La descrizione nel segno è valida per un'intera generazione. La caratteristica individuale va cercata nella casa.
+                      Note: {name} is a slow transpersonal planet. The sign description applies to an entire generation. The individual characteristic should be sought in the house placement.
                     </p>
                   )}
                   <p className="text-[12px] text-slate-400 leading-[1.7]">
@@ -115,21 +115,17 @@ export default function NatalReadings({ data }: { data: NatalChartData }) {
                 {aspects.length > 0 && (
                   <div>
                     <h4 className="text-[10px] font-black tracking-widest uppercase text-slate-500 mb-2">
-                      {name} — Aspetti
+                      {name} — Aspects
                     </h4>
                     <div className="flex flex-col gap-1">
                       {aspects.map((a, i) => {
                         const other = a.planet1 === name ? a.planet2 : a.planet1
-                        const typeNames: Record<string, string> = {
-                          Conjunction: 'Congiunzione', Opposition: 'Opposizione',
-                          Square: 'Quadrato', Trine: 'Trigono', Sextile: 'Sestile',
-                        }
                         return (
                           <div key={i} className="flex items-center gap-2 text-[11px]">
                             <span style={{ color: ASPECT_COLORS[a.type] }}>{ASPECT_SYMBOLS[a.type]}</span>
-                            <span className="text-slate-500">{typeNames[a.type]}</span>
+                            <span className="text-slate-500">{a.type}</span>
                             <span className="text-slate-400">{other}</span>
-                            <span className="text-slate-600 font-mono">({a.orb}°, {a.applying ? 'applicazione' : 'separazione'})</span>
+                            <span className="text-slate-600 font-mono">({a.orb}°, {a.applying ? 'applying' : 'separating'})</span>
                           </div>
                         )
                       })}
@@ -147,9 +143,9 @@ export default function NatalReadings({ data }: { data: NatalChartData }) {
 
 function getHouseName(h: number): string {
   const names: Record<number, string> = {
-    1: 'Prima Casa', 2: 'Seconda Casa', 3: 'Terza Casa', 4: 'Quarta Casa',
-    5: 'Quinta Casa', 6: 'Sesta Casa', 7: 'Settima Casa', 8: 'Ottava Casa',
-    9: 'Nona Casa', 10: 'Decima Casa', 11: 'Undicesima Casa', 12: 'Dodicesima Casa',
+    1: 'First House', 2: 'Second House', 3: 'Third House', 4: 'Fourth House',
+    5: 'Fifth House', 6: 'Sixth House', 7: 'Seventh House', 8: 'Eighth House',
+    9: 'Ninth House', 10: 'Tenth House', 11: 'Eleventh House', 12: 'Twelfth House',
   }
-  return names[h] || `Casa ${h}`
+  return names[h] || `House ${h}`
 }

@@ -150,12 +150,12 @@ function spreadAngles(items: { chartAngle: number; planet: string }[], minGap: n
 type AspectFilter = 'all' | AspectType
 
 const FILTER_BUTTONS: { filter: AspectFilter; label: string; symbol: string; color: string }[] = [
-  { filter: 'all',         label: 'Tutti',       symbol: '●', color: '#94a3b8' },
-  { filter: 'Conjunction', label: 'Congiunzioni', symbol: '☌', color: '#c4b5fd' },
-  { filter: 'Opposition',  label: 'Opposizioni',  symbol: '☍', color: '#ef4444' },
-  { filter: 'Square',      label: 'Quadrature',   symbol: '□', color: '#ef4444' },
-  { filter: 'Trine',       label: 'Trigoni',       symbol: '△', color: '#3b82f6' },
-  { filter: 'Sextile',     label: 'Sestili',       symbol: '⚹', color: '#3b82f6' },
+  { filter: 'all',         label: 'All',           symbol: '●', color: '#94a3b8' },
+  { filter: 'Conjunction', label: 'Conjunctions',  symbol: '☌', color: '#c4b5fd' },
+  { filter: 'Opposition',  label: 'Oppositions',   symbol: '☍', color: '#ef4444' },
+  { filter: 'Square',      label: 'Squares',        symbol: '□', color: '#ef4444' },
+  { filter: 'Trine',       label: 'Trines',          symbol: '△', color: '#3b82f6' },
+  { filter: 'Sextile',     label: 'Sextiles',        symbol: '⚹', color: '#3b82f6' },
 ]
 
 export default function NatalChartWheel({ data }: { data: NatalChartData }) {
@@ -454,7 +454,7 @@ export default function NatalChartWheel({ data }: { data: NatalChartData }) {
                 <span className="text-sm font-bold text-white">{hovered.planet}</span>
                 {hovered.retrograde && <span className="ml-1.5 text-[9px] text-red-400 font-bold">℞ Retrograde</span>}
                 <p className="text-[10px] text-slate-400">
-                  {ZODIAC_GLYPHS[hovered.sign]} {hovered.sign} {hovered.signDegree}°{hovered.minute.toString().padStart(2, '0')}' · Casa {hovered.house}
+                  {ZODIAC_GLYPHS[hovered.sign]} {hovered.sign} {hovered.signDegree}°{hovered.minute.toString().padStart(2, '0')}' · House {hovered.house}
                 </p>
               </div>
             </div>
@@ -477,7 +477,7 @@ export default function NatalChartWheel({ data }: { data: NatalChartData }) {
                   {hoveredAspect.planet1} {ASPECT_SYMBOLS[hoveredAspect.type]} {hoveredAspect.planet2}
                 </span>
                 <p className="text-[10px] text-slate-500">
-                  {hoveredAspect.type} · Orb {hoveredAspect.orb}° · {hoveredAspect.applying ? 'Applicante' : 'Separante'}
+                  {hoveredAspect.type} · Orb {hoveredAspect.orb}° · {hoveredAspect.applying ? 'Applying' : 'Separating'}
                 </p>
               </div>
             </div>
@@ -515,14 +515,14 @@ function AspectGrid({ data }: { data: NatalChartData }) {
 
   const aspectTypeOrder: AspectType[] = ['Conjunction', 'Opposition', 'Square', 'Trine', 'Sextile']
   const aspectTypeNames: Record<string, string> = {
-    Conjunction: 'Congiunzioni', Opposition: 'Opposizioni', Square: 'Quadrature', Trine: 'Trigoni', Sextile: 'Sestili'
+    Conjunction: 'Conjunctions', Opposition: 'Oppositions', Square: 'Squares', Trine: 'Trines', Sextile: 'Sextiles'
   }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 items-start w-full lg:justify-items-stretch">
       {/* ─── Left: Triangular grid ─── */}
       <div className="overflow-x-auto">
-        <h3 className="text-[10px] font-black tracking-widest uppercase text-slate-500 mb-3">Griglia Aspetti</h3>
+        <h3 className="text-[10px] font-black tracking-widest uppercase text-slate-500 mb-3">Aspect Grid</h3>
         <div className="inline-block">
           {planets.map((rowPlanet, rowIdx) => {
             if (rowIdx === 0) return null
@@ -589,7 +589,7 @@ function AspectGrid({ data }: { data: NatalChartData }) {
 
       {/* ─── Right: Aspect summary (2-col, right-aligned) ─── */}
       <div className="flex flex-col gap-3 lg:ml-auto">
-        <h3 className="text-[10px] font-black tracking-widest uppercase text-slate-500">Riepilogo Aspetti</h3>
+        <h3 className="text-[10px] font-black tracking-widest uppercase text-slate-500">Aspect Summary</h3>
 
         <div className="grid grid-cols-2 gap-x-6 gap-y-3">
           {aspectTypeOrder.map(type => {

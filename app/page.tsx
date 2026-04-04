@@ -194,7 +194,7 @@ export default function Home() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-semibold tracking-widest uppercase text-slate-500">
-              Ora di nascita
+              Birth Time
             </label>
             <input
               type="time"
@@ -314,10 +314,10 @@ export default function Home() {
           <div key={`natal-${calcKey}`} className="flex flex-col gap-12 animate-fade-up">
             <div className="text-center flex flex-col gap-3">
               <h2 className="text-3xl font-bold tracking-tight text-white">
-                Tema <span className="text-accent-purple">Natale</span>
+                Natal <span className="text-accent-purple">Chart</span>
               </h2>
               <p className="text-slate-500 text-sm max-w-xl mx-auto leading-relaxed">
-                Il tuo cielo al momento della nascita. Posizioni planetarie, case e le relazioni geometriche che definiscono la tua architettura psicologica.
+                Your sky at the moment of birth. Planetary positions, house placements, and the geometric relationships that define your psychological architecture.
               </p>
             </div>
 
@@ -346,9 +346,9 @@ export default function Home() {
               </>
             ) : (
               <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.04] p-6 text-center max-w-lg mx-auto">
-                <p className="text-sm text-amber-400/80 mb-2 font-semibold">Dati mancanti</p>
+                <p className="text-sm text-amber-400/80 mb-2 font-semibold">Missing Data</p>
                 <p className="text-[11px] text-amber-400/60 leading-relaxed">
-                  Per calcolare il tema natale servono <strong>ora di nascita</strong> e <strong>luogo di nascita</strong>. Inserisci entrambi nel form sopra e ricalcola.
+                  To calculate the natal chart, <strong>birth time</strong> and <strong>birth place</strong> are required. Enter both in the form above and recalculate.
                 </p>
               </div>
             )}

@@ -104,12 +104,12 @@ export default function BirthPlaceInput({ value, onChange, onSelect, selectedPla
   return (
     <div className="flex flex-col gap-1.5" ref={containerRef}>
       <label className="text-[11px] font-semibold tracking-widest uppercase text-slate-500">
-        Luogo di nascita
+        Birth Place
       </label>
       <div className="relative">
         <input
           type="text"
-          placeholder="Es. Roma, Ivano-Frankivsk, New York..."
+          placeholder="e.g. Rome, Ivano-Frankivsk, New York..."
           value={value}
           onChange={e => handleInput(e.target.value)}
           onFocus={() => { if (results.length > 0) setOpen(true) }}
