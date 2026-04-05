@@ -420,24 +420,26 @@ export default function DeckGallery() {
           </button>
         </div>
 
-        {/* Reading button — separate row */}
+        {/* Reading button — square tab like main nav */}
         <div className="flex justify-center">
-          <button
-            onClick={() => setDeckTab('reading')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-200 border
-              ${deckTab === 'reading'
-                ? 'border-accent-purple/40 bg-accent-purple/10 text-white'
-                : 'border-white/[0.06] bg-white/[0.02] text-slate-500 hover:text-slate-300 hover:border-white/10'
-              }`}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="2" y="3" width="8" height="12" rx="1.5" transform="rotate(-8 2 3)" />
-              <rect x="9" y="2" width="8" height="12" rx="1.5" />
-              <rect x="14" y="3" width="8" height="12" rx="1.5" transform="rotate(8 14 3)" />
-              <path d="M8 18l4 3 4-3" />
-            </svg>
-            Reading
-          </button>
+          <div className="p-1.5 rounded-2xl border border-white/[0.07] bg-bg-card inline-flex">
+            <button
+              onClick={() => setDeckTab('reading')}
+              className="flex flex-col items-center gap-1 px-6 py-2.5 rounded-xl transition-all duration-200"
+              style={{
+                background: deckTab === 'reading' ? 'linear-gradient(135deg,#7c3aed,#6366f1)' : 'transparent',
+                color: deckTab === 'reading' ? '#fff' : '#64748b',
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="7" height="11" rx="1.5" transform="rotate(-10 3 3)" />
+                <rect x="8.5" y="2" width="7" height="11" rx="1.5" />
+                <rect x="14" y="3" width="7" height="11" rx="1.5" transform="rotate(10 14 3)" />
+                <circle cx="12" cy="19" r="2" />
+              </svg>
+              <span className="text-[8px] font-black tracking-[0.2em] uppercase">Reading</span>
+            </button>
+          </div>
         </div>
 
         {/* ─── Reading ─── */}

@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import Image from 'next/image'
+import { X } from 'lucide-react'
 import { ARCANA } from '@/lib/arcana'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -86,11 +88,13 @@ function FlipCard({
   label,
   flipped,
   onFlip,
+  onOpen,
 }: {
   card: CardMeta | null
   label: string
   flipped: boolean
   onFlip: () => void
+  onOpen: () => void
 }) {
   const [animDone, setAnimDone] = useState(false)
 
@@ -106,12 +110,13 @@ function FlipCard({
   // After animation: show flat image without 3D (crisp rendering)
   if (animDone && card) {
     return (
-      <div className="flex flex-col items-center gap-3">
-        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+      <div className="flex flex-col items-center gap-2">
+        <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-slate-500">
           {label}
         </span>
-        <div
-          className="relative w-[260px] sm:w-[165px] md:w-[260px] aspect-[992/1583] rounded-2xl overflow-hidden"
+        <button
+          onClick={onOpen}
+          className="relative w-full aspect-[992/1583] rounded-2xl overflow-hidden cursor-pointer focus:outline-none"
           style={{ boxShadow: `0 0 30px ${card.color}44` }}
         >
           <Image
@@ -122,16 +127,16 @@ function FlipCard({
             className="object-cover object-center scale-[1.03]"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
           />
-        </div>
+        </button>
         <div className="flex flex-col items-center gap-0.5">
           <span
-            className="text-[11px] font-black uppercase tracking-wider text-center"
+            className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider text-center"
             style={{ color: card.color }}
           >
             {card.name}
           </span>
           {card.keywords && (
-            <span className="text-[9px] text-slate-600 text-center max-w-[160px] line-clamp-2">
+            <span className="text-[7px] sm:text-[9px] text-slate-600 text-center max-w-[160px] line-clamp-2">
               {card.keywords.join(' · ')}
             </span>
           )}
@@ -141,15 +146,15 @@ function FlipCard({
   }
 
   return (
-    <div className="flex flex-col items-center gap-3">
-      <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+    <div className="flex flex-col items-center gap-2">
+      <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-slate-500">
         {label}
       </span>
 
       <button
         onClick={onFlip}
         disabled={!card || flipped}
-        className="relative w-[260px] sm:w-[165px] md:w-[260px] aspect-[992/1583] cursor-pointer focus:outline-none disabled:cursor-default"
+        className="relative w-full aspect-[992/1583] cursor-pointer focus:outline-none disabled:cursor-default"
         style={{ perspective: '800px' }}
       >
         <div
@@ -206,13 +211,13 @@ function FlipCard({
         {card && (
           <>
             <span
-              className="text-[11px] font-black uppercase tracking-wider text-center"
+              className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider text-center"
               style={{ color: card.color }}
             >
               {card.name}
             </span>
             {card.keywords && (
-              <span className="text-[9px] text-slate-600 text-center max-w-[160px] line-clamp-2">
+              <span className="text-[7px] sm:text-[9px] text-slate-600 text-center max-w-[160px] line-clamp-2">
                 {card.keywords.join(' · ')}
               </span>
             )}
@@ -225,12 +230,62 @@ function FlipCard({
 
 // ─── Main Component ─────────────────────────────────────────────────────────
 
+// ─── Fullscreen Card Overlay ────────────────────────────────────────────────
+
+function FullscreenCard({ card, label, onClose }: { card: CardMeta; label: string; onClose: () => void }) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+
+  const content = (
+    <div
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 backdrop-blur-sm p-4 cursor-pointer"
+      onClick={onClose}
+    >
+      <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">
+        {label}
+      </span>
+      <div
+        className="relative w-[85vw] max-w-[360px] aspect-[992/1583] rounded-2xl overflow-hidden"
+        style={{ boxShadow: `0 0 40px ${card.color}55` }}
+      >
+        <Image
+          src={card.imgSrc}
+          alt={card.name}
+          fill
+          unoptimized
+          className="object-cover object-center scale-[1.03]"
+          sizes="85vw"
+        />
+      </div>
+      <div className="flex flex-col items-center gap-1 mt-3">
+        <span
+          className="text-sm font-black uppercase tracking-wider"
+          style={{ color: card.color }}
+        >
+          {card.name}
+        </span>
+        {card.keywords && (
+          <span className="text-[10px] text-slate-500">
+            {card.keywords.join(' · ')}
+          </span>
+        )}
+      </div>
+    </div>
+  )
+
+  if (!mounted) return null
+  return createPortal(content, document.body)
+}
+
+// ─── Main Component ─────────────────────────────────────────────────────────
+
 export default function TarotReading() {
   const [spread] = useState<SpreadDef>(SPREADS[0])
   const [drawnCards, setDrawnCards] = useState<(CardMeta | null)[]>([])
   const [flippedSet, setFlippedSet] = useState<Set<number>>(new Set())
   const [usedIndices, setUsedIndices] = useState<Set<number>>(new Set())
   const [currentSlot, setCurrentSlot] = useState(0)
+  const [fullscreenIdx, setFullscreenIdx] = useState<number | null>(null)
 
   const isComplete = currentSlot >= spread.slots.length
   const allFlipped = flippedSet.size === spread.slots.length
@@ -268,36 +323,33 @@ export default function TarotReading() {
   return (
     <div className="flex flex-col gap-8 items-center">
       {/* Header */}
-      <div className="text-center flex flex-col gap-3">
-        <h2 className="text-4xl font-black tracking-tight text-white uppercase">
-          Tarot{' '}
-          <span
-            style={{
-              background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #c084fc 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
-          >
-            Reading
-          </span>
-        </h2>
-        <p className="text-slate-500 text-xs font-medium max-w-md mx-auto">
-          {spread.name} — {spread.slots.join(', ')}
-        </p>
-      </div>
+      <p className="text-slate-500 text-xs font-medium text-center">
+        {spread.name} — {spread.slots.join(', ')}
+      </p>
 
-      {/* Cards layout */}
-      <div className="flex flex-wrap justify-center gap-6 md:gap-10">
+      {/* Cards layout — always in a row */}
+      <div className="flex justify-center gap-3 sm:gap-6 md:gap-10 w-full px-2">
         {spread.slots.map((label, idx) => (
-          <FlipCard
-            key={idx}
-            card={drawnCards[idx] ?? null}
-            label={label}
-            flipped={flippedSet.has(idx)}
-            onFlip={() => flipCard(idx)}
-          />
+          <div key={idx} className="flex-1 max-w-[260px]">
+            <FlipCard
+              card={drawnCards[idx] ?? null}
+              label={label}
+              flipped={flippedSet.has(idx)}
+              onFlip={() => flipCard(idx)}
+              onOpen={() => setFullscreenIdx(idx)}
+            />
+          </div>
         ))}
       </div>
+
+      {/* Fullscreen overlay */}
+      {fullscreenIdx !== null && drawnCards[fullscreenIdx] && (
+        <FullscreenCard
+          card={drawnCards[fullscreenIdx]!}
+          label={spread.slots[fullscreenIdx]}
+          onClose={() => setFullscreenIdx(null)}
+        />
+      )}
 
       {/* Actions */}
       <div className="flex gap-3 mt-4">
