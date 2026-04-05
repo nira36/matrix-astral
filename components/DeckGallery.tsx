@@ -41,7 +41,9 @@ const DECK: CardMeta[] = [
   { traditional: 19, appNum: 19, roman: 'XIX',    subtitle: 'The Trascendence' },
   { traditional: 20, appNum: 20, roman: 'XX',     subtitle: 'The Nemesis'    },
   { traditional: 21, appNum: 21, roman: 'XXI',    subtitle: 'The Cosmos'     },
+  { traditional: 22, appNum: 22, roman: 'XXII',   subtitle: '∞'       },
 ]
+
 
 function imgPath(traditional: number) {
   return `/deck/${String(traditional).padStart(2, '0')}.jpg`
@@ -68,7 +70,7 @@ function DeckCard({
     >
       {/* Card frame */}
       <div
-        className="relative w-full aspect-[1.8/3] rounded-2xl overflow-hidden transition-all duration-300
+        className="relative w-full aspect-[992/1583] rounded-2xl overflow-hidden transition-all duration-300
                    group-hover:scale-[1.03]"
         style={{
           boxShadow: `0 0 22px ${arcana?.color ?? '#8b5cf6'}55`,
@@ -80,7 +82,7 @@ function DeckCard({
             src={src}
             alt={arcana?.name ?? `Arcana ${card.traditional}`}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className="object-cover object-center scale-[1.03]"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
             onError={() => setHasImage(false)}
           />
@@ -244,8 +246,76 @@ function Lightbox({
 
 // ─── Main gallery ─────────────────────────────────────────────────────────────
 
+// ─── Minor Arcana data ───────────────────────────────────────────────────────
+
+type Suit = 'wands' | 'cups' | 'swords' | 'disks'
+
+const SUITS: { key: Suit; name: string; element: string; color: string }[] = [
+  { key: 'wands',     name: 'Wands',     element: 'Fire',  color: '#ef4444' },
+  { key: 'cups',      name: 'Cups',      element: 'Water', color: '#3b82f6' },
+  { key: 'swords',    name: 'Swords',    element: 'Air',   color: '#a855f7' },
+  { key: 'disks', name: 'Disks', element: 'Earth', color: '#f59e0b' },
+]
+
+const MINOR_RANKS = [
+  'Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10',
+  'Princess', 'Prince', 'Queen', 'King',
+]
+
+const SUIT_NAMES: Record<Suit, string> = {
+  wands: 'Wands', cups: 'Cups', swords: 'Swords', disks: 'Disks',
+}
+
+function minorImgPath(suit: Suit, rankIdx: number): string {
+  const rank = MINOR_RANKS[rankIdx]
+  return `/deck/minor/${suit}/${rank} of ${SUIT_NAMES[suit]}.jpg`
+}
+
+// ─── Minor Arcana Card ───────────────────────────────────────────────────────
+
+function MinorCard({ suit, rankIdx, color }: { suit: Suit; rankIdx: number; color: string }) {
+  const [hasImage, setHasImage] = useState(true)
+  const rank = MINOR_RANKS[rankIdx]
+  const src = minorImgPath(suit, rankIdx)
+
+  return (
+    <div className="group relative flex flex-col items-center w-[260px] sm:w-[165px] md:w-[180px]">
+      <div
+        className="relative w-full aspect-[992/1583] rounded-2xl overflow-hidden transition-all duration-300 group-hover:scale-[1.03]"
+        style={{ boxShadow: `0 0 22px ${color}55` }}
+      >
+        {hasImage ? (
+          <Image
+            src={src}
+            alt={`${rank} of ${suit}`}
+            fill
+            className="object-cover object-center scale-[1.03]"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+            onError={() => setHasImage(false)}
+          />
+        ) : (
+          <div
+            className="w-full h-full flex flex-col items-center justify-center gap-2 border border-white/[0.06] rounded-xl"
+            style={{ background: `${color}08` }}
+          >
+            <span className="text-lg font-black opacity-15" style={{ color }}>{rank}</span>
+            <span className="text-[8px] text-slate-700 uppercase tracking-widest">{suit}</span>
+          </div>
+        )}
+      </div>
+      <span className="text-[9px] font-bold text-slate-500 mt-1.5 uppercase tracking-wider">{rank}</span>
+    </div>
+  )
+}
+
+// ─── Main gallery ─────────────────────────────────────────────────────────────
+
+type DeckTab = 'major' | 'minor'
+
 export default function DeckGallery() {
   const [selected, setSelected] = useState<number | null>(null)
+  const [deckTab, setDeckTab] = useState<DeckTab>('major')
+  const [activeSuit, setActiveSuit] = useState<Suit>('wands')
 
   const openCard = (idx: number) => setSelected(idx)
   const closeCard = () => setSelected(null)
@@ -254,14 +324,9 @@ export default function DeckGallery() {
 
   return (
     <>
-      <div className="flex flex-col gap-10">
+      <div className="flex flex-col gap-8">
         {/* Header */}
         <div className="text-center flex flex-col gap-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10
-                          text-[10px] tracking-widest uppercase text-slate-500 mx-auto font-bold">
-            <div className="w-1.5 h-1.5 rounded-full bg-accent-purple animate-pulse-slow" />
-            22 Major Arcana
-          </div>
           <h2 className="text-4xl font-black tracking-tight text-white uppercase">
             The <span style={{
               background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #c084fc 100%)',
@@ -272,21 +337,76 @@ export default function DeckGallery() {
           <p className="text-slate-500 text-xs font-medium max-w-md mx-auto">
             Click any card to explore its archetype, symbolism, and interpretation.
           </p>
-          <p className="text-[10px] text-slate-700 font-mono">
-            
-            
-          </p>
         </div>
 
-        {/* Grid */}
-        <div className="flex flex-wrap justify-center gap-4 md:gap-6">
-          {DECK.map((card, idx) => (
-            <DeckCard key={card.traditional} card={card} onClick={() => openCard(idx)} />
-          ))}
+        {/* Major / Minor tab switcher */}
+        <div className="flex items-center justify-center gap-2">
+          <button
+            onClick={() => setDeckTab('major')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-200 border
+              ${deckTab === 'major'
+                ? 'border-accent-purple/40 bg-accent-purple/10 text-white'
+                : 'border-white/[0.06] bg-white/[0.02] text-slate-500 hover:text-slate-300 hover:border-white/10'
+              }`}
+          >
+            <div className={`w-1.5 h-1.5 rounded-full ${deckTab === 'major' ? 'bg-accent-purple animate-pulse-slow' : 'bg-slate-700'}`} />
+            23 Major Arcana
+          </button>
+          <button
+            onClick={() => setDeckTab('minor')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-200 border
+              ${deckTab === 'minor'
+                ? 'border-accent-purple/40 bg-accent-purple/10 text-white'
+                : 'border-white/[0.06] bg-white/[0.02] text-slate-500 hover:text-slate-300 hover:border-white/10'
+              }`}
+          >
+            <div className={`w-1.5 h-1.5 rounded-full ${deckTab === 'minor' ? 'bg-accent-purple animate-pulse-slow' : 'bg-slate-700'}`} />
+            56 Minor Arcana
+          </button>
         </div>
+
+        {/* ─── Major Arcana Grid ─── */}
+        {deckTab === 'major' && (
+          <div className="flex flex-wrap justify-center gap-4 md:gap-6 animate-fade-up">
+            {DECK.map((card, idx) => (
+              <DeckCard key={card.traditional} card={card} onClick={() => openCard(idx)} />
+            ))}
+          </div>
+        )}
+
+        {/* ─── Minor Arcana Grid ─── */}
+        {deckTab === 'minor' && (
+          <div className="flex flex-col gap-6 animate-fade-up">
+            {/* Suit tabs */}
+            <div className="flex items-center justify-center gap-2">
+              {SUITS.map(s => (
+                <button
+                  key={s.key}
+                  onClick={() => setActiveSuit(s.key)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-200 border
+                    ${activeSuit === s.key
+                      ? 'border-white/20 bg-white/[0.08] text-white'
+                      : 'border-white/[0.06] bg-white/[0.02] text-slate-500 hover:text-slate-400 hover:bg-white/[0.04]'
+                    }`}
+                >
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color, opacity: activeSuit === s.key ? 1 : 0.4 }} />
+                  <span>{s.name}</span>
+                  <span className="text-[8px] text-slate-600">({s.element})</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Cards grid for active suit */}
+            <div className="flex flex-wrap justify-center gap-3 md:gap-4">
+              {MINOR_RANKS.map((_, rankIdx) => (
+                <MinorCard key={rankIdx} suit={activeSuit} rankIdx={rankIdx} color={SUITS.find(s => s.key === activeSuit)!.color} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Lightbox */}
+      {/* Lightbox (major only for now) */}
       {selected !== null && (
         <Lightbox
           card={DECK[selected]}
