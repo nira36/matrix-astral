@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { ARCANA } from '@/lib/arcana'
+import TarotReading from '@/components/TarotReading'
 
 // ─── Deck metadata ────────────────────────────────────────────────────────────
 // Images: /public/deck/00.jpg (Fool) → /public/deck/21.jpg (World)
@@ -259,8 +260,9 @@ const SUITS: { key: Suit; name: string; element: string; color: string }[] = [
 
 const MINOR_RANKS = [
   'Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10',
-  'Princess', 'Prince', 'Queen', 'King',
 ]
+
+const COURT_RANKS = ['Princess', 'Prince', 'Queen', 'King']
 
 const SUIT_NAMES: Record<Suit, string> = {
   wands: 'Wands', cups: 'Cups', swords: 'Swords', disks: 'Disks',
@@ -269,6 +271,11 @@ const SUIT_NAMES: Record<Suit, string> = {
 function minorImgPath(suit: Suit, rankIdx: number): string {
   const rank = MINOR_RANKS[rankIdx]
   return `/deck/minor/${suit}/${rank} of ${SUIT_NAMES[suit]}.jpg`
+}
+
+function courtImgPath(suit: Suit, rankIdx: number): string {
+  const rank = COURT_RANKS[rankIdx]
+  return `/deck/court/${suit}/${rank} of ${SUIT_NAMES[suit]}.jpg`
 }
 
 // ─── Minor Arcana Card ───────────────────────────────────────────────────────
@@ -308,9 +315,46 @@ function MinorCard({ suit, rankIdx, color }: { suit: Suit; rankIdx: number; colo
   )
 }
 
+// ─── Court Card ─────────────────────────────────────────────────────────────
+
+function CourtCard({ suit, rankIdx, color }: { suit: Suit; rankIdx: number; color: string }) {
+  const [hasImage, setHasImage] = useState(true)
+  const rank = COURT_RANKS[rankIdx]
+  const src = courtImgPath(suit, rankIdx)
+
+  return (
+    <div className="group relative flex flex-col items-center w-[260px] sm:w-[165px] md:w-[180px]">
+      <div
+        className="relative w-full aspect-[992/1583] rounded-2xl overflow-hidden transition-all duration-300 group-hover:scale-[1.03]"
+        style={{ boxShadow: `0 0 22px ${color}55` }}
+      >
+        {hasImage ? (
+          <Image
+            src={src}
+            alt={`${rank} of ${suit}`}
+            fill
+            className="object-cover object-center scale-[1.03]"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+            onError={() => setHasImage(false)}
+          />
+        ) : (
+          <div
+            className="w-full h-full flex flex-col items-center justify-center gap-2 border border-white/[0.06] rounded-2xl"
+            style={{ background: `${color}08` }}
+          >
+            <span className="text-lg font-black opacity-15" style={{ color }}>{rank}</span>
+            <span className="text-[8px] text-slate-700 uppercase tracking-widest">{suit}</span>
+          </div>
+        )}
+      </div>
+      <span className="text-[9px] font-bold text-slate-500 mt-1.5 uppercase tracking-wider">{rank}</span>
+    </div>
+  )
+}
+
 // ─── Main gallery ─────────────────────────────────────────────────────────────
 
-type DeckTab = 'major' | 'minor'
+type DeckTab = 'major' | 'minor' | 'court' | 'reading'
 
 export default function DeckGallery() {
   const [selected, setSelected] = useState<number | null>(null)
@@ -361,9 +405,47 @@ export default function DeckGallery() {
               }`}
           >
             <div className={`w-1.5 h-1.5 rounded-full ${deckTab === 'minor' ? 'bg-accent-purple animate-pulse-slow' : 'bg-slate-700'}`} />
-            56 Minor Arcana
+            40 Minor Arcana
+          </button>
+          <button
+            onClick={() => setDeckTab('court')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-200 border
+              ${deckTab === 'court'
+                ? 'border-accent-purple/40 bg-accent-purple/10 text-white'
+                : 'border-white/[0.06] bg-white/[0.02] text-slate-500 hover:text-slate-300 hover:border-white/10'
+              }`}
+          >
+            <div className={`w-1.5 h-1.5 rounded-full ${deckTab === 'court' ? 'bg-accent-purple animate-pulse-slow' : 'bg-slate-700'}`} />
+            16 Court Cards
           </button>
         </div>
+
+        {/* Reading button — separate row */}
+        <div className="flex justify-center">
+          <button
+            onClick={() => setDeckTab('reading')}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-200 border
+              ${deckTab === 'reading'
+                ? 'border-accent-purple/40 bg-accent-purple/10 text-white'
+                : 'border-white/[0.06] bg-white/[0.02] text-slate-500 hover:text-slate-300 hover:border-white/10'
+              }`}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="3" width="8" height="12" rx="1.5" transform="rotate(-8 2 3)" />
+              <rect x="9" y="2" width="8" height="12" rx="1.5" />
+              <rect x="14" y="3" width="8" height="12" rx="1.5" transform="rotate(8 14 3)" />
+              <path d="M8 18l4 3 4-3" />
+            </svg>
+            Reading
+          </button>
+        </div>
+
+        {/* ─── Reading ─── */}
+        {deckTab === 'reading' && (
+          <div className="animate-fade-up">
+            <TarotReading />
+          </div>
+        )}
 
         {/* ─── Major Arcana Grid ─── */}
         {deckTab === 'major' && (
@@ -404,6 +486,38 @@ export default function DeckGallery() {
             </div>
           </div>
         )}
+
+        {/* ─── Court Cards Grid ─── */}
+        {deckTab === 'court' && (
+          <div className="flex flex-col gap-6 animate-fade-up">
+            {/* Suit tabs */}
+            <div className="flex items-center justify-center gap-2">
+              {SUITS.map(s => (
+                <button
+                  key={s.key}
+                  onClick={() => setActiveSuit(s.key)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-200 border
+                    ${activeSuit === s.key
+                      ? 'border-white/20 bg-white/[0.08] text-white'
+                      : 'border-white/[0.06] bg-white/[0.02] text-slate-500 hover:text-slate-400 hover:bg-white/[0.04]'
+                    }`}
+                >
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color, opacity: activeSuit === s.key ? 1 : 0.4 }} />
+                  <span>{s.name}</span>
+                  <span className="text-[8px] text-slate-600">({s.element})</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Cards grid for active suit */}
+            <div className="flex flex-wrap justify-center gap-3 md:gap-4">
+              {COURT_RANKS.map((_, rankIdx) => (
+                <CourtCard key={rankIdx} suit={activeSuit} rankIdx={rankIdx} color={SUITS.find(s => s.key === activeSuit)!.color} />
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
 
       {/* Lightbox (major only for now) */}

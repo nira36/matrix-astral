@@ -28,6 +28,7 @@ import AdvancedNumerology from '@/components/AdvancedNumerology'
 import GematriaCalculator from '@/components/GematriaCalculator'
 import LunarCycles from '@/components/LunarCycles'
 import DeckGallery from '@/components/DeckGallery'
+import TarotReading from '@/components/TarotReading'
 import EvolutionSection from '@/components/EvolutionSection'
 import NatalChartWheel from '@/components/NatalChartWheel'
 import NatalChartTable from '@/components/NatalChartTable'
@@ -309,6 +310,7 @@ export default function Home() {
             <DeckGallery />
           </div>
         )}
+
 
         {tab === 'natal' && hasResults && (
           <div key={`natal-${calcKey}`} className="flex flex-col gap-12 animate-fade-up">
