@@ -85,13 +85,11 @@ const SPREADS: SpreadDef[] = [
 
 function FlipCard({
   card,
-  label,
   flipped,
   onFlip,
   onOpen,
 }: {
   card: CardMeta | null
-  label: string
   flipped: boolean
   onFlip: () => void
   onOpen: () => void
@@ -111,9 +109,6 @@ function FlipCard({
   if (animDone && card) {
     return (
       <div className="flex flex-col items-center gap-2">
-        <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-slate-500">
-          {label}
-        </span>
         <button
           onClick={onOpen}
           className="relative w-full aspect-[992/1583] rounded-2xl overflow-hidden cursor-pointer focus:outline-none"
@@ -147,10 +142,6 @@ function FlipCard({
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-slate-500">
-        {label}
-      </span>
-
       <button
         onClick={onFlip}
         disabled={!card || flipped}
@@ -279,6 +270,26 @@ function FullscreenCard({ card, label, onClose }: { card: CardMeta; label: strin
 
 // ─── Main Component ─────────────────────────────────────────────────────────
 
+const STORAGE_KEY = 'tarot-reading-timestamp'
+const STORAGE_CARDS_KEY = 'tarot-reading-cards'
+const COOLDOWN_MS = 24 * 60 * 60 * 1000 // 24 hours
+
+function getTimeLeft(): number {
+  if (typeof window === 'undefined') return 0
+  const stored = localStorage.getItem(STORAGE_KEY)
+  if (!stored) return 0
+  const elapsed = Date.now() - parseInt(stored, 10)
+  return Math.max(0, COOLDOWN_MS - elapsed)
+}
+
+function formatCountdown(ms: number): string {
+  const totalSec = Math.ceil(ms / 1000)
+  const h = Math.floor(totalSec / 3600)
+  const m = Math.floor((totalSec % 3600) / 60)
+  const s = totalSec % 60
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+}
+
 export default function TarotReading() {
   const [spread] = useState<SpreadDef>(SPREADS[0])
   const [drawnCards, setDrawnCards] = useState<(CardMeta | null)[]>([])
@@ -286,6 +297,49 @@ export default function TarotReading() {
   const [usedIndices, setUsedIndices] = useState<Set<number>>(new Set())
   const [currentSlot, setCurrentSlot] = useState(0)
   const [fullscreenIdx, setFullscreenIdx] = useState<number | null>(null)
+  const [timeLeft, setTimeLeft] = useState(0)
+  const [readingDone, setReadingDone] = useState(false)
+
+  // On mount: restore previous reading if still within cooldown
+  useEffect(() => {
+    const remaining = getTimeLeft()
+    if (remaining > 0) {
+      setTimeLeft(remaining)
+      setReadingDone(true)
+      // Restore saved cards
+      try {
+        const saved = localStorage.getItem(STORAGE_CARDS_KEY)
+        if (saved) {
+          const parsed = JSON.parse(saved) as CardMeta[]
+          setDrawnCards(parsed)
+          setCurrentSlot(parsed.length)
+          setFlippedSet(new Set(parsed.map((_, i) => i)))
+        }
+      } catch { /* ignore */ }
+    }
+  }, [])
+
+  // Countdown timer
+  useEffect(() => {
+    if (timeLeft <= 0) {
+      if (readingDone) {
+        setReadingDone(false)
+        setTimeLeft(0)
+      }
+      return
+    }
+    const interval = setInterval(() => {
+      const remaining = getTimeLeft()
+      if (remaining <= 0) {
+        setTimeLeft(0)
+        setReadingDone(false)
+        clearInterval(interval)
+      } else {
+        setTimeLeft(remaining)
+      }
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [timeLeft, readingDone])
 
   const isComplete = currentSlot >= spread.slots.length
   const allFlipped = flippedSet.size === spread.slots.length
@@ -310,30 +364,29 @@ export default function TarotReading() {
 
   const flipCard = useCallback((slotIdx: number) => {
     if (flippedSet.has(slotIdx)) return
-    setFlippedSet(prev => new Set(prev).add(slotIdx))
-  }, [flippedSet])
-
-  const reset = useCallback(() => {
-    setDrawnCards([])
-    setFlippedSet(new Set())
-    setUsedIndices(new Set())
-    setCurrentSlot(0)
-  }, [])
+    setFlippedSet(prev => {
+      const next = new Set(prev).add(slotIdx)
+      // When all cards are flipped, lock the reading
+      if (next.size === spread.slots.length) {
+        localStorage.setItem(STORAGE_KEY, String(Date.now()))
+        localStorage.setItem(STORAGE_CARDS_KEY, JSON.stringify(
+          drawnCards.map(c => c) // save current cards
+        ))
+        setReadingDone(true)
+        setTimeLeft(COOLDOWN_MS)
+      }
+      return next
+    })
+  }, [flippedSet, spread.slots.length, drawnCards])
 
   return (
     <div className="flex flex-col gap-8 items-center">
-      {/* Header */}
-      <p className="text-slate-500 text-xs font-medium text-center">
-        {spread.name} — {spread.slots.join(', ')}
-      </p>
-
       {/* Cards layout — always in a row */}
       <div className="flex justify-center gap-3 sm:gap-6 md:gap-10 w-full px-2">
-        {spread.slots.map((label, idx) => (
+        {spread.slots.map((_, idx) => (
           <div key={idx} className="flex-1 max-w-[260px]">
             <FlipCard
               card={drawnCards[idx] ?? null}
-              label={label}
               flipped={flippedSet.has(idx)}
               onFlip={() => flipCard(idx)}
               onOpen={() => setFullscreenIdx(idx)}
@@ -352,7 +405,7 @@ export default function TarotReading() {
       )}
 
       {/* Actions */}
-      <div className="flex gap-3 mt-4">
+      <div className="flex flex-col items-center gap-2 mt-4">
         {!isComplete ? (
           <button
             onClick={drawNext}
@@ -368,9 +421,31 @@ export default function TarotReading() {
           <p className="text-slate-500 text-xs font-medium animate-pulse">
             Click the cards to reveal them
           </p>
+        ) : readingDone && timeLeft > 0 ? (
+          <div className="flex flex-col items-center gap-1.5">
+            <button
+              disabled
+              className="px-6 py-3 rounded-xl font-semibold text-sm tracking-wide
+                         border border-white/[0.06] transition-all duration-200
+                         bg-white/[0.02] text-slate-600 cursor-not-allowed opacity-50"
+            >
+              New Reading
+            </button>
+            <span className="text-[10px] text-slate-700 font-mono tracking-wider">
+              {formatCountdown(timeLeft)}
+            </span>
+          </div>
         ) : (
           <button
-            onClick={reset}
+            onClick={() => {
+              setDrawnCards([])
+              setFlippedSet(new Set())
+              setUsedIndices(new Set())
+              setCurrentSlot(0)
+              setReadingDone(false)
+              localStorage.removeItem(STORAGE_KEY)
+              localStorage.removeItem(STORAGE_CARDS_KEY)
+            }}
             className="px-6 py-3 rounded-xl font-semibold text-sm tracking-wide text-white
                        border border-white/10 hover:border-white/20 transition-all duration-200
                        bg-white/[0.04] hover:bg-white/[0.08]"

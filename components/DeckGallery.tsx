@@ -383,7 +383,7 @@ export default function DeckGallery() {
           </p>
         </div>
 
-        {/* Major / Minor tab switcher */}
+        {/* Major / Court / Minor tab switcher */}
         <div className="flex items-center justify-center gap-2">
           <button
             onClick={() => setDeckTab('major')}
@@ -397,17 +397,6 @@ export default function DeckGallery() {
             23 Major Arcana
           </button>
           <button
-            onClick={() => setDeckTab('minor')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-200 border
-              ${deckTab === 'minor'
-                ? 'border-accent-purple/40 bg-accent-purple/10 text-white'
-                : 'border-white/[0.06] bg-white/[0.02] text-slate-500 hover:text-slate-300 hover:border-white/10'
-              }`}
-          >
-            <div className={`w-1.5 h-1.5 rounded-full ${deckTab === 'minor' ? 'bg-accent-purple animate-pulse-slow' : 'bg-slate-700'}`} />
-            40 Minor Arcana
-          </button>
-          <button
             onClick={() => setDeckTab('court')}
             className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-200 border
               ${deckTab === 'court'
@@ -418,14 +407,78 @@ export default function DeckGallery() {
             <div className={`w-1.5 h-1.5 rounded-full ${deckTab === 'court' ? 'bg-accent-purple animate-pulse-slow' : 'bg-slate-700'}`} />
             16 Court Cards
           </button>
+          <button
+            onClick={() => setDeckTab('minor')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-200 border
+              ${deckTab === 'minor'
+                ? 'border-accent-purple/40 bg-accent-purple/10 text-white'
+                : 'border-white/[0.06] bg-white/[0.02] text-slate-500 hover:text-slate-300 hover:border-white/10'
+              }`}
+          >
+            <div className={`w-1.5 h-1.5 rounded-full ${deckTab === 'minor' ? 'bg-accent-purple animate-pulse-slow' : 'bg-slate-700'}`} />
+            40 Minor Arcana
+          </button>
         </div>
 
         {/* Reading button — square tab like main nav */}
         <div className="flex justify-center">
-          <div className="p-1.5 rounded-2xl border border-white/[0.07] bg-bg-card inline-flex">
+          <div className="relative p-1.5 rounded-2xl border border-white/[0.07] bg-bg-card inline-flex overflow-visible">
+            {/* Sparkle stars around the border */}
+            <svg className="absolute -inset-3 w-[calc(100%+24px)] h-[calc(100%+24px)] pointer-events-none" viewBox="0 0 120 60" fill="none" preserveAspectRatio="none">
+              {/* Top edge stars */}
+              <circle cx="20" cy="3" r="0.8" fill="#c4b5fd" opacity="0.7">
+                <animate attributeName="opacity" values="0.2;0.8;0.2" dur="3s" repeatCount="indefinite" />
+              </circle>
+              <circle cx="45" cy="1" r="0.5" fill="#e0d4ff" opacity="0.5">
+                <animate attributeName="opacity" values="0.1;0.6;0.1" dur="4s" begin="0.5s" repeatCount="indefinite" />
+              </circle>
+              <circle cx="75" cy="2" r="0.7" fill="#a78bfa" opacity="0.6">
+                <animate attributeName="opacity" values="0.15;0.7;0.15" dur="3.5s" begin="1s" repeatCount="indefinite" />
+              </circle>
+              <circle cx="100" cy="4" r="0.5" fill="#c4b5fd" opacity="0.4">
+                <animate attributeName="opacity" values="0.1;0.5;0.1" dur="5s" begin="2s" repeatCount="indefinite" />
+              </circle>
+              {/* Bottom edge stars */}
+              <circle cx="15" cy="57" r="0.6" fill="#a78bfa" opacity="0.5">
+                <animate attributeName="opacity" values="0.1;0.6;0.1" dur="4.5s" begin="1.5s" repeatCount="indefinite" />
+              </circle>
+              <circle cx="55" cy="59" r="0.8" fill="#c4b5fd" opacity="0.6">
+                <animate attributeName="opacity" values="0.2;0.7;0.2" dur="3.2s" begin="0.8s" repeatCount="indefinite" />
+              </circle>
+              <circle cx="90" cy="56" r="0.5" fill="#e0d4ff" opacity="0.4">
+                <animate attributeName="opacity" values="0.1;0.55;0.1" dur="4s" begin="2.5s" repeatCount="indefinite" />
+              </circle>
+              {/* Left edge stars */}
+              <circle cx="2" cy="18" r="0.6" fill="#c4b5fd" opacity="0.5">
+                <animate attributeName="opacity" values="0.15;0.65;0.15" dur="3.8s" begin="0.3s" repeatCount="indefinite" />
+              </circle>
+              <circle cx="1" cy="40" r="0.5" fill="#a78bfa" opacity="0.4">
+                <animate attributeName="opacity" values="0.1;0.5;0.1" dur="4.2s" begin="1.8s" repeatCount="indefinite" />
+              </circle>
+              {/* Right edge stars */}
+              <circle cx="118" cy="22" r="0.7" fill="#e0d4ff" opacity="0.6">
+                <animate attributeName="opacity" values="0.2;0.7;0.2" dur="3.3s" begin="0.7s" repeatCount="indefinite" />
+              </circle>
+              <circle cx="117" cy="42" r="0.5" fill="#c4b5fd" opacity="0.4">
+                <animate attributeName="opacity" values="0.1;0.55;0.1" dur="5s" begin="1.2s" repeatCount="indefinite" />
+              </circle>
+              {/* Corner accent stars (4-point star shapes) */}
+              <path d="M8 8 L9 6.5 L10 8 L9 9.5 Z" fill="#c4b5fd" opacity="0.5">
+                <animate attributeName="opacity" values="0.15;0.6;0.15" dur="4s" begin="0.4s" repeatCount="indefinite" />
+              </path>
+              <path d="M110 8 L111 6.5 L112 8 L111 9.5 Z" fill="#a78bfa" opacity="0.45">
+                <animate attributeName="opacity" values="0.1;0.55;0.1" dur="3.6s" begin="1.3s" repeatCount="indefinite" />
+              </path>
+              <path d="M8 52 L9 50.5 L10 52 L9 53.5 Z" fill="#e0d4ff" opacity="0.4">
+                <animate attributeName="opacity" values="0.1;0.5;0.1" dur="4.5s" begin="2.2s" repeatCount="indefinite" />
+              </path>
+              <path d="M110 52 L111 50.5 L112 52 L111 53.5 Z" fill="#c4b5fd" opacity="0.5">
+                <animate attributeName="opacity" values="0.15;0.6;0.15" dur="3.4s" begin="0.9s" repeatCount="indefinite" />
+              </path>
+            </svg>
             <button
               onClick={() => setDeckTab('reading')}
-              className="flex flex-col items-center gap-1 px-6 py-2.5 rounded-xl transition-all duration-200"
+              className="relative z-10 flex flex-col items-center gap-1 px-6 py-2.5 rounded-xl transition-all duration-200"
               style={{
                 background: deckTab === 'reading' ? 'linear-gradient(135deg,#7c3aed,#6366f1)' : 'transparent',
                 color: deckTab === 'reading' ? '#fff' : '#64748b',
