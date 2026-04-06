@@ -577,24 +577,8 @@ function TabNav({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
           </button>
         ))}
 
-        {/* Overflow tabs — shown inline on md+, collapsed on mobile */}
-        {overflowTabs.map(({ key, label, icon }) => (
-          <button
-            key={key}
-            onClick={() => setTab(key)}
-            className="hidden md:flex flex-col items-center gap-1 px-5 py-2 rounded-xl transition-all duration-200"
-            style={{
-              background: tab === key ? 'linear-gradient(135deg,#7c3aed,#6366f1)' : 'transparent',
-              color: tab === key ? '#fff' : '#64748b',
-            }}
-          >
-            {icon}
-            <span className="text-[8px] font-black tracking-[0.2em] uppercase">{label}</span>
-          </button>
-        ))}
-
-        {/* Mobile overflow menu trigger */}
-        <div className="relative md:hidden" ref={menuRef}>
+        {/* Astrology overflow menu */}
+        <div className="relative" ref={menuRef}>
           <button
             onClick={() => setMenuOpen(v => !v)}
             className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all duration-200"
@@ -604,14 +588,20 @@ function TabNav({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
             }}
           >
             {activeOverflow ? activeOverflow.icon : (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <circle cx="12" cy="5" r="1.5" />
-                <circle cx="12" cy="12" r="1.5" />
-                <circle cx="12" cy="19" r="1.5" />
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 2v2" />
+                <path d="M12 20v2" />
+                <path d="M4.93 4.93l1.41 1.41" />
+                <path d="M17.66 17.66l1.41 1.41" />
+                <path d="M2 12h2" />
+                <path d="M20 12h2" />
+                <path d="M4.93 19.07l1.41-1.41" />
+                <path d="M17.66 6.34l1.41-1.41" />
               </svg>
             )}
             <span className="text-[7px] font-black tracking-[0.15em] uppercase">
-              {activeOverflow ? activeOverflow.label : 'More'}
+              {activeOverflow ? activeOverflow.label : 'Astrology'}
             </span>
           </button>
 

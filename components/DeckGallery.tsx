@@ -50,6 +50,12 @@ function imgPath(traditional: number) {
   return `/deck/${String(traditional).padStart(2, '0')}.jpg`
 }
 
+/** In the deck, arcana 22 keeps its original name "The Heirs" */
+function deckName(card: CardMeta): string {
+  if (card.appNum === 22) return 'The Heirs'
+  return ARCANA[card.appNum]?.name ?? `Arcana ${card.traditional}`
+}
+
 // ─── Card component ───────────────────────────────────────────────────────────
 
 function DeckCard({
@@ -81,7 +87,7 @@ function DeckCard({
         {hasImage ? (
           <Image
             src={src}
-            alt={arcana?.name ?? `Arcana ${card.traditional}`}
+            alt={deckName(card)}
             fill
             className="object-cover object-center scale-[1.03]"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
@@ -97,7 +103,7 @@ function DeckCard({
               {card.roman}
             </span>
             <span className="text-[9px] text-slate-600 uppercase tracking-widest text-center px-2">
-              {arcana?.name}
+              {deckName(card)}
             </span>
           </div>
         )}
@@ -110,7 +116,7 @@ function DeckCard({
           className="text-[10px] font-black uppercase tracking-widest text-center leading-tight"
           style={{ color: arcana?.color ?? '#8b5cf6' }}
         >
-          {arcana?.name ?? `Arcana ${card.traditional}`}
+          {deckName(card)}
         </span>
         <span className="text-[8px] text-slate-600 tracking-[0.2em] uppercase">
           {card.subtitle}
@@ -160,7 +166,7 @@ function Lightbox({
             {hasImage ? (
               <Image
                 src={imgPath(card.traditional)}
-                alt={arcana?.name ?? ''}
+                alt={deckName(card)}
                 fill
                 className="object-cover"
                 sizes="260px"
@@ -204,7 +210,7 @@ function Lightbox({
                 className="text-3xl font-black uppercase tracking-wider"
                 style={{ color: arcana?.color }}
               >
-                {arcana?.name}
+                {deckName(card)}
               </h2>
               <p className="text-[11px] text-slate-500 tracking-[0.3em] uppercase mt-1">
                 — {card.subtitle} —

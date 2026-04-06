@@ -19,6 +19,21 @@ export const ZODIAC_ELEMENTS: Record<ZodiacSign, 'Fire' | 'Earth' | 'Air' | 'Wat
   Sagittarius: 'Fire', Capricorn: 'Earth', Aquarius: 'Air', Pisces: 'Water',
 }
 
+export const ZODIAC_INFO: Record<ZodiacSign, { ruler: string; dates: string; quality: string; keywords: string }> = {
+  Aries:       { ruler: 'Mars',    dates: 'Mar 21 – Apr 19',  quality: 'Cardinal', keywords: 'Courage, initiative, leadership, impulsiveness' },
+  Taurus:      { ruler: 'Venus',   dates: 'Apr 20 – May 20',  quality: 'Fixed',    keywords: 'Stability, sensuality, patience, determination' },
+  Gemini:      { ruler: 'Mercury', dates: 'May 21 – Jun 20',  quality: 'Mutable',  keywords: 'Communication, curiosity, adaptability, wit' },
+  Cancer:      { ruler: 'Moon',    dates: 'Jun 21 – Jul 22',  quality: 'Cardinal', keywords: 'Nurturing, intuition, emotion, protection' },
+  Leo:         { ruler: 'Sun',     dates: 'Jul 23 – Aug 22',  quality: 'Fixed',    keywords: 'Creativity, generosity, warmth, pride' },
+  Virgo:       { ruler: 'Mercury', dates: 'Aug 23 – Sep 22',  quality: 'Mutable',  keywords: 'Analysis, service, precision, healing' },
+  Libra:       { ruler: 'Venus',   dates: 'Sep 23 – Oct 22',  quality: 'Cardinal', keywords: 'Harmony, balance, diplomacy, beauty' },
+  Scorpio:     { ruler: 'Pluto',   dates: 'Oct 23 – Nov 21',  quality: 'Fixed',    keywords: 'Transformation, depth, intensity, power' },
+  Sagittarius: { ruler: 'Jupiter', dates: 'Nov 22 – Dec 21',  quality: 'Mutable',  keywords: 'Expansion, philosophy, adventure, freedom' },
+  Capricorn:   { ruler: 'Saturn',  dates: 'Dec 22 – Jan 19',  quality: 'Cardinal', keywords: 'Ambition, discipline, structure, mastery' },
+  Aquarius:    { ruler: 'Uranus',  dates: 'Jan 20 – Feb 18',  quality: 'Fixed',    keywords: 'Innovation, independence, humanitarianism, vision' },
+  Pisces:      { ruler: 'Neptune', dates: 'Feb 19 – Mar 20',  quality: 'Mutable',  keywords: 'Compassion, imagination, transcendence, empathy' },
+}
+
 export const PLANET_GLYPHS: Record<string, string> = {
   Sun: '☉', Moon: '☽', Mercury: '☿', Venus: '♀', Mars: '♂',
   Jupiter: '♃', Saturn: '♄', Uranus: '♅', Neptune: '♆', Pluto: '♇',

@@ -38,7 +38,7 @@ const ALL_CARDS: CardMeta[] = [
     const arcana = ARCANA[appNum]
     return {
       type: 'major' as CardType,
-      name: arcana?.name ?? `Arcana ${i}`,
+      name: i === 0 ? 'The Heirs' : (arcana?.name ?? `Arcana ${i}`),
       color: arcana?.color ?? '#8b5cf6',
       imgSrc: `/deck/${String(i).padStart(2, '0')}.jpg`,
       keywords: arcana?.keywords?.slice(0, 3),

@@ -39,9 +39,9 @@ export async function GET(req: NextRequest) {
     if (!res.ok) return NextResponse.json([])
     const data = await res.json()
 
+    const seen = new Set<string>()
     const results = data
       .filter((r: any) => r.type === 'city' || r.type === 'town' || r.type === 'village' || r.type === 'administrative' || r.type === 'hamlet' || r.class === 'place' || r.class === 'boundary')
-      .slice(0, 6)
       .map((r: any) => {
         const addr = r.address || {}
         const city = addr.city || addr.town || addr.village || addr.hamlet || r.name || ''
@@ -99,6 +99,12 @@ export async function GET(req: NextRequest) {
           tz,
         }
       })
+      .filter((r: any) => {
+        if (seen.has(r.display)) return false
+        seen.add(r.display)
+        return true
+      })
+      .slice(0, 6)
 
     return NextResponse.json(results)
   } catch {

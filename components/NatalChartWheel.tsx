@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import type { NatalChartData, PlanetPosition, Aspect, AspectType, ZodiacSign } from '@/lib/astrology'
-import { ZODIAC_SIGNS, ZODIAC_GLYPHS, PLANET_GLYPHS, ASPECT_COLORS, ASPECT_SYMBOLS, getPlanetInterpretation } from '@/lib/astrology'
+import { ZODIAC_SIGNS, ZODIAC_GLYPHS, ZODIAC_ELEMENTS, ZODIAC_INFO, PLANET_GLYPHS, ASPECT_COLORS, ASPECT_SYMBOLS, getPlanetInterpretation } from '@/lib/astrology'
 
 // ─── Layout constants ──────────────────────────────────────────────────────
 // New layout: outermost = houses, then zodiac ring, then planets inside, then aspects
@@ -25,79 +25,81 @@ function polar(cx: number, cy: number, r: number, deg: number) {
   return { x: cx + r * Math.cos(rad), y: cy - r * Math.sin(rad) }
 }
 
-// ─── Zodiac SVG icon paths (simple line-art style) ─────────────────────────
-// Standard astrological glyphs as SVG paths (viewBox 0 0 18 18)
+
+// ─── Standard zodiac SVG glyphs (viewBox 0 0 18 18) ────────────────────────
 const ZODIAC_PATHS: Record<ZodiacSign, string[]> = {
-  // ♈ Aries: two curved horns meeting at center
+  // ♈ Aries – two horns curving outward from center
   Aries: [
-    'M4 15 C4 6 4 4 9 4 C14 4 14 6 14 15',  // two arcs
-    'M9 4 V16',                                 // center line down
+    'M3 14 C3 7 3 4 9 3',
+    'M15 14 C15 7 15 4 9 3',
   ],
-  // ♉ Taurus: circle with horns on top
+  // ♉ Taurus – circle below, two horns curving up
   Taurus: [
-    'M3 6 C3 2 9 2 9 2 C9 2 15 2 15 6',       // horns
-    'M5 10 A4 4 0 1 0 13 10 A4 4 0 1 0 5 10',  // circle
+    'M3 5 C3 1 9 1 9 1 C9 1 15 1 15 5',
+    'M5.5 11 A3.5 3.5 0 1 0 12.5 11 A3.5 3.5 0 1 0 5.5 11',
+    'M9 1 V7.5',
   ],
-  // ♊ Gemini: two pillars with top/bottom bars
+  // ♊ Gemini – two vertical pillars, top/bottom curves
   Gemini: [
-    'M3 3 C6 5 12 5 15 3',  // top arc
-    'M3 15 C6 13 12 13 15 15', // bottom arc
-    'M6 3.5 V14.5',           // left pillar
-    'M12 3.5 V14.5',          // right pillar
+    'M3 3 C6 5 12 5 15 3',
+    'M3 15 C6 13 12 13 15 15',
+    'M6 4 V14',
+    'M12 4 V14',
   ],
-  // ♋ Cancer: two 6/9 circles interlocked
+  // ♋ Cancer – two small circles connected by arcs (69 shape)
   Cancer: [
-    'M13 7 A4 4 0 1 1 5 7',   // top arc
-    'M5 7 H13',                // middle bar top
-    'M5 11 A4 4 0 1 1 13 11',  // bottom arc
-    'M13 11 H5',               // middle bar bottom
+    'M14 6 A5 5 0 0 1 4 6',
+    'M14 6 A2 2 0 1 1 14 5.99',
+    'M4 12 A5 5 0 0 1 14 12',
+    'M4 12 A2 2 0 1 1 4 11.99',
   ],
-  // ♌ Leo: circle with swooping tail
+  // ♌ Leo – circle with swirl tail
   Leo: [
-    'M5 7 A3 3 0 1 0 5 7.01', // circle
-    'M8 7 C10 7 12 9 12 12 C12 15 14 16 16 14', // tail swoosh
+    'M5 8 A2.5 2.5 0 1 1 5 7.99',
+    'M7.5 8 C9 8 11 10 11 12 C11 14 13 15.5 15 14 C16 13 15.5 11 14 10',
   ],
-  // ♍ Virgo: three humps with crossed tail
+  // ♍ Virgo – three vertical strokes with looped tail
   Virgo: [
-    'M2 4 V12 C2 15 5 15 5 12 V4',  // first hump
-    'M5 4 V12 C5 15 8 15 8 12 V4',  // second hump
-    'M8 4 V12 C8 15 11 12 11 9',     // third hump
-    'M10 8 L14 16 M11 10 L15 10',    // crossed tail
+    'M3 14 V5 C3 3 5 3 5 5 V14',
+    'M5 5 C5 3 7 3 7 5 V14',
+    'M7 5 C7 3 9 3 9 5 V10',
+    'M9 10 C10 14 13 14 14 12 L16 6',
+    'M12 9 L16 9',
   ],
-  // ♎ Libra: scales - line with dome on top
+  // ♎ Libra – horizontal line with arch above
   Libra: [
-    'M3 12 H15',                   // bottom line
-    'M3 8 H15',                    // top line
-    'M6 8 C6 3 12 3 12 8',        // dome/arch
+    'M3 13 H15',
+    'M3 9 H15',
+    'M6 9 C6 4 12 4 12 9',
   ],
-  // ♏ Scorpio: three humps with arrow tail
+  // ♏ Scorpio – three vertical strokes, arrow tail pointing up-right
   Scorpio: [
-    'M2 4 V12 C2 15 5 15 5 12 V4', // first hump
-    'M5 4 V12 C5 15 8 15 8 12 V4', // second hump
-    'M8 4 V12 C8 15 11 15 13 13',   // third hump + tail
-    'M11 15 L15 11 M15 11 L15 15 M15 11 L12 11', // arrow
+    'M3 14 V5 C3 3 5 3 5 5 V14',
+    'M5 5 C5 3 7 3 7 5 V14',
+    'M7 5 C7 3 9 3 9 5 V14 L12 11',
+    'M10 14 L12 11 L14 13',
   ],
-  // ♐ Sagittarius: arrow diagonal
+  // ♐ Sagittarius – diagonal arrow with crossbar
   Sagittarius: [
-    'M3 15 L15 3',       // diagonal
-    'M10 3 H15 V8',      // arrowhead
-    'M6 9 L12 9 M9 6 L9 12', // cross bar
+    'M3 15 L15 3',
+    'M10 3 H15 V8',
+    'M5.5 11.5 L12.5 7.5',
   ],
-  // ♑ Capricorn: V with looping tail
+  // ♑ Capricorn – angular stroke with looped tail
   Capricorn: [
-    'M2 3 L5 12 L8 3',                         // V shape
-    'M8 3 V10 C8 14 12 16 14 14 C16 12 14 8 12 8 C10 8 10 10 10 10', // looping tail
+    'M2 5 L6 14 L9 5',
+    'M9 5 V11 C9 15 13 15 13 12 C13 9 11 9 11 11 A2 2 0 1 0 15 11',
   ],
-  // ♒ Aquarius: two zigzag waves
+  // ♒ Aquarius – two zigzag/wave lines
   Aquarius: [
-    'M2 6 L5 3 L8 6 L11 3 L14 6 L16 4',     // top wave
-    'M2 12 L5 9 L8 12 L11 9 L14 12 L16 10',  // bottom wave
+    'M2 7 L4.5 4 L7.5 7 L10.5 4 L13 7 L15.5 4',
+    'M2 13 L4.5 10 L7.5 13 L10.5 10 L13 13 L15.5 10',
   ],
-  // ♓ Pisces: two arcs with bar
+  // ♓ Pisces – two facing arcs with horizontal bar
   Pisces: [
-    'M5 2 C2 5 2 13 5 16',  // left arc
-    'M13 2 C16 5 16 13 13 16', // right arc
-    'M2 9 H16',               // horizontal bar
+    'M5 2 C1 6 1 12 5 16',
+    'M13 2 C17 6 17 12 13 16',
+    'M2 9 H16',
   ],
 }
 
@@ -161,7 +163,20 @@ const FILTER_BUTTONS: { filter: AspectFilter; label: string; symbol: string; col
 export default function NatalChartWheel({ data }: { data: NatalChartData }) {
   const [hovered, setHovered] = useState<PlanetPosition | null>(null)
   const [hoveredAspect, setHoveredAspect] = useState<Aspect | null>(null)
+  const [selectedSign, setSelectedSign] = useState<{ sign: ZodiacSign; x: number; y: number } | null>(null)
+  const chartRef = useRef<HTMLDivElement>(null)
   const [aspectFilter, setAspectFilter] = useState<AspectFilter>('all')
+  const [filterOpen, setFilterOpen] = useState(false)
+  const filterRef = useRef<HTMLDivElement>(null)
+
+  React.useEffect(() => {
+    if (!filterOpen) return
+    function handleClick(e: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) setFilterOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [filterOpen])
 
   const ascLng = data.ascendantLongitude
   const toAngle = makeChartAngle(ascLng, data.mcLongitude)
@@ -182,29 +197,54 @@ export default function NatalChartWheel({ data }: { data: NatalChartData }) {
 
   return (
     <div className="flex flex-col items-center gap-4 w-full">
-      {/* ─── Aspect filter bar ─── */}
-      <div className="flex flex-wrap items-center justify-center gap-1.5">
-        {FILTER_BUTTONS.map(({ filter, label, symbol, color }) => {
-          const isActive = aspectFilter === filter
-          const count = filter === 'all' ? data.aspects.filter(a => a.orb <= 8).length : (aspectCounts[filter] || 0)
-          return (
+      {/* ─── Aspect filter (compact) ─── */}
+      {(() => {
+        const activeBtn = FILTER_BUTTONS.find(b => b.filter === aspectFilter) ?? FILTER_BUTTONS[0]
+        const totalCount = data.aspects.filter(a => a.orb <= 8).length
+        const activeCount = aspectFilter === 'all' ? totalCount : (aspectCounts[aspectFilter] || 0)
+        return (
+          <div className="relative inline-flex justify-center" ref={filterRef}>
             <button
-              key={filter}
-              onClick={() => setAspectFilter(isActive ? 'all' : filter)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-200 border
-                ${isActive ? 'border-white/20 bg-white/[0.08] text-white' : 'border-white/[0.06] bg-white/[0.02] text-slate-500 hover:bg-white/[0.04] hover:text-slate-400'}`}
+              onClick={() => setFilterOpen(v => !v)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider
+                         border border-white/[0.1] bg-white/[0.04] text-slate-300 hover:bg-white/[0.08] transition-all"
             >
-              <span style={{ color }} className="text-sm">{symbol}</span>
-              <span>{label}</span>
-              <span className={`text-[9px] ${isActive ? 'text-slate-400' : 'text-slate-600'}`}>({count})</span>
+              <span style={{ color: activeBtn.color }} className="text-sm">{activeBtn.symbol}</span>
+              <span>{activeBtn.label}</span>
+              <span className="text-slate-500">({activeCount})</span>
+              <svg width="10" height="10" viewBox="0 0 10 10" className={`ml-1 text-slate-500 transition-transform ${filterOpen ? 'rotate-180' : ''}`}>
+                <path d="M2 3.5 L5 6.5 L8 3.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </button>
-          )
-        })}
-      </div>
+
+            {filterOpen && (
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 z-50 min-w-[180px] rounded-xl border border-white/[0.08] bg-[#131825] shadow-2xl shadow-black/60 overflow-hidden animate-fade-up">
+                {FILTER_BUTTONS.map(({ filter, label, symbol, color }) => {
+                  const count = filter === 'all' ? totalCount : (aspectCounts[filter] || 0)
+                  const isActive = aspectFilter === filter
+                  return (
+                    <button
+                      key={filter}
+                      onClick={() => { setAspectFilter(isActive ? 'all' : filter); setFilterOpen(false) }}
+                      className={`flex items-center gap-2.5 w-full px-4 py-2.5 text-left transition-all
+                        ${isActive ? 'bg-white/[0.08] text-white' : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-300'}
+                        ${filter !== 'all' ? 'border-t border-white/[0.05]' : ''}`}
+                    >
+                      <span style={{ color }} className="text-sm w-4 text-center">{symbol}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider flex-1">{label}</span>
+                      <span className="text-[9px] text-slate-500">({count})</span>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )
+      })()}
 
       {/* ─── SVG Chart ─── */}
-      <div className="relative flex items-center justify-center w-full">
-        <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="w-full max-w-[720px] h-auto" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <div className="relative flex items-center justify-center w-full" ref={chartRef}>
+        <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="w-full max-w-[720px] max-sm:max-w-[360px] h-auto" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
 
           {/* ─── Defs: glow + animations ─── */}
           <defs>
@@ -271,16 +311,30 @@ export default function NatalChartWheel({ data }: { data: NatalChartData }) {
             const p2 = polar(CX, CY, SIGN_INNER_R, startAngle)
             const iconPos = polar(CX, CY, (SIGN_OUTER_R + SIGN_INNER_R) / 2, midAngle)
 
+            const isSelected = selectedSign?.sign === sign
             return (
               <g key={sign}>
                 <line x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} stroke="rgba(255,255,255,0.3)" strokeWidth="0.5" />
-                {/* SVG icon (multi-path) */}
-                <g transform={`translate(${iconPos.x - 9}, ${iconPos.y - 9})`}>
+                {/* SVG icon (standard zodiac glyph) */}
+                <g
+                  transform={`translate(${iconPos.x - 9}, ${iconPos.y - 9})`}
+                  onClick={(e) => {
+                    if (isSelected) { setSelectedSign(null); return }
+                    const rect = chartRef.current?.getBoundingClientRect()
+                    if (!rect) return
+                    const x = e.clientX - rect.left
+                    const y = e.clientY - rect.top
+                    setSelectedSign({ sign, x, y })
+                  }}
+                  className="cursor-pointer"
+                >
+                  {/* Invisible hit area */}
+                  <rect x="0" y="0" width="18" height="18" fill="transparent" />
                   {ZODIAC_PATHS[sign].map((d, pi) => (
                     <path key={pi} d={d}
                       fill="none"
-                      stroke="rgba(255,255,255,0.55)"
-                      strokeWidth="1.2"
+                      stroke={isSelected ? '#a78bfa' : 'rgba(255,255,255,0.55)'}
+                      strokeWidth={isSelected ? 1.8 : 1.2}
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     />
@@ -464,6 +518,43 @@ export default function NatalChartWheel({ data }: { data: NatalChartData }) {
           </div>
         )}
 
+        {selectedSign && !hovered && (() => {
+          const s = selectedSign.sign
+          const info = ZODIAC_INFO[s]
+          const containerW = chartRef.current?.offsetWidth ?? 720
+          const containerH = chartRef.current?.offsetHeight ?? 720
+          const flipX = selectedSign.x > containerW / 2
+          const flipY = selectedSign.y > containerH * 0.65
+          return (
+            <div
+              className="absolute z-50 bg-[#0f0f1e] border border-white/10 rounded-xl px-4 py-3 shadow-2xl shadow-black/50
+                          w-[220px] animate-fade-up pointer-events-none"
+              style={{
+                left: flipX ? undefined : selectedSign.x + 12,
+                right: flipX ? containerW - selectedSign.x + 12 : undefined,
+                top: flipY ? undefined : selectedSign.y - 10,
+                bottom: flipY ? containerH - selectedSign.y + 12 : undefined,
+              }}
+            >
+              <div className="flex items-center gap-2.5 mb-1.5">
+                <span className="text-xl">{ZODIAC_GLYPHS[s]}</span>
+                <div>
+                  <span className="text-xs font-bold text-white">{s}</span>
+                  <p className="text-[9px] text-slate-400">
+                    {info.dates} · {ZODIAC_ELEMENTS[s]} · {info.quality}
+                  </p>
+                </div>
+              </div>
+              <p className="text-[9px] text-slate-500 leading-relaxed mb-0.5">
+                <span className="text-slate-400 font-semibold">Ruler:</span> {PLANET_GLYPHS[info.ruler]} {info.ruler}
+              </p>
+              <p className="text-[9px] text-slate-500 leading-relaxed">
+                {info.keywords}
+              </p>
+            </div>
+          )
+        })()}
+
         {hoveredAspect && !hovered && (
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50
                           bg-[#0f0f1e] border border-white/10 rounded-xl px-4 py-3 shadow-2xl shadow-black/50
@@ -505,7 +596,13 @@ function AspectGrid({ data }: { data: NatalChartData }) {
   })
 
   const planets = GRID_PLANETS.filter(name => data.planets.some(p => p.planet === name))
-  const cellSize = 36
+  const [cellSize, setCellSize] = useState(36)
+  React.useEffect(() => {
+    const update = () => setCellSize(window.innerWidth < 640 ? 26 : 36)
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [])
 
   const aspectsByType: Record<string, Aspect[]> = {}
   data.aspects.filter(a => a.orb <= 8).forEach(a => {
@@ -530,8 +627,8 @@ function AspectGrid({ data }: { data: NatalChartData }) {
             return (
               <div key={rowPlanet} className="flex items-center">
                 <div style={{ width: cellSize, height: cellSize }} className="flex items-center justify-center shrink-0" title={rowPlanet}>
-                  <span className="text-sm text-slate-400">{PLANET_GLYPHS[rowPlanet] || rowPlanet[0]}</span>
-                  {rowData?.retrograde && <span className="text-[6px] text-red-400/70 ml-0.5">R</span>}
+                  <span className="text-xs sm:text-sm text-slate-400">{PLANET_GLYPHS[rowPlanet] || rowPlanet[0]}</span>
+                  {rowData?.retrograde && <span className="text-[5px] sm:text-[6px] text-red-400/70 ml-0.5">R</span>}
                 </div>
                 {planets.slice(0, rowIdx).map((colPlanet) => {
                   const asp = aspectMap.get(`${rowPlanet}-${colPlanet}`)
@@ -544,7 +641,7 @@ function AspectGrid({ data }: { data: NatalChartData }) {
                       onMouseEnter={() => asp && setHoveredCell({ p1: rowPlanet, p2: colPlanet, asp })}
                       onMouseLeave={() => setHoveredCell(null)}>
                       {asp && (
-                        <span style={{ color: ASPECT_COLORS[asp.type] }} className="text-base font-bold">
+                        <span style={{ color: ASPECT_COLORS[asp.type] }} className="text-sm sm:text-base font-bold">
                           {ASPECT_SYMBOLS[asp.type]}
                         </span>
                       )}
@@ -560,8 +657,8 @@ function AspectGrid({ data }: { data: NatalChartData }) {
               const pd = data.planets.find(p => p.planet === colPlanet)
               return (
                 <div key={colPlanet} style={{ width: cellSize, height: cellSize }} className="flex items-center justify-center" title={colPlanet}>
-                  <span className="text-sm text-slate-400">{PLANET_GLYPHS[colPlanet] || colPlanet[0]}</span>
-                  {pd?.retrograde && <span className="text-[6px] text-red-400/70 ml-0.5">R</span>}
+                  <span className="text-xs sm:text-sm text-slate-400">{PLANET_GLYPHS[colPlanet] || colPlanet[0]}</span>
+                  {pd?.retrograde && <span className="text-[5px] sm:text-[6px] text-red-400/70 ml-0.5">R</span>}
                 </div>
               )
             })}
@@ -591,24 +688,24 @@ function AspectGrid({ data }: { data: NatalChartData }) {
       <div className="flex flex-col gap-3 lg:ml-auto">
         <h3 className="text-[10px] font-black tracking-widest uppercase text-slate-500">Aspect Summary</h3>
 
-        <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 sm:gap-y-3">
           {aspectTypeOrder.map(type => {
             const list = aspectsByType[type] || []
             if (list.length === 0) return null
             return (
               <div key={type} className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span style={{ color: ASPECT_COLORS[type] }} className="text-sm">{ASPECT_SYMBOLS[type]}</span>
-                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{aspectTypeNames[type]}</span>
-                  <span className="text-[11px] text-slate-600">({list.length})</span>
+                  <span style={{ color: ASPECT_COLORS[type] }} className="text-xs sm:text-sm">{ASPECT_SYMBOLS[type]}</span>
+                  <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider">{aspectTypeNames[type]}</span>
+                  <span className="text-[10px] sm:text-[11px] text-slate-600">({list.length})</span>
                 </div>
                 {list.map((a, i) => (
-                  <div key={i} className="flex items-center gap-1.5 ml-4 text-[11px] leading-tight">
+                  <div key={i} className="flex items-center gap-1 sm:gap-1.5 ml-3 sm:ml-4 text-[10px] sm:text-[11px] leading-tight">
                     <span className="text-slate-500">{PLANET_GLYPHS[a.planet1]}</span>
                     <span style={{ color: ASPECT_COLORS[a.type] }}>{ASPECT_SYMBOLS[a.type]}</span>
                     <span className="text-slate-500">{PLANET_GLYPHS[a.planet2]}</span>
                     <span className="text-slate-600 font-mono ml-0.5">{a.orb}°</span>
-                    <span className={`text-[10px] ${a.applying ? 'text-emerald-500/50' : 'text-slate-700'}`}>
+                    <span className={`text-[9px] sm:text-[10px] ${a.applying ? 'text-emerald-500/50' : 'text-slate-700'}`}>
                       {a.applying ? 'app' : 'sep'}
                     </span>
                   </div>

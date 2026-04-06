@@ -144,7 +144,7 @@ export const ARCANA: Record<number, ArcanaData> = {
     energy: 'feminine', element: 'earth', planet: 'Saturn', color: '#2dd4bf',
   },
   22: {
-    number: 22, roman: '0', name: 'The Heirs',
+    number: 22, roman: 'XXII', name: 'The Cosmos',
     keywords: ['Energy', 'Entropy', 'Source', 'Beginning'],
     description: 'A Dive. From the Universe, through a Black Hole/Cosmic Womb. Here the Complete Soul divides into 2 Flames, to reborn in a New Cycle. Thus begins the New Journey.',
     energy: 'neutral', element: 'spirit', planet: 'Uranus', color: '#6ee7b7',
