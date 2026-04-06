@@ -498,6 +498,17 @@ export default function TarotReading({ spread = SPREADS[0] }: { spread?: SpreadD
           <p className="text-slate-500 text-xs font-medium animate-pulse">
             Click the cards to reveal them
           </p>
+        ) : readingDone && timeLeft > 0 ? (
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-slate-500 text-xs font-medium">
+              Next reading available in
+            </p>
+            <div className="font-mono text-sm text-slate-300 tracking-widest px-4 py-2 rounded-xl border border-white/[0.08] bg-white/[0.03]">
+              {String(Math.floor(timeLeft / 3600000)).padStart(2, '0')}
+              :{String(Math.floor((timeLeft % 3600000) / 60000)).padStart(2, '0')}
+              :{String(Math.floor((timeLeft % 60000) / 1000)).padStart(2, '0')}
+            </div>
+          </div>
         ) : (
           <button
             onClick={() => {
