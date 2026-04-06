@@ -28,6 +28,7 @@ const config: Config = {
         'fade-up': 'fadeUp 0.6s ease forwards',
         'draw': 'draw 1.5s ease forwards',
         'pulse-slow': 'pulse 3s cubic-bezier(0.4,0,0.6,1) infinite',
+        'card-arrive': 'cardArrive 0.5s cubic-bezier(0.16,1,0.3,1) forwards',
       },
       keyframes: {
         fadeUp: {
@@ -37,6 +38,10 @@ const config: Config = {
         draw: {
           from: { strokeDashoffset: '1000' },
           to: { strokeDashoffset: '0' },
+        },
+        cardArrive: {
+          from: { opacity: '0', transform: 'translateY(-40px) scale(0.92)' },
+          to: { opacity: '1', transform: 'translateY(0) scale(1)' },
         },
       },
       backgroundImage: {

@@ -16,6 +16,7 @@ interface CardMeta {
   color: string
   imgSrc: string
   keywords?: string[]
+  reversed?: boolean
 }
 
 // ─── Build full deck ────────────────────────────────────────────────────────
@@ -67,18 +68,21 @@ const BACK_IMG = '/deck/back.jpg'
 
 // ─── Spread definitions ─────────────────────────────────────────────────────
 
-interface SpreadDef {
+export interface SpreadDef {
   key: string
   name: string
-  slots: string[]
+  count: number
 }
 
-const SPREADS: SpreadDef[] = [
-  {
-    key: 'three',
-    name: '3 Cards',
-    slots: ['Past', 'Present', 'Future'],
-  },
+export const SPREADS: SpreadDef[] = [
+  { key: 'daily-three',   name: 'Tre Carte del Giorno',      count: 3 },
+  { key: 'oracle',        name: "L'Oracolo",                 count: 3 },
+  { key: 'future-i',      name: 'Uno Sguardo al Futuro I',   count: 3 },
+  { key: 'future-ii',     name: 'Uno Sguardo al Futuro II',  count: 5 },
+  { key: 'road',          name: 'La Strada',                  count: 4 },
+  { key: 'star',          name: 'La Stella',                  count: 5 },
+  { key: 'living',        name: 'Vivere Senza Sapere',        count: 8 },
+  { key: 'way',           name: 'La Via',                     count: 7 },
 ]
 
 // ─── Flip Card ──────────────────────────────────────────────────────────────
@@ -95,6 +99,12 @@ function FlipCard({
   onOpen: () => void
 }) {
   const [animDone, setAnimDone] = useState(false)
+  const [arriveKey, setArriveKey] = useState(0)
+
+  // Bump key when card arrives to re-trigger CSS animation
+  useEffect(() => {
+    if (card) setArriveKey(k => k + 1)
+  }, [card])
 
   // After flip animation completes, switch to 2D rendering for crisp image
   useEffect(() => {
@@ -120,6 +130,7 @@ function FlipCard({
             fill
             unoptimized
             className="object-cover object-center scale-[1.03]"
+            style={card.reversed ? { transform: 'rotate(180deg)' } : undefined}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
           />
         </button>
@@ -130,6 +141,11 @@ function FlipCard({
           >
             {card.name}
           </span>
+          {card.reversed && (
+            <span className="text-[7px] sm:text-[9px] text-red-400/70 font-bold uppercase tracking-widest">
+              Reversed
+            </span>
+          )}
           {card.keywords && (
             <span className="text-[7px] sm:text-[9px] text-slate-600 text-center max-w-[160px] line-clamp-2">
               {card.keywords.join(' · ')}
@@ -145,7 +161,8 @@ function FlipCard({
       <button
         onClick={onFlip}
         disabled={!card || flipped}
-        className="relative w-full aspect-[992/1583] cursor-pointer focus:outline-none disabled:cursor-default"
+        key={arriveKey}
+        className={`relative w-full aspect-[992/1583] cursor-pointer focus:outline-none disabled:cursor-default ${card ? 'animate-card-arrive' : ''}`}
         style={{ perspective: '800px' }}
       >
         <div
@@ -191,6 +208,7 @@ function FlipCard({
                 fill
                 unoptimized
                 className="object-cover object-center scale-[1.03]"
+                style={card.reversed ? { transform: 'rotate(180deg)' } : undefined}
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
               />
             )}
@@ -207,6 +225,11 @@ function FlipCard({
             >
               {card.name}
             </span>
+            {card.reversed && (
+              <span className="text-[7px] sm:text-[9px] text-red-400/70 font-bold uppercase tracking-widest">
+                Reversed
+              </span>
+            )}
             {card.keywords && (
               <span className="text-[7px] sm:text-[9px] text-slate-600 text-center max-w-[160px] line-clamp-2">
                 {card.keywords.join(' · ')}
@@ -245,6 +268,7 @@ function FullscreenCard({ card, label, onClose }: { card: CardMeta; label: strin
           fill
           unoptimized
           className="object-cover object-center scale-[1.03]"
+          style={card.reversed ? { transform: 'rotate(180deg)' } : undefined}
           sizes="85vw"
         />
       </div>
@@ -255,6 +279,11 @@ function FullscreenCard({ card, label, onClose }: { card: CardMeta; label: strin
         >
           {card.name}
         </span>
+        {card.reversed && (
+          <span className="text-[10px] text-red-400/70 font-bold uppercase tracking-widest">
+            Reversed
+          </span>
+        )}
         {card.keywords && (
           <span className="text-[10px] text-slate-500">
             {card.keywords.join(' · ')}
@@ -282,16 +311,8 @@ function getTimeLeft(): number {
   return Math.max(0, COOLDOWN_MS - elapsed)
 }
 
-function formatCountdown(ms: number): string {
-  const totalSec = Math.ceil(ms / 1000)
-  const h = Math.floor(totalSec / 3600)
-  const m = Math.floor((totalSec % 3600) / 60)
-  const s = totalSec % 60
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
-}
 
-export default function TarotReading() {
-  const [spread] = useState<SpreadDef>(SPREADS[0])
+export default function TarotReading({ spread = SPREADS[0] }: { spread?: SpreadDef }) {
   const [drawnCards, setDrawnCards] = useState<(CardMeta | null)[]>([])
   const [flippedSet, setFlippedSet] = useState<Set<number>>(new Set())
   const [usedIndices, setUsedIndices] = useState<Set<number>>(new Set())
@@ -341,8 +362,8 @@ export default function TarotReading() {
     return () => clearInterval(interval)
   }, [timeLeft, readingDone])
 
-  const isComplete = currentSlot >= spread.slots.length
-  const allFlipped = flippedSet.size === spread.slots.length
+  const isComplete = currentSlot >= spread.count
+  const allFlipped = flippedSet.size === spread.count
 
   const drawNext = useCallback(() => {
     if (isComplete) return
@@ -353,10 +374,12 @@ export default function TarotReading() {
     const pick = available[Math.floor(Math.random() * available.length)]
     const pickIdx = ALL_CARDS.indexOf(pick)
 
+    const reversed = Math.random() < 0.4 // ~40% chance of reversed
+
     setUsedIndices(prev => new Set(prev).add(pickIdx))
     setDrawnCards(prev => {
       const next = [...prev]
-      next[currentSlot] = pick
+      next[currentSlot] = { ...pick, reversed }
       return next
     })
     setCurrentSlot(prev => prev + 1)
@@ -367,7 +390,7 @@ export default function TarotReading() {
     setFlippedSet(prev => {
       const next = new Set(prev).add(slotIdx)
       // When all cards are flipped, lock the reading
-      if (next.size === spread.slots.length) {
+      if (next.size === spread.count) {
         localStorage.setItem(STORAGE_KEY, String(Date.now()))
         localStorage.setItem(STORAGE_CARDS_KEY, JSON.stringify(
           drawnCards.map(c => c) // save current cards
@@ -377,14 +400,14 @@ export default function TarotReading() {
       }
       return next
     })
-  }, [flippedSet, spread.slots.length, drawnCards])
+  }, [flippedSet, spread.count, drawnCards])
 
   return (
     <div className="flex flex-col gap-8 items-center">
-      {/* Cards layout — always in a row */}
-      <div className="flex justify-center gap-3 sm:gap-6 md:gap-10 w-full px-2">
-        {spread.slots.map((_, idx) => (
-          <div key={idx} className="flex-1 max-w-[260px]">
+      {/* Cards layout */}
+      <div className={`flex flex-wrap justify-center gap-3 sm:gap-5 w-full px-2 ${spread.count <= 4 ? 'md:gap-10' : 'md:gap-4'}`}>
+        {Array.from({ length: spread.count }, (_, idx) => (
+          <div key={idx} className={`${spread.count <= 4 ? 'flex-1 max-w-[260px]' : 'w-[calc(25%-12px)] sm:w-[140px] md:w-[160px]'}`}>
             <FlipCard
               card={drawnCards[idx] ?? null}
               flipped={flippedSet.has(idx)}
@@ -399,7 +422,7 @@ export default function TarotReading() {
       {fullscreenIdx !== null && drawnCards[fullscreenIdx] && (
         <FullscreenCard
           card={drawnCards[fullscreenIdx]!}
-          label={spread.slots[fullscreenIdx]}
+          label={spread.name}
           onClose={() => setFullscreenIdx(null)}
         />
       )}
@@ -415,26 +438,12 @@ export default function TarotReading() {
               boxShadow: '0 4px 28px rgba(124,58,237,0.3)',
             }}
           >
-            Draw Card {currentSlot + 1} of {spread.slots.length}
+            Draw Card {currentSlot + 1} of {spread.count}
           </button>
         ) : !allFlipped ? (
           <p className="text-slate-500 text-xs font-medium animate-pulse">
             Click the cards to reveal them
           </p>
-        ) : readingDone && timeLeft > 0 ? (
-          <div className="flex flex-col items-center gap-1.5">
-            <button
-              disabled
-              className="px-6 py-3 rounded-xl font-semibold text-sm tracking-wide
-                         border border-white/[0.06] transition-all duration-200
-                         bg-white/[0.02] text-slate-600 cursor-not-allowed opacity-50"
-            >
-              New Reading
-            </button>
-            <span className="text-[10px] text-slate-700 font-mono tracking-wider">
-              {formatCountdown(timeLeft)}
-            </span>
-          </div>
         ) : (
           <button
             onClick={() => {

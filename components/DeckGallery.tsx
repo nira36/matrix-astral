@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { ARCANA } from '@/lib/arcana'
-import TarotReading from '@/components/TarotReading'
+import TarotReading, { SPREADS, type SpreadDef } from '@/components/TarotReading'
 
 // ─── Deck metadata ────────────────────────────────────────────────────────────
 // Images: /public/deck/00.jpg (Fool) → /public/deck/21.jpg (World)
@@ -360,6 +360,21 @@ export default function DeckGallery() {
   const [selected, setSelected] = useState<number | null>(null)
   const [deckTab, setDeckTab] = useState<DeckTab>('major')
   const [activeSuit, setActiveSuit] = useState<Suit>('wands')
+  const [activeSpread, setActiveSpread] = useState<SpreadDef>(SPREADS[0])
+  const [spreadMenuOpen, setSpreadMenuOpen] = useState(false)
+  const spreadMenuRef = useRef<HTMLDivElement>(null)
+
+  // Close spread menu on outside click
+  useEffect(() => {
+    if (!spreadMenuOpen) return
+    function handleClick(e: MouseEvent) {
+      if (spreadMenuRef.current && !spreadMenuRef.current.contains(e.target as Node)) {
+        setSpreadMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [spreadMenuOpen])
 
   const openCard = (idx: number) => setSelected(idx)
   const closeCard = () => setSelected(null)
@@ -492,13 +507,52 @@ export default function DeckGallery() {
               </svg>
               <span className="text-[8px] font-black tracking-[0.2em] uppercase">Reading</span>
             </button>
+
+            {/* Spread selector */}
+            <div className="relative z-10" ref={spreadMenuRef}>
+              <button
+                onClick={() => setSpreadMenuOpen(v => !v)}
+                className="flex flex-col items-center gap-1 px-3 py-2.5 rounded-xl transition-all duration-200"
+                style={{ color: '#64748b' }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <circle cx="12" cy="5" r="1.5" />
+                  <circle cx="12" cy="12" r="1.5" />
+                  <circle cx="12" cy="19" r="1.5" />
+                </svg>
+                <span className="text-[6px] font-black tracking-[0.1em] uppercase">Spreads</span>
+              </button>
+
+              {spreadMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 z-50 min-w-[220px] rounded-xl border border-white/[0.07] bg-bg-card shadow-2xl shadow-black/50 overflow-hidden animate-fade-up">
+                  {SPREADS.map(s => (
+                    <button
+                      key={s.key}
+                      onClick={() => {
+                        setActiveSpread(s)
+                        setDeckTab('reading')
+                        setSpreadMenuOpen(false)
+                      }}
+                      className="flex items-center justify-between w-full px-4 py-3 transition-all duration-150 text-left"
+                      style={{
+                        background: activeSpread.key === s.key ? 'rgba(124,58,237,0.15)' : 'transparent',
+                        color: activeSpread.key === s.key ? '#fff' : '#94a3b8',
+                      }}
+                    >
+                      <span className="text-[10px] font-bold uppercase tracking-wider">{s.name}</span>
+                      <span className="text-[9px] text-slate-600 font-mono">{s.count}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         {/* ─── Reading ─── */}
         {deckTab === 'reading' && (
           <div className="animate-fade-up">
-            <TarotReading />
+            <TarotReading key={activeSpread.key} spread={activeSpread} />
           </div>
         )}
 
