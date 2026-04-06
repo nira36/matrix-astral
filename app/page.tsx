@@ -35,13 +35,15 @@ import NatalChartWheel from '@/components/NatalChartWheel'
 import NatalChartTable from '@/components/NatalChartTable'
 import NatalInterpretation from '@/components/NatalInterpretation'
 import NatalReadings from '@/components/NatalReadings'
+import ChineseAstrology from '@/components/ChineseAstrology'
+import VedicAstrology from '@/components/VedicAstrology'
 import { calcNatalChart, isDST } from '@/lib/astrology'
 import type { NatalChartData } from '@/lib/astrology'
 import BirthPlaceInput from '@/components/BirthPlaceInput'
 import type { PlaceSelection } from '@/components/BirthPlaceInput'
 import { CORE_DESCRIPTIONS } from '@/lib/numerology'
 
-type Tab = 'matrix' | 'deck' | 'numerology' | 'natal' | 'horoscope'
+type Tab = 'matrix' | 'deck' | 'numerology' | 'natal' | 'horoscope' | 'chinese' | 'vedic'
 
 export default function Home() {
   const [dateStr, setDateStr] = useState('')
@@ -250,6 +252,18 @@ export default function Home() {
         {tab === 'deck' && (
           <div className="animate-fade-up">
             <DeckGallery />
+          </div>
+        )}
+
+        {tab === 'chinese' && (
+          <div key={`chinese-${calcKey}`} className="animate-fade-up">
+            <ChineseAstrology dateStr={dateStr} birthTime={birthTime} />
+          </div>
+        )}
+
+        {tab === 'vedic' && (
+          <div key={`vedic-${calcKey}`} className="animate-fade-up">
+            <VedicAstrology natal={natalData} dateStr={dateStr} birthTime={birthTime} />
           </div>
         )}
 
@@ -525,6 +539,22 @@ const TAB_DEFS: { key: Tab; label: string; icon: React.ReactNode }[] = [
       <path d="M12 2a7 7 0 0 1 0 14 7 7 0 0 1 0-14" />
       <circle cx="12" cy="9" r="1.5" fill="currentColor" stroke="none" />
       <path d="M8 16l2-3h4l2 3" />
+    </svg>
+  )},
+  { key: 'chinese', label: 'Bazi', icon: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+      <rect x="14" y="14" width="7" height="7" rx="1" />
+    </svg>
+  )},
+  { key: 'vedic', label: 'Vedic', icon: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" />
+      <line x1="3" y1="3" x2="21" y2="21" />
+      <line x1="21" y1="3" x2="3" y2="21" />
+      <polygon points="12,3 21,12 12,21 3,12" />
     </svg>
   )},
 ]
