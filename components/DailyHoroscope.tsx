@@ -9,6 +9,21 @@ import {
   toDateKey,
 } from '@/lib/horoscope'
 import type { ZodiacSignName } from '@/lib/horoscope'
+import { ZODIAC_PATHS } from '@/lib/astrology'
+import type { ZodiacSign } from '@/lib/astrology'
+
+function ZodiacIcon({ sign, size = 24, color = 'rgba(139,92,246,0.8)' }: { sign: ZodiacSign; size?: number; color?: string }) {
+  const paths = ZODIAC_PATHS[sign]
+  if (!paths) return null
+  const scale = size / 18
+  return (
+    <svg width={size} height={size} viewBox="0 0 18 18" style={{ transform: `scale(${scale > 1 ? 1 : 1})` }}>
+      {paths.map((d, i) => (
+        <path key={i} d={d} fill="none" stroke={color} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      ))}
+    </svg>
+  )
+}
 
 interface Props {
   /** Birth date string in DD/MM/YYYY format, or empty */
@@ -55,27 +70,30 @@ export default function DailyHoroscope({ birthDate }: Props) {
 
         {/* Sign selector */}
         <div className="relative">
-          <select
-            value={selectedSign ?? (birthSign?.name ?? '')}
-            onChange={e => setSelectedSign(e.target.value as ZodiacSignName)}
-            className="appearance-none bg-[#1f2937] border border-white/[0.08] rounded-xl
-                       px-4 py-2.5 pr-10 text-white text-sm outline-none cursor-pointer
-                       transition-all duration-200
-                       focus:border-accent-purple focus:shadow-[0_0_0_3px_rgba(139,92,246,0.15)]"
-          >
-            {!birthSign && !selectedSign && (
-              <option value="" disabled>Select your sign</option>
+          <div className="flex items-center gap-2 bg-[#1f2937] border border-white/[0.08] rounded-xl px-3 py-2 pr-3 cursor-pointer">
+            {(selectedSign || birthSign) && (
+              <ZodiacIcon sign={(selectedSign ?? birthSign!.name) as ZodiacSign} size={18} color="rgba(167,139,250,0.85)" />
             )}
-            {ZODIAC_SIGNS.map(sign => (
-              <option key={sign.name} value={sign.name}>
-                {sign.symbol} {sign.name}
-              </option>
-            ))}
-          </select>
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M3 4.5L6 7.5L9 4.5" />
-            </svg>
+            <select
+              value={selectedSign ?? (birthSign?.name ?? '')}
+              onChange={e => setSelectedSign(e.target.value as ZodiacSignName)}
+              className="appearance-none bg-transparent text-white text-sm outline-none cursor-pointer pr-6"
+              style={{ fontFamily: 'system-ui, sans-serif' }}
+            >
+              {!birthSign && !selectedSign && (
+                <option value="" disabled>Select your sign</option>
+              )}
+              {ZODIAC_SIGNS.map(sign => (
+                <option key={sign.name} value={sign.name}>
+                  {sign.name}
+                </option>
+              ))}
+            </select>
+            <div className="pointer-events-none text-slate-500 -ml-5">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M3 4.5L6 7.5L9 4.5" />
+              </svg>
+            </div>
           </div>
         </div>
       </div>
@@ -85,13 +103,13 @@ export default function DailyHoroscope({ birthDate }: Props) {
         <div className="flex gap-5 items-start">
           {/* Sign symbol */}
           <div
-            className="flex-shrink-0 w-14 h-14 rounded-xl flex items-center justify-center text-2xl"
+            className="flex-shrink-0 w-14 h-14 rounded-xl flex items-center justify-center"
             style={{
               background: 'linear-gradient(135deg, rgba(139,92,246,0.12), rgba(99,102,241,0.08))',
               border: '1px solid rgba(139,92,246,0.15)',
             }}
           >
-            {activeSign.symbol}
+            <ZodiacIcon sign={activeSign.name as ZodiacSign} size={28} color="rgba(167,139,250,0.85)" />
           </div>
 
           <div className="flex-1 min-w-0">

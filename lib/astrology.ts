@@ -13,6 +13,71 @@ export const ZODIAC_GLYPHS: Record<ZodiacSign, string> = {
   Sagittarius: '♐', Capricorn: '♑', Aquarius: '♒', Pisces: '♓',
 }
 
+/** Standard zodiac SVG paths (viewBox 0 0 18 18) */
+export const ZODIAC_PATHS: Record<ZodiacSign, string[]> = {
+  Aries: [
+    'M3 14 C3 7 3 4 9 3',
+    'M15 14 C15 7 15 4 9 3',
+  ],
+  Taurus: [
+    'M3 5 C3 1 9 1 9 1 C9 1 15 1 15 5',
+    'M5.5 11 A3.5 3.5 0 1 0 12.5 11 A3.5 3.5 0 1 0 5.5 11',
+    'M9 1 V7.5',
+  ],
+  Gemini: [
+    'M3 3 C6 5 12 5 15 3',
+    'M3 15 C6 13 12 13 15 15',
+    'M6 4 V14',
+    'M12 4 V14',
+  ],
+  Cancer: [
+    'M14 6 A5 5 0 0 1 4 6',
+    'M14 6 A2 2 0 1 1 14 5.99',
+    'M4 12 A5 5 0 0 1 14 12',
+    'M4 12 A2 2 0 1 1 4 11.99',
+  ],
+  Leo: [
+    'M5 8 A2.5 2.5 0 1 1 5 7.99',
+    'M7.5 8 C9 8 11 10 11 12 C11 14 13 15.5 15 14 C16 13 15.5 11 14 10',
+  ],
+  Virgo: [
+    'M3 14 V5 C3 3 5 3 5 5 V14',
+    'M5 5 C5 3 7 3 7 5 V14',
+    'M7 5 C7 3 9 3 9 5 V10',
+    'M9 10 C10 14 13 14 14 12 L16 6',
+    'M12 9 L16 9',
+  ],
+  Libra: [
+    'M3 13 H15',
+    'M3 9 H15',
+    'M6 9 C6 4 12 4 12 9',
+  ],
+  Scorpio: [
+    'M3 14 V5 C3 3 5 3 5 5 V14',
+    'M5 5 C5 3 7 3 7 5 V14',
+    'M7 5 C7 3 9 3 9 5 V14 L12 11',
+    'M10 14 L12 11 L14 13',
+  ],
+  Sagittarius: [
+    'M3 15 L15 3',
+    'M10 3 H15 V8',
+    'M5.5 11.5 L12.5 7.5',
+  ],
+  Capricorn: [
+    'M2 5 L6 14 L9 5',
+    'M9 5 V11 C9 15 13 15 13 12 C13 9 11 9 11 11 A2 2 0 1 0 15 11',
+  ],
+  Aquarius: [
+    'M2 7 L4.5 4 L7.5 7 L10.5 4 L13 7 L15.5 4',
+    'M2 13 L4.5 10 L7.5 13 L10.5 10 L13 13 L15.5 10',
+  ],
+  Pisces: [
+    'M5 2 C1 6 1 12 5 16',
+    'M13 2 C17 6 17 12 13 16',
+    'M2 9 H16',
+  ],
+}
+
 export const ZODIAC_ELEMENTS: Record<ZodiacSign, 'Fire' | 'Earth' | 'Air' | 'Water'> = {
   Aries: 'Fire', Taurus: 'Earth', Gemini: 'Air', Cancer: 'Water',
   Leo: 'Fire', Virgo: 'Earth', Libra: 'Air', Scorpio: 'Water',

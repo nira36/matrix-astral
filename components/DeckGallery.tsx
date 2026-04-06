@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { ARCANA } from '@/lib/arcana'
+import { MINOR_ARCANA, COURT_CARDS } from '@/lib/minor-arcana'
 import TarotReading, { SPREADS, type SpreadDef } from '@/components/TarotReading'
 
 // ─── Deck metadata ────────────────────────────────────────────────────────────
@@ -286,13 +287,18 @@ function courtImgPath(suit: Suit, rankIdx: number): string {
 
 // ─── Minor Arcana Card ───────────────────────────────────────────────────────
 
-function MinorCard({ suit, rankIdx, color }: { suit: Suit; rankIdx: number; color: string }) {
+function MinorCard({ suit, rankIdx, color, onClick }: { suit: Suit; rankIdx: number; color: string; onClick: () => void }) {
   const [hasImage, setHasImage] = useState(true)
   const rank = MINOR_RANKS[rankIdx]
   const src = minorImgPath(suit, rankIdx)
+  const cardKey = `${rank} of ${SUIT_NAMES[suit].charAt(0).toUpperCase() + SUIT_NAMES[suit].slice(1)}`
+  const data = MINOR_ARCANA[cardKey]
 
   return (
-    <div className="group relative flex flex-col items-center w-[260px] sm:w-[165px] md:w-[180px]">
+    <button
+      onClick={onClick}
+      className="group relative flex flex-col items-center cursor-pointer focus:outline-none w-[260px] sm:w-[165px] md:w-[180px]"
+    >
       <div
         className="relative w-full aspect-[992/1583] rounded-2xl overflow-hidden transition-all duration-300 group-hover:scale-[1.03]"
         style={{ boxShadow: `0 0 22px ${color}55` }}
@@ -316,20 +322,28 @@ function MinorCard({ suit, rankIdx, color }: { suit: Suit; rankIdx: number; colo
           </div>
         )}
       </div>
-      <span className="text-[9px] font-bold text-slate-500 mt-1.5 uppercase tracking-wider">{rank}</span>
-    </div>
+      <div className="mt-1.5 flex flex-col items-center gap-0.5">
+        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">{rank}</span>
+        {data?.title && (
+          <span className="text-[8px] uppercase tracking-[0.15em]" style={{ color }}>{data.title}</span>
+        )}
+      </div>
+    </button>
   )
 }
 
 // ─── Court Card ─────────────────────────────────────────────────────────────
 
-function CourtCard({ suit, rankIdx, color }: { suit: Suit; rankIdx: number; color: string }) {
+function CourtCard({ suit, rankIdx, color, onClick }: { suit: Suit; rankIdx: number; color: string; onClick: () => void }) {
   const [hasImage, setHasImage] = useState(true)
   const rank = COURT_RANKS[rankIdx]
   const src = courtImgPath(suit, rankIdx)
 
   return (
-    <div className="group relative flex flex-col items-center w-[260px] sm:w-[165px] md:w-[180px]">
+    <button
+      onClick={onClick}
+      className="group relative flex flex-col items-center cursor-pointer focus:outline-none w-[260px] sm:w-[165px] md:w-[180px]"
+    >
       <div
         className="relative w-full aspect-[992/1583] rounded-2xl overflow-hidden transition-all duration-300 group-hover:scale-[1.03]"
         style={{ boxShadow: `0 0 22px ${color}55` }}
@@ -354,8 +368,160 @@ function CourtCard({ suit, rankIdx, color }: { suit: Suit; rankIdx: number; colo
         )}
       </div>
       <span className="text-[9px] font-bold text-slate-500 mt-1.5 uppercase tracking-wider">{rank}</span>
+    </button>
+  )
+}
+
+// ─── Minor / Court Lightbox ──────────────────────────────────────────────────
+
+type MinorCourtSelection = {
+  type: 'minor' | 'court'
+  suit: Suit
+  rankIdx: number
+}
+
+function MinorCourtLightbox({
+  sel,
+  onClose,
+  onPrev,
+  onNext,
+}: {
+  sel: MinorCourtSelection
+  onClose: () => void
+  onPrev: () => void
+  onNext: () => void
+}) {
+  const [hasImage, setHasImage] = useState(true)
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+  // Reset image state when card changes
+  useEffect(() => { setHasImage(true) }, [sel.suit, sel.rankIdx, sel.type])
+
+  const isMinor = sel.type === 'minor'
+  const ranks = isMinor ? MINOR_RANKS : COURT_RANKS
+  const rank = ranks[sel.rankIdx]
+  const suitInfo = SUITS.find(s => s.key === sel.suit)!
+  const color = suitInfo.color
+  const cardKey = `${rank} of ${SUIT_NAMES[sel.suit]}`
+  const src = isMinor ? minorImgPath(sel.suit, sel.rankIdx) : courtImgPath(sel.suit, sel.rankIdx)
+
+  const data = isMinor ? MINOR_ARCANA[cardKey] : COURT_CARDS[cardKey]
+  const title = isMinor && data && 'title' in data ? (data as typeof MINOR_ARCANA[string]).title : undefined
+
+  const content = (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <div
+        className="relative flex flex-col md:flex-row gap-4 md:gap-8 max-w-5xl w-full max-h-[90vh] overflow-y-auto"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Card image */}
+        <div className="flex-shrink-0 flex flex-col items-center gap-3">
+          <div
+            className="relative rounded-2xl overflow-hidden shadow-2xl"
+            style={{
+              height: 'min(45vh, 400px)',
+              aspectRatio: '1.8/3',
+              boxShadow: `0 0 40px ${color}55`
+            }}
+          >
+            {hasImage ? (
+              <Image
+                src={src}
+                alt={cardKey}
+                fill
+                className="object-cover"
+                sizes="260px"
+                onError={() => setHasImage(false)}
+              />
+            ) : (
+              <div
+                className="w-full h-full flex flex-col items-center justify-center gap-2"
+                style={{ background: `${color}11` }}
+              >
+                <span className="text-4xl font-black opacity-10" style={{ color }}>
+                  {rank}
+                </span>
+                <span className="text-[9px] text-slate-600 uppercase tracking-widest">{sel.suit}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Nav arrows */}
+          <div className="flex gap-4">
+            <button
+              onClick={onPrev}
+              className="p-2 rounded-xl border border-white/10 hover:border-white/30 transition-all text-slate-400 hover:text-white"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <button
+              onClick={onNext}
+              className="p-2 rounded-xl border border-white/10 hover:border-white/30 transition-all text-slate-400 hover:text-white"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
+        </div>
+
+        {/* Card info */}
+        <div className="flex flex-col gap-5 flex-1 overflow-y-auto">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-[10px] font-mono text-slate-600 tracking-widest uppercase">
+                {suitInfo.name} · {suitInfo.element}
+              </p>
+              <h2
+                className="text-3xl font-black uppercase tracking-wider"
+                style={{ color }}
+              >
+                {rank} of {SUIT_NAMES[sel.suit]}
+              </h2>
+              {title && (
+                <p className="text-[11px] text-slate-500 tracking-[0.3em] uppercase mt-1">
+                  — {title} —
+                </p>
+              )}
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-xl border border-white/10 hover:border-white/30 transition-all text-slate-500 hover:text-white"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Keywords */}
+          {data?.keywords && (
+            <div className="flex flex-wrap gap-1.5">
+              {data.keywords.map(kw => (
+                <span
+                  key={kw}
+                  className="px-2 py-0.5 rounded-lg text-[10px] text-slate-400 border border-white/[0.06] bg-white/[0.02]"
+                >
+                  {kw}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Description */}
+          {data?.description && (
+            <div className="p-4 rounded-2xl border border-white/[0.07] bg-white/[0.02]">
+              <p className="text-[11px] text-slate-300 leading-relaxed font-medium">
+                {data.description}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
+
+  if (!mounted) return null
+  return createPortal(content, document.body)
 }
 
 // ─── Main gallery ─────────────────────────────────────────────────────────────
@@ -364,6 +530,7 @@ type DeckTab = 'major' | 'minor' | 'court' | 'reading'
 
 export default function DeckGallery() {
   const [selected, setSelected] = useState<number | null>(null)
+  const [minorCourtSel, setMinorCourtSel] = useState<MinorCourtSelection | null>(null)
   const [deckTab, setDeckTab] = useState<DeckTab>('major')
   const [activeSuit, setActiveSuit] = useState<Suit>('wands')
   const [activeSpread, setActiveSpread] = useState<SpreadDef>(SPREADS[0])
@@ -596,7 +763,8 @@ export default function DeckGallery() {
             {/* Cards grid for active suit */}
             <div className="flex flex-wrap justify-center gap-3 md:gap-4">
               {MINOR_RANKS.map((_, rankIdx) => (
-                <MinorCard key={rankIdx} suit={activeSuit} rankIdx={rankIdx} color={SUITS.find(s => s.key === activeSuit)!.color} />
+                <MinorCard key={rankIdx} suit={activeSuit} rankIdx={rankIdx} color={SUITS.find(s => s.key === activeSuit)!.color}
+                  onClick={() => setMinorCourtSel({ type: 'minor', suit: activeSuit, rankIdx })} />
               ))}
             </div>
           </div>
@@ -627,7 +795,8 @@ export default function DeckGallery() {
             {/* Cards grid for active suit */}
             <div className="flex flex-wrap justify-center gap-3 md:gap-4">
               {COURT_RANKS.map((_, rankIdx) => (
-                <CourtCard key={rankIdx} suit={activeSuit} rankIdx={rankIdx} color={SUITS.find(s => s.key === activeSuit)!.color} />
+                <CourtCard key={rankIdx} suit={activeSuit} rankIdx={rankIdx} color={SUITS.find(s => s.key === activeSuit)!.color}
+                  onClick={() => setMinorCourtSel({ type: 'court', suit: activeSuit, rankIdx })} />
               ))}
             </div>
           </div>
@@ -635,13 +804,45 @@ export default function DeckGallery() {
 
       </div>
 
-      {/* Lightbox (major only for now) */}
+      {/* Lightbox — Major Arcana */}
       {selected !== null && (
         <Lightbox
           card={DECK[selected]}
           onClose={closeCard}
           onPrev={prevCard}
           onNext={nextCard}
+        />
+      )}
+
+      {/* Lightbox — Minor Arcana & Court Cards */}
+      {minorCourtSel !== null && (
+        <MinorCourtLightbox
+          sel={minorCourtSel}
+          onClose={() => setMinorCourtSel(null)}
+          onPrev={() => setMinorCourtSel(prev => {
+            if (!prev) return null
+            const ranks = prev.type === 'minor' ? MINOR_RANKS : COURT_RANKS
+            const suitKeys = SUITS.map(s => s.key)
+            const suitIdx = suitKeys.indexOf(prev.suit)
+            if (prev.rankIdx > 0) {
+              return { ...prev, rankIdx: prev.rankIdx - 1 }
+            }
+            // Go to previous suit, last rank
+            const prevSuitIdx = (suitIdx - 1 + suitKeys.length) % suitKeys.length
+            return { ...prev, suit: suitKeys[prevSuitIdx], rankIdx: ranks.length - 1 }
+          })}
+          onNext={() => setMinorCourtSel(prev => {
+            if (!prev) return null
+            const ranks = prev.type === 'minor' ? MINOR_RANKS : COURT_RANKS
+            const suitKeys = SUITS.map(s => s.key)
+            const suitIdx = suitKeys.indexOf(prev.suit)
+            if (prev.rankIdx < ranks.length - 1) {
+              return { ...prev, rankIdx: prev.rankIdx + 1 }
+            }
+            // Go to next suit, first rank
+            const nextSuitIdx = (suitIdx + 1) % suitKeys.length
+            return { ...prev, suit: suitKeys[nextSuitIdx], rankIdx: 0 }
+          })}
         />
       )}
     </>

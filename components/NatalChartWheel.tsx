@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react'
 import type { NatalChartData, PlanetPosition, Aspect, AspectType, ZodiacSign } from '@/lib/astrology'
-import { ZODIAC_SIGNS, ZODIAC_GLYPHS, ZODIAC_ELEMENTS, ZODIAC_INFO, PLANET_GLYPHS, ASPECT_COLORS, ASPECT_SYMBOLS, getPlanetInterpretation } from '@/lib/astrology'
+import { ZODIAC_SIGNS, ZODIAC_GLYPHS, ZODIAC_PATHS, ZODIAC_ELEMENTS, ZODIAC_INFO, PLANET_GLYPHS, ASPECT_COLORS, ASPECT_SYMBOLS, getPlanetInterpretation } from '@/lib/astrology'
 
 // ─── Layout constants ──────────────────────────────────────────────────────
 // New layout: outermost = houses, then zodiac ring, then planets inside, then aspects
@@ -25,83 +25,6 @@ function polar(cx: number, cy: number, r: number, deg: number) {
   return { x: cx + r * Math.cos(rad), y: cy - r * Math.sin(rad) }
 }
 
-
-// ─── Standard zodiac SVG glyphs (viewBox 0 0 18 18) ────────────────────────
-const ZODIAC_PATHS: Record<ZodiacSign, string[]> = {
-  // ♈ Aries – two horns curving outward from center
-  Aries: [
-    'M3 14 C3 7 3 4 9 3',
-    'M15 14 C15 7 15 4 9 3',
-  ],
-  // ♉ Taurus – circle below, two horns curving up
-  Taurus: [
-    'M3 5 C3 1 9 1 9 1 C9 1 15 1 15 5',
-    'M5.5 11 A3.5 3.5 0 1 0 12.5 11 A3.5 3.5 0 1 0 5.5 11',
-    'M9 1 V7.5',
-  ],
-  // ♊ Gemini – two vertical pillars, top/bottom curves
-  Gemini: [
-    'M3 3 C6 5 12 5 15 3',
-    'M3 15 C6 13 12 13 15 15',
-    'M6 4 V14',
-    'M12 4 V14',
-  ],
-  // ♋ Cancer – two small circles connected by arcs (69 shape)
-  Cancer: [
-    'M14 6 A5 5 0 0 1 4 6',
-    'M14 6 A2 2 0 1 1 14 5.99',
-    'M4 12 A5 5 0 0 1 14 12',
-    'M4 12 A2 2 0 1 1 4 11.99',
-  ],
-  // ♌ Leo – circle with swirl tail
-  Leo: [
-    'M5 8 A2.5 2.5 0 1 1 5 7.99',
-    'M7.5 8 C9 8 11 10 11 12 C11 14 13 15.5 15 14 C16 13 15.5 11 14 10',
-  ],
-  // ♍ Virgo – three vertical strokes with looped tail
-  Virgo: [
-    'M3 14 V5 C3 3 5 3 5 5 V14',
-    'M5 5 C5 3 7 3 7 5 V14',
-    'M7 5 C7 3 9 3 9 5 V10',
-    'M9 10 C10 14 13 14 14 12 L16 6',
-    'M12 9 L16 9',
-  ],
-  // ♎ Libra – horizontal line with arch above
-  Libra: [
-    'M3 13 H15',
-    'M3 9 H15',
-    'M6 9 C6 4 12 4 12 9',
-  ],
-  // ♏ Scorpio – three vertical strokes, arrow tail pointing up-right
-  Scorpio: [
-    'M3 14 V5 C3 3 5 3 5 5 V14',
-    'M5 5 C5 3 7 3 7 5 V14',
-    'M7 5 C7 3 9 3 9 5 V14 L12 11',
-    'M10 14 L12 11 L14 13',
-  ],
-  // ♐ Sagittarius – diagonal arrow with crossbar
-  Sagittarius: [
-    'M3 15 L15 3',
-    'M10 3 H15 V8',
-    'M5.5 11.5 L12.5 7.5',
-  ],
-  // ♑ Capricorn – angular stroke with looped tail
-  Capricorn: [
-    'M2 5 L6 14 L9 5',
-    'M9 5 V11 C9 15 13 15 13 12 C13 9 11 9 11 11 A2 2 0 1 0 15 11',
-  ],
-  // ♒ Aquarius – two zigzag/wave lines
-  Aquarius: [
-    'M2 7 L4.5 4 L7.5 7 L10.5 4 L13 7 L15.5 4',
-    'M2 13 L4.5 10 L7.5 13 L10.5 10 L13 13 L15.5 10',
-  ],
-  // ♓ Pisces – two facing arcs with horizontal bar
-  Pisces: [
-    'M5 2 C1 6 1 12 5 16',
-    'M13 2 C17 6 17 12 13 16',
-    'M2 9 H16',
-  ],
-}
 
 // ─── Quadrant-stretched angle mapping ──────────────────────────────────────
 function makeChartAngle(ascLng: number, mcLng: number) {
@@ -598,7 +521,10 @@ function AspectGrid({ data }: { data: NatalChartData }) {
   const planets = GRID_PLANETS.filter(name => data.planets.some(p => p.planet === name))
   const [cellSize, setCellSize] = useState(36)
   React.useEffect(() => {
-    const update = () => setCellSize(window.innerWidth < 640 ? 26 : 36)
+    const update = () => {
+      const w = window.innerWidth
+      setCellSize(w < 400 ? 20 : w < 640 ? 24 : 36)
+    }
     update()
     window.addEventListener('resize', update)
     return () => window.removeEventListener('resize', update)
@@ -627,8 +553,8 @@ function AspectGrid({ data }: { data: NatalChartData }) {
             return (
               <div key={rowPlanet} className="flex items-center">
                 <div style={{ width: cellSize, height: cellSize }} className="flex items-center justify-center shrink-0" title={rowPlanet}>
-                  <span className="text-xs sm:text-sm text-slate-400">{PLANET_GLYPHS[rowPlanet] || rowPlanet[0]}</span>
-                  {rowData?.retrograde && <span className="text-[5px] sm:text-[6px] text-red-400/70 ml-0.5">R</span>}
+                  <span className="text-[10px] sm:text-sm text-slate-400">{PLANET_GLYPHS[rowPlanet] || rowPlanet[0]}</span>
+                  {rowData?.retrograde && <span className="text-[4px] sm:text-[6px] text-red-400/70 ml-0.5">R</span>}
                 </div>
                 {planets.slice(0, rowIdx).map((colPlanet) => {
                   const asp = aspectMap.get(`${rowPlanet}-${colPlanet}`)
@@ -641,7 +567,7 @@ function AspectGrid({ data }: { data: NatalChartData }) {
                       onMouseEnter={() => asp && setHoveredCell({ p1: rowPlanet, p2: colPlanet, asp })}
                       onMouseLeave={() => setHoveredCell(null)}>
                       {asp && (
-                        <span style={{ color: ASPECT_COLORS[asp.type] }} className="text-sm sm:text-base font-bold">
+                        <span style={{ color: ASPECT_COLORS[asp.type], fontSize: cellSize < 24 ? '10px' : undefined }} className="text-xs sm:text-base font-bold">
                           {ASPECT_SYMBOLS[asp.type]}
                         </span>
                       )}
@@ -657,8 +583,8 @@ function AspectGrid({ data }: { data: NatalChartData }) {
               const pd = data.planets.find(p => p.planet === colPlanet)
               return (
                 <div key={colPlanet} style={{ width: cellSize, height: cellSize }} className="flex items-center justify-center" title={colPlanet}>
-                  <span className="text-xs sm:text-sm text-slate-400">{PLANET_GLYPHS[colPlanet] || colPlanet[0]}</span>
-                  {pd?.retrograde && <span className="text-[5px] sm:text-[6px] text-red-400/70 ml-0.5">R</span>}
+                  <span className="text-[10px] sm:text-sm text-slate-400">{PLANET_GLYPHS[colPlanet] || colPlanet[0]}</span>
+                  {pd?.retrograde && <span className="text-[4px] sm:text-[6px] text-red-400/70 ml-0.5">R</span>}
                 </div>
               )
             })}

@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import { X } from 'lucide-react'
 import { ARCANA } from '@/lib/arcana'
+import { MINOR_ARCANA, COURT_CARDS } from '@/lib/minor-arcana'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -46,21 +47,31 @@ const ALL_CARDS: CardMeta[] = [
   }),
   // 40 Minor Arcana (Ace-10 x 4 suits)
   ...SUITS.flatMap(suit =>
-    MINOR_RANKS.map(rank => ({
-      type: 'minor' as CardType,
-      name: `${rank} of ${suit.name}`,
-      color: suit.color,
-      imgSrc: `/deck/minor/${suit.key}/${rank} of ${suit.name}.jpg`,
-    }))
+    MINOR_RANKS.map(rank => {
+      const key = `${rank} of ${suit.name}`
+      const data = MINOR_ARCANA[key]
+      return {
+        type: 'minor' as CardType,
+        name: key,
+        color: suit.color,
+        imgSrc: `/deck/minor/${suit.key}/${key}.jpg`,
+        keywords: data?.keywords?.slice(0, 3),
+      }
+    })
   ),
   // 16 Court Cards (Princess, Prince, Queen, King x 4 suits)
   ...SUITS.flatMap(suit =>
-    COURT_RANKS.map(rank => ({
-      type: 'court' as CardType,
-      name: `${rank} of ${suit.name}`,
-      color: suit.color,
-      imgSrc: `/deck/court/${suit.key}/${rank} of ${suit.name}.jpg`,
-    }))
+    COURT_RANKS.map(rank => {
+      const key = `${rank} of ${suit.name}`
+      const data = COURT_CARDS[key]
+      return {
+        type: 'court' as CardType,
+        name: key,
+        color: suit.color,
+        imgSrc: `/deck/court/${suit.key}/${key}.jpg`,
+        keywords: data?.keywords?.slice(0, 3),
+      }
+    })
   ),
 ]
 
