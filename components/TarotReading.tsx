@@ -72,17 +72,48 @@ export interface SpreadDef {
   key: string
   name: string
   count: number
+  /** Grid positions for each card in draw order: [row, col] */
+  grid: [number, number][]
+  /** Grid dimensions: [rows, cols] */
+  size: [number, number]
 }
 
 export const SPREADS: SpreadDef[] = [
-  { key: 'daily-three',   name: 'Tre Carte del Giorno',      count: 3 },
-  { key: 'oracle',        name: "L'Oracolo",                 count: 3 },
-  { key: 'future-i',      name: 'Uno Sguardo al Futuro I',   count: 3 },
-  { key: 'future-ii',     name: 'Uno Sguardo al Futuro II',  count: 5 },
-  { key: 'road',          name: 'La Strada',                  count: 4 },
-  { key: 'star',          name: 'La Stella',                  count: 5 },
-  { key: 'living',        name: 'Vivere Senza Sapere',        count: 8 },
-  { key: 'way',           name: 'La Via',                     count: 7 },
+  // [2, 1, 3] → draw center first, then left, then right
+  { key: 'daily-three', name: 'Tre Carte del Giorno', count: 3,
+    size: [1, 3], grid: [[0,1],[0,0],[0,2]] },
+  // [1, 2, 3] left to right
+  { key: 'oracle', name: "L'Oracolo", count: 3,
+    size: [1, 3], grid: [[0,0],[0,1],[0,2]] },
+  // [2, 1, 3] → past left, present center, future right
+  { key: 'future-i', name: 'Uno Sguardo al Futuro I', count: 3,
+    size: [1, 3], grid: [[0,1],[0,0],[0,2]] },
+  //     5
+  // 2   1   3
+  //     4
+  { key: 'future-ii', name: 'Uno Sguardo al Futuro II', count: 5,
+    size: [3, 3], grid: [[1,1],[1,0],[1,2],[2,1],[0,1]] },
+  // [1, 2, 3, 4] left to right
+  { key: 'road', name: 'La Strada', count: 4,
+    size: [1, 4], grid: [[0,0],[0,1],[0,2],[0,3]] },
+  //     1
+  // 2   5   4
+  //     3
+  { key: 'star', name: 'La Stella', count: 5,
+    size: [3, 3], grid: [[0,1],[1,0],[2,1],[1,2],[1,1]] },
+  //         6
+  //     5       7
+  // 1               8
+  //     2       4
+  //         3
+  { key: 'living', name: 'Vivere Senza Sapere', count: 8,
+    size: [5, 5], grid: [[2,0],[3,1],[4,2],[3,3],[1,1],[0,2],[1,3],[2,4]] },
+  //     1
+  // 2       7
+  // 3       6
+  // 4       5
+  { key: 'way', name: 'La Via', count: 7,
+    size: [4, 3], grid: [[0,1],[1,0],[2,0],[3,0],[3,2],[2,2],[1,2]] },
 ]
 
 // ─── Flip Card ──────────────────────────────────────────────────────────────
@@ -299,13 +330,13 @@ function FullscreenCard({ card, label, onClose }: { card: CardMeta; label: strin
 
 // ─── Main Component ─────────────────────────────────────────────────────────
 
-const STORAGE_KEY = 'tarot-reading-timestamp'
-const STORAGE_CARDS_KEY = 'tarot-reading-cards'
+function storageKey(spreadKey: string) { return `tarot-ts-${spreadKey}` }
+function storageCardsKey(spreadKey: string) { return `tarot-cards-${spreadKey}` }
 const COOLDOWN_MS = 24 * 60 * 60 * 1000 // 24 hours
 
-function getTimeLeft(): number {
+function getTimeLeft(spreadKey: string): number {
   if (typeof window === 'undefined') return 0
-  const stored = localStorage.getItem(STORAGE_KEY)
+  const stored = localStorage.getItem(storageKey(spreadKey))
   if (!stored) return 0
   const elapsed = Date.now() - parseInt(stored, 10)
   return Math.max(0, COOLDOWN_MS - elapsed)
@@ -323,13 +354,13 @@ export default function TarotReading({ spread = SPREADS[0] }: { spread?: SpreadD
 
   // On mount: restore previous reading if still within cooldown
   useEffect(() => {
-    const remaining = getTimeLeft()
+    const remaining = getTimeLeft(spread.key)
     if (remaining > 0) {
       setTimeLeft(remaining)
       setReadingDone(true)
       // Restore saved cards
       try {
-        const saved = localStorage.getItem(STORAGE_CARDS_KEY)
+        const saved = localStorage.getItem(storageCardsKey(spread.key))
         if (saved) {
           const parsed = JSON.parse(saved) as CardMeta[]
           setDrawnCards(parsed)
@@ -350,7 +381,7 @@ export default function TarotReading({ spread = SPREADS[0] }: { spread?: SpreadD
       return
     }
     const interval = setInterval(() => {
-      const remaining = getTimeLeft()
+      const remaining = getTimeLeft(spread.key)
       if (remaining <= 0) {
         setTimeLeft(0)
         setReadingDone(false)
@@ -391,8 +422,8 @@ export default function TarotReading({ spread = SPREADS[0] }: { spread?: SpreadD
       const next = new Set(prev).add(slotIdx)
       // When all cards are flipped, lock the reading
       if (next.size === spread.count) {
-        localStorage.setItem(STORAGE_KEY, String(Date.now()))
-        localStorage.setItem(STORAGE_CARDS_KEY, JSON.stringify(
+        localStorage.setItem(storageKey(spread.key), String(Date.now()))
+        localStorage.setItem(storageCardsKey(spread.key), JSON.stringify(
           drawnCards.map(c => c) // save current cards
         ))
         setReadingDone(true)
@@ -404,18 +435,41 @@ export default function TarotReading({ spread = SPREADS[0] }: { spread?: SpreadD
 
   return (
     <div className="flex flex-col gap-8 items-center">
-      {/* Cards layout */}
-      <div className={`flex flex-wrap justify-center gap-3 sm:gap-5 w-full px-2 ${spread.count <= 4 ? 'md:gap-10' : 'md:gap-4'}`}>
-        {Array.from({ length: spread.count }, (_, idx) => (
-          <div key={idx} className={`${spread.count <= 4 ? 'flex-1 max-w-[260px]' : 'w-[calc(25%-12px)] sm:w-[140px] md:w-[160px]'}`}>
-            <FlipCard
-              card={drawnCards[idx] ?? null}
-              flipped={flippedSet.has(idx)}
-              onFlip={() => flipCard(idx)}
-              onOpen={() => setFullscreenIdx(idx)}
-            />
-          </div>
-        ))}
+      {/* Cards grid layout */}
+      <div
+        className="w-full px-2"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: `repeat(${spread.size[1]}, 1fr)`,
+          gridTemplateRows: `repeat(${spread.size[0]}, auto)`,
+          gap: spread.count <= 4 ? '12px' : '10px',
+          maxWidth: spread.size[1] <= 3
+            ? `${spread.size[1] * 220}px`
+            : spread.size[1] <= 4
+              ? `${spread.size[1] * 180}px`
+              : `${spread.size[1] * 140}px`,
+          margin: '0 auto',
+        }}
+      >
+        {Array.from({ length: spread.count }, (_, idx) => {
+          const [row, col] = spread.grid[idx]
+          return (
+            <div
+              key={idx}
+              style={{
+                gridRow: row + 1,
+                gridColumn: col + 1,
+              }}
+            >
+              <FlipCard
+                card={drawnCards[idx] ?? null}
+                flipped={flippedSet.has(idx)}
+                onFlip={() => flipCard(idx)}
+                onOpen={() => setFullscreenIdx(idx)}
+              />
+            </div>
+          )
+        })}
       </div>
 
       {/* Fullscreen overlay */}
@@ -452,8 +506,8 @@ export default function TarotReading({ spread = SPREADS[0] }: { spread?: SpreadD
               setUsedIndices(new Set())
               setCurrentSlot(0)
               setReadingDone(false)
-              localStorage.removeItem(STORAGE_KEY)
-              localStorage.removeItem(STORAGE_CARDS_KEY)
+              localStorage.removeItem(storageKey(spread.key))
+              localStorage.removeItem(storageCardsKey(spread.key))
             }}
             className="px-6 py-3 rounded-xl font-semibold text-sm tracking-wide text-white
                        border border-white/10 hover:border-white/20 transition-all duration-200
