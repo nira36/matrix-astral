@@ -51,10 +51,26 @@ function imgPath(traditional: number) {
   return `/deck/${String(traditional).padStart(2, '0')}.jpg`
 }
 
-/** In the deck, arcana 22 keeps its original name "The Heirs" */
+/** First card (traditional 0) is The Fool; last card (traditional 22) is The Heirs */
 function deckName(card: CardMeta): string {
-  if (card.appNum === 22) return 'The Heirs'
+  if (card.traditional === 0) return 'The Fool'
+  if (card.traditional === 22) return 'The Heirs'
   return ARCANA[card.appNum]?.name ?? `Arcana ${card.traditional}`
+}
+
+/** Returns arcana metadata for the deck, overriding the special cards */
+function deckArcana(card: CardMeta) {
+  if (card.traditional === 22) {
+    return {
+      ...ARCANA[22],
+      name: 'The Heirs',
+      color: '#fde68a',
+      keywords: ['Potential', 'Awakening', 'Spiritual Heritage', 'Soul Mission'],
+      description:
+        'The Heirs are the predestined ones, those who can cross the 22 Gates and who have the task and duty of completing the Complete and Eternal Cycle, understanding its aspects and defining the subject, context, time, space, and cause through the 5W \'who?-what?-when?-where?-why?\' for each Gate and each Cycle.',
+    }
+  }
+  return ARCANA[card.appNum]
 }
 
 // ─── Card component ───────────────────────────────────────────────────────────
@@ -66,7 +82,7 @@ function DeckCard({
   card: CardMeta
   onClick: () => void
 }) {
-  const arcana = ARCANA[card.appNum]
+  const arcana = deckArcana(card)
   const [hasImage, setHasImage] = useState(true)
   const src = imgPath(card.traditional)
 
@@ -140,7 +156,7 @@ function Lightbox({
   onPrev: () => void
   onNext: () => void
 }) {
-  const arcana = ARCANA[card.appNum]
+  const arcana = deckArcana(card)
   const [hasImage, setHasImage] = useState(true)
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])

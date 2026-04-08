@@ -24,7 +24,7 @@ export const ARCANA: Record<number, ArcanaData> = {
     energy: 'masculine', element: 'air', planet: 'Mercury', color: '#f59e0b',
   },
   2: {
-    number: 2, roman: 'II', name: 'High Priestess',
+    number: 2, roman: 'II', name: 'The High Priestess',
     keywords: ['Wisdom', 'Idea', 'Intuition', 'Adaptability'],
     description: 'Between the pillars of Knowledge, the Soul receives the capacity for Thought and learns the Secret Wisdom, and tap into the Principles of Dualism.',
     energy: 'feminine', element: 'water', planet: 'Moon', color: '#818cf8',

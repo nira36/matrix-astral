@@ -33,13 +33,30 @@ const MINOR_RANKS = ['Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10']
 const COURT_RANKS = ['Princess', 'Prince', 'Queen', 'King']
 
 const ALL_CARDS: CardMeta[] = [
-  // 23 Major Arcana (0-22)
+  // 23 Major Arcana (0-22): 0 = The Fool, 1-21 standard, 22 = The Heirs
   ...Array.from({ length: 23 }, (_, i) => {
-    const appNum = i === 0 ? 22 : i
-    const arcana = ARCANA[appNum]
+    if (i === 0) {
+      return {
+        type: 'major' as CardType,
+        name: 'The Fool',
+        color: '#e5e7eb',
+        imgSrc: `/deck/00.jpg`,
+        keywords: ['Chaos', 'Origin', 'Pure Potential'],
+      }
+    }
+    if (i === 22) {
+      return {
+        type: 'major' as CardType,
+        name: 'The Heirs',
+        color: '#fde68a',
+        imgSrc: `/deck/22.jpg`,
+        keywords: ['Potential', 'Awakening', 'Spiritual Heritage', 'Soul Mission'].slice(0, 3),
+      }
+    }
+    const arcana = ARCANA[i]
     return {
       type: 'major' as CardType,
-      name: i === 0 ? 'The Heirs' : (arcana?.name ?? `Arcana ${i}`),
+      name: arcana?.name ?? `Arcana ${i}`,
       color: arcana?.color ?? '#8b5cf6',
       imgSrc: `/deck/${String(i).padStart(2, '0')}.jpg`,
       keywords: arcana?.keywords?.slice(0, 3),

@@ -238,9 +238,9 @@ export default function NatalChartWheel({ data }: { data: NatalChartData }) {
             return (
               <g key={sign}>
                 <line x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} stroke="rgba(255,255,255,0.3)" strokeWidth="0.5" />
-                {/* SVG icon (standard zodiac glyph) */}
+                {/* SVG icon (standard zodiac glyph) — scaled 1.3x for legibility */}
                 <g
-                  transform={`translate(${iconPos.x - 9}, ${iconPos.y - 9})`}
+                  transform={`translate(${iconPos.x - 11.7}, ${iconPos.y - 11.7}) scale(1.3)`}
                   onClick={(e) => {
                     if (isSelected) { setSelectedSign(null); return }
                     const rect = chartRef.current?.getBoundingClientRect()
@@ -256,10 +256,11 @@ export default function NatalChartWheel({ data }: { data: NatalChartData }) {
                   {ZODIAC_PATHS[sign].map((d, pi) => (
                     <path key={pi} d={d}
                       fill="none"
-                      stroke={isSelected ? '#a78bfa' : 'rgba(255,255,255,0.55)'}
-                      strokeWidth={isSelected ? 1.8 : 1.2}
+                      stroke={isSelected ? '#a78bfa' : 'rgba(255,255,255,0.85)'}
+                      strokeWidth={isSelected ? 1.6 : 1.2}
                       strokeLinecap="round"
                       strokeLinejoin="round"
+                      vectorEffect="non-scaling-stroke"
                     />
                   ))}
                 </g>
@@ -460,7 +461,13 @@ export default function NatalChartWheel({ data }: { data: NatalChartData }) {
               }}
             >
               <div className="flex items-center gap-2.5 mb-1.5">
-                <span className="text-xl">{ZODIAC_GLYPHS[s]}</span>
+                <svg
+                  width="22" height="22" viewBox="0 0 18 18"
+                  fill="none" stroke="#a78bfa" strokeWidth="1.4"
+                  strokeLinecap="round" strokeLinejoin="round"
+                >
+                  {ZODIAC_PATHS[s].map((d, i) => <path key={i} d={d} />)}
+                </svg>
                 <div>
                   <span className="text-xs font-bold text-white">{s}</span>
                   <p className="text-[9px] text-slate-400">

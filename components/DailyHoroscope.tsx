@@ -71,14 +71,10 @@ export default function DailyHoroscope({ birthDate }: Props) {
         {/* Sign selector */}
         <div className="relative">
           <div className="flex items-center gap-2 bg-[#1f2937] border border-white/[0.08] rounded-xl px-3 py-2 pr-3 cursor-pointer">
-            {(selectedSign || birthSign) && (
-              <ZodiacIcon sign={(selectedSign ?? birthSign!.name) as ZodiacSign} size={18} color="rgba(167,139,250,0.85)" />
-            )}
             <select
               value={selectedSign ?? (birthSign?.name ?? '')}
               onChange={e => setSelectedSign(e.target.value as ZodiacSignName)}
               className="appearance-none bg-transparent text-white text-sm outline-none cursor-pointer pr-6"
-              style={{ fontFamily: 'system-ui, sans-serif' }}
             >
               {!birthSign && !selectedSign && (
                 <option value="" disabled>Select your sign</option>
@@ -113,11 +109,6 @@ export default function DailyHoroscope({ birthDate }: Props) {
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-baseline gap-2 mb-3">
-              <span className="text-lg font-black text-white uppercase tracking-wide">
-                {activeSign.name}
-              </span>
-            </div>
             <p className="text-[13px] text-slate-300 leading-relaxed font-medium">
               {horoscopeText}
             </p>

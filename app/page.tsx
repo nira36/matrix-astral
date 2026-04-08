@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { calculate } from '@/lib/numerology'
 import type { NumerologyResult } from '@/lib/numerology'
 import { calcDestinyMatrix } from '@/lib/destinyMatrix'
@@ -35,6 +35,7 @@ import NatalChartWheel from '@/components/NatalChartWheel'
 import NatalChartTable from '@/components/NatalChartTable'
 import NatalInterpretation from '@/components/NatalInterpretation'
 import NatalReadings from '@/components/NatalReadings'
+import CurrentSkyInterpretation from '@/components/CurrentSkyInterpretation'
 import ChineseAstrology from '@/components/ChineseAstrology'
 import VedicAstrology from '@/components/VedicAstrology'
 import { calcNatalChart, isDST } from '@/lib/astrology'
@@ -61,6 +62,162 @@ export default function Home() {
   const [selectedPlace, setSelectedPlace] = useState<PlaceSelection | null>(null)
   const [natalData, setNatalData] = useState<NatalChartData | null>(null)
   const [natalMeta, setNatalMeta] = useState<{ ut: string; lst: string; lat: string; lon: string; tz: string } | null>(null)
+
+  // Chart wheel mode:
+  //   'natal' = birth chart
+  //   'now'   = current sky (transit) at the natal place
+  //   'sky'   = current sky above the user's actual location (geolocated or fallback)
+  const [chartMode, setChartMode] = useState<'natal' | 'now' | 'sky'>('natal')
+  const [nowTick, setNowTick] = useState(0)
+
+  // Geolocation state for 'sky' mode
+  const [userLocation, setUserLocation] = useState<{ lat: number; lon: number; label: string } | null>(null)
+  const [geoModalOpen, setGeoModalOpen] = useState(false)
+  const [geoLoading, setGeoLoading] = useState(false)
+  const [geoError, setGeoError] = useState<string | null>(null)
+
+  // Refresh live charts every 60s while they're the active view
+  useEffect(() => {
+    if ((chartMode !== 'now' && chartMode !== 'sky') || tab !== 'natal') return
+    const id = setInterval(() => setNowTick(t => t + 1), 60_000)
+    return () => clearInterval(id)
+  }, [chartMode, tab])
+
+  // Compute the current-sky chart on demand, anchored at the natal place
+  const nowData = useMemo<NatalChartData | null>(() => {
+    if (chartMode !== 'now' || !selectedPlace) return null
+    void nowTick // re-run on tick
+    const now = new Date()
+    const baseTz = selectedPlace.tz
+    // Use naive local-at-place clock to test DST
+    const approxLocal = new Date(now.getTime() + baseTz * 3600_000)
+    const utcOff = isDST(
+      approxLocal.getUTCFullYear(),
+      approxLocal.getUTCMonth() + 1,
+      approxLocal.getUTCDate(),
+      baseTz,
+    ) ? baseTz + 1 : baseTz
+    const local = new Date(now.getTime() + utcOff * 3600_000)
+    return calcNatalChart(
+      local.getUTCDate(),
+      local.getUTCMonth() + 1,
+      local.getUTCFullYear(),
+      local.getUTCHours(),
+      local.getUTCMinutes(),
+      selectedPlace.lat,
+      selectedPlace.lon,
+      utcOff,
+    )
+  }, [chartMode, selectedPlace, nowTick])
+
+  // Human-readable "now" stamp shown next to the toggle
+  const nowStamp = useMemo(() => {
+    if (chartMode !== 'now' || !selectedPlace) return null
+    void nowTick
+    const now = new Date()
+    const baseTz = selectedPlace.tz
+    const approxLocal = new Date(now.getTime() + baseTz * 3600_000)
+    const utcOff = isDST(
+      approxLocal.getUTCFullYear(),
+      approxLocal.getUTCMonth() + 1,
+      approxLocal.getUTCDate(),
+      baseTz,
+    ) ? baseTz + 1 : baseTz
+    const local = new Date(now.getTime() + utcOff * 3600_000)
+    const dd = String(local.getUTCDate()).padStart(2, '0')
+    const mm = String(local.getUTCMonth() + 1).padStart(2, '0')
+    const yyyy = local.getUTCFullYear()
+    const hh = String(local.getUTCHours()).padStart(2, '0')
+    const mi = String(local.getUTCMinutes()).padStart(2, '0')
+    return `${dd}/${mm}/${yyyy} ${hh}:${mi}`
+  }, [chartMode, selectedPlace, nowTick])
+
+  // Sky chart: current sky above the user's actual location.
+  // Timezone offset is approximated from longitude (no DST / political TZ),
+  // which is accurate enough for chart calculation and display.
+  const skyData = useMemo<NatalChartData | null>(() => {
+    if (chartMode !== 'sky' || !userLocation) return null
+    void nowTick
+    const now = new Date()
+    const approxOffset = Math.round(userLocation.lon / 15)
+    const local = new Date(now.getTime() + approxOffset * 3600_000)
+    return calcNatalChart(
+      local.getUTCDate(),
+      local.getUTCMonth() + 1,
+      local.getUTCFullYear(),
+      local.getUTCHours(),
+      local.getUTCMinutes(),
+      userLocation.lat,
+      userLocation.lon,
+      approxOffset,
+    )
+  }, [chartMode, userLocation, nowTick])
+
+  const skyStamp = useMemo(() => {
+    if (chartMode !== 'sky' || !userLocation) return null
+    void nowTick
+    const now = new Date()
+    const approxOffset = Math.round(userLocation.lon / 15)
+    const local = new Date(now.getTime() + approxOffset * 3600_000)
+    const dd = String(local.getUTCDate()).padStart(2, '0')
+    const mm = String(local.getUTCMonth() + 1).padStart(2, '0')
+    const yyyy = local.getUTCFullYear()
+    const hh = String(local.getUTCHours()).padStart(2, '0')
+    const mi = String(local.getUTCMinutes()).padStart(2, '0')
+    const sign = approxOffset >= 0 ? '+' : ''
+    return `${dd}/${mm}/${yyyy} ${hh}:${mi} (UT${sign}${approxOffset})`
+  }, [chartMode, userLocation, nowTick])
+
+  // ─── Geolocation handlers ────────────────────────────────────────────────
+  function requestGeolocation() {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setGeoError('Geolocation is not supported by your browser.')
+      return
+    }
+    setGeoLoading(true)
+    setGeoError(null)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLocation({
+          lat: pos.coords.latitude,
+          lon: pos.coords.longitude,
+          label: 'Your location',
+        })
+        setGeoLoading(false)
+        setGeoModalOpen(false)
+        setChartMode('sky')
+      },
+      (err) => {
+        setGeoLoading(false)
+        if (err.code === 1) {
+          setGeoError('Permission denied. You can use Rome as a fallback.')
+        } else if (err.code === 2) {
+          setGeoError('Position unavailable. Try again or use Rome.')
+        } else if (err.code === 3) {
+          setGeoError('Request timed out. Try again or use Rome.')
+        } else {
+          setGeoError('Could not get your location.')
+        }
+      },
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 600_000 },
+    )
+  }
+
+  function useRomeFallback() {
+    setUserLocation({ lat: 41.9028, lon: 12.4964, label: 'Rome (fallback)' })
+    setGeoModalOpen(false)
+    setGeoError(null)
+    setChartMode('sky')
+  }
+
+  function handleSkyClick() {
+    if (userLocation) {
+      setChartMode('sky')
+    } else {
+      setGeoError(null)
+      setGeoModalOpen(true)
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -306,25 +463,78 @@ export default function Home() {
                       {natalMeta.ut} · {natalMeta.tz} · Lat {natalMeta.lat} · Lon {natalMeta.lon} · Placidus
                     </p>
                   )}
+                  {chartMode === 'now' && nowStamp && (
+                    <p className="text-[9px] text-accent-purple/80 font-mono mt-1">
+                      Showing current sky · {nowStamp} · {selectedPlace.display}
+                    </p>
+                  )}
+                  {chartMode === 'sky' && skyStamp && userLocation && (
+                    <p className="text-[9px] text-accent-purple/80 font-mono mt-1">
+                      Sky above you · {skyStamp} · {userLocation.label} ({userLocation.lat.toFixed(2)}°, {userLocation.lon.toFixed(2)}°)
+                    </p>
+                  )}
                 </div>
 
-                <div className="flex flex-col items-center">
-                  <NatalChartWheel data={natalData} />
-                </div>
-
-                <NatalReadings data={natalData} />
-
-                <NatalChartTable data={natalData} />
-
-                <NatalInterpretation data={natalData} />
-
-                {/* Lunar Cycles & Personal Transits */}
-                <section className="flex flex-col gap-8">
-                  <SectionLabel>Lunar Cycles & Personal <span className="text-accent-purple">Transits</span></SectionLabel>
-                  <div className="rounded-2xl border border-white/[0.07] bg-bg-card p-5 md:p-7 animate-fade-up shadow-xl shadow-black/30">
-                    <LunarCycles result={numResult!} />
+                {/* Natal / Now / Sky toggle */}
+                <div className="flex justify-center">
+                  <div className="inline-flex rounded-xl border border-white/[0.1] bg-white/[0.04] p-0.5">
+                    {(['natal', 'now', 'sky'] as const).map(m => {
+                      const isActive = chartMode === m
+                      const label = m === 'natal' ? 'Natal' : m === 'now' ? 'Now' : 'Sky'
+                      return (
+                        <button
+                          key={m}
+                          onClick={() => {
+                            if (m === 'sky') handleSkyClick()
+                            else setChartMode(m)
+                          }}
+                          className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all
+                            ${isActive
+                              ? 'bg-white/[0.1] text-white'
+                              : 'text-slate-400 hover:text-slate-200'}`}
+                        >
+                          {label}
+                        </button>
+                      )
+                    })}
                   </div>
-                </section>
+                </div>
+
+                {(() => {
+                  const displayData =
+                    chartMode === 'sky' && skyData ? skyData :
+                    chartMode === 'now' && nowData ? nowData :
+                    natalData
+                  return (
+                    <>
+                      <div className="flex flex-col items-center">
+                        <NatalChartWheel data={displayData} />
+                      </div>
+
+                      {chartMode === 'natal' ? (
+                        <>
+                          <NatalReadings data={natalData} />
+                          <NatalChartTable data={natalData} />
+                          <NatalInterpretation data={natalData} />
+
+                          {/* Lunar Cycles & Personal Transits */}
+                          <section className="flex flex-col gap-8">
+                            <SectionLabel>Lunar Cycles & Personal <span className="text-accent-purple">Transits</span></SectionLabel>
+                            <div className="rounded-2xl border border-white/[0.07] bg-bg-card p-5 md:p-7 animate-fade-up shadow-xl shadow-black/30">
+                              <LunarCycles result={numResult!} />
+                            </div>
+                          </section>
+                        </>
+                      ) : (
+                        <>
+                          {/* Live mode: a single narrative reading on top, then the data tables */}
+                          <CurrentSkyInterpretation data={displayData} mode={chartMode} />
+                          <NatalChartTable data={displayData} />
+                        </>
+                      )}
+                    </>
+                  )
+                })()}
               </>
             ) : (
               <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.04] p-6 text-center max-w-lg mx-auto">
@@ -470,6 +680,56 @@ export default function Home() {
           Cosmic Love Matrix · Pythagorean Tradition · Premium Numerology Report
         </p>
       </div>
+
+      {/* Geolocation permission modal (Sky mode) */}
+      {geoModalOpen && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => { if (!geoLoading) { setGeoModalOpen(false); setGeoError(null) } }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            className="max-w-md w-full rounded-2xl border border-white/[0.1] bg-[#0f0f1e] p-6 shadow-2xl shadow-black/60 animate-fade-up"
+          >
+            <h3 className="text-lg font-bold text-white mb-2">Show the sky above you?</h3>
+            <p className="text-xs text-slate-400 leading-relaxed mb-5">
+              To compute the chart of the sky exactly above your current position, the app needs your location.
+              Your browser will show a native permission prompt. The position is used only locally — it never leaves your device.
+            </p>
+            {geoError && (
+              <p className="text-[11px] text-red-400/90 mb-4 px-3 py-2 rounded-lg bg-red-500/[0.06] border border-red-500/20">
+                {geoError}
+              </p>
+            )}
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={requestGeolocation}
+                disabled={geoLoading}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold tracking-wide text-white
+                           bg-gradient-to-br from-violet-600 to-indigo-600 hover:opacity-90
+                           disabled:opacity-50 transition-all"
+              >
+                {geoLoading ? 'Asking your browser…' : 'Use my location'}
+              </button>
+              <button
+                onClick={useRomeFallback}
+                disabled={geoLoading}
+                className="px-4 py-2.5 rounded-xl text-xs font-semibold tracking-wide text-slate-300
+                           border border-white/[0.1] hover:bg-white/[0.05] transition-all"
+              >
+                Use Rome instead
+              </button>
+              <button
+                onClick={() => { setGeoModalOpen(false); setGeoError(null) }}
+                disabled={geoLoading}
+                className="text-[10px] text-slate-500 hover:text-slate-400 mt-1 self-center"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }

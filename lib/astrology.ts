@@ -13,68 +13,79 @@ export const ZODIAC_GLYPHS: Record<ZodiacSign, string> = {
   Sagittarius: '♐', Capricorn: '♑', Aquarius: '♒', Pisces: '♓',
 }
 
-/** Standard zodiac SVG paths (viewBox 0 0 18 18) */
+/** Standard zodiac SVG paths (viewBox 0 0 18 18) — classic astrological glyphs */
 export const ZODIAC_PATHS: Record<ZodiacSign, string[]> = {
+  // Aries — ram horns curling outward, meeting at center
   Aries: [
-    'M3 14 C3 7 3 4 9 3',
-    'M15 14 C15 7 15 4 9 3',
+    'M9 15 C9 9 9 5 5 5 C2 5 2 8 5 8',
+    'M9 15 C9 9 9 5 13 5 C16 5 16 8 13 8',
   ],
+  // Taurus — bull head: circle with crescent horns above
   Taurus: [
-    'M3 5 C3 1 9 1 9 1 C9 1 15 1 15 5',
-    'M5.5 11 A3.5 3.5 0 1 0 12.5 11 A3.5 3.5 0 1 0 5.5 11',
-    'M9 1 V7.5',
+    'M5 12 A4 4 0 1 0 13 12 A4 4 0 1 0 5 12',
+    'M3 4 C3 7 5 9 9 9 C13 9 15 7 15 4',
   ],
+  // Gemini — twin pillars (II) with curved caps
   Gemini: [
-    'M3 3 C6 5 12 5 15 3',
-    'M3 15 C6 13 12 13 15 15',
     'M6 4 V14',
     'M12 4 V14',
+    'M4 4 C6 3 12 3 14 4',
+    'M4 14 C6 15 12 15 14 14',
   ],
+  // Cancer — 69 glyph: two opposing crescents with circles
   Cancer: [
-    'M14 6 A5 5 0 0 1 4 6',
-    'M14 6 A2 2 0 1 1 14 5.99',
-    'M4 12 A5 5 0 0 1 14 12',
-    'M4 12 A2 2 0 1 1 4 11.99',
+    'M3 7 C6 5 10 5 13 7',
+    'M11.4 7 A1.6 1.6 0 1 0 14.6 7 A1.6 1.6 0 1 0 11.4 7',
+    'M15 11 C12 13 8 13 5 11',
+    'M3.4 11 A1.6 1.6 0 1 0 6.6 11 A1.6 1.6 0 1 0 3.4 11',
   ],
+  // Leo — lion head circle with curling tail ending in a small inward hook
   Leo: [
-    'M5 8 A2.5 2.5 0 1 1 5 7.99',
-    'M7.5 8 C9 8 11 10 11 12 C11 14 13 15.5 15 14 C16 13 15.5 11 14 10',
+    'M3 6 A2.5 2.5 0 1 0 8 6 A2.5 2.5 0 1 0 3 6',
+    'M8 6 C11 6 13 8 13 11 C13 14 16 14 16 11 C16 9 14 9 14.5 10.5',
   ],
+  // Virgo — M with crossed loop (the virgin)
   Virgo: [
-    'M3 14 V5 C3 3 5 3 5 5 V14',
-    'M5 5 C5 3 7 3 7 5 V14',
-    'M7 5 C7 3 9 3 9 5 V10',
-    'M9 10 C10 14 13 14 14 12 L16 6',
-    'M12 9 L16 9',
+    'M3 14 V6 C3 4 5 4 5 6 V14',
+    'M5 6 C5 4 7 4 7 6 V14',
+    'M7 6 C7 4 9 4 9 6 V11',
+    'M9 11 C10 14 13 14 14 11 C14 9 12 9 12 11 A2 2 0 1 0 16 13',
   ],
+  // Libra — scales: arc resting on a horizontal base line
   Libra: [
-    'M3 13 H15',
-    'M3 9 H15',
-    'M6 9 C6 4 12 4 12 9',
+    'M3 14 H15',
+    'M3 10 H6',
+    'M12 10 H15',
+    'M6 10 C6 5 12 5 12 10',
   ],
+  // Scorpio — M with arrow tail
   Scorpio: [
-    'M3 14 V5 C3 3 5 3 5 5 V14',
-    'M5 5 C5 3 7 3 7 5 V14',
-    'M7 5 C7 3 9 3 9 5 V14 L12 11',
-    'M10 14 L12 11 L14 13',
+    'M3 14 V6 C3 4 5 4 5 6 V14',
+    'M5 6 C5 4 7 4 7 6 V14',
+    'M7 6 C7 4 9 4 9 6 V14 L13 10',
+    'M11 8 L13 10 L12 12',
   ],
+  // Sagittarius — diagonal arrow with crossbar
   Sagittarius: [
     'M3 15 L15 3',
-    'M10 3 H15 V8',
-    'M5.5 11.5 L12.5 7.5',
+    'M9 3 H15 V9',
+    'M6 8 L10 12',
   ],
+  // Capricorn — goat-fish: V (horns) with looped tail
   Capricorn: [
-    'M2 5 L6 14 L9 5',
-    'M9 5 V11 C9 15 13 15 13 12 C13 9 11 9 11 11 A2 2 0 1 0 15 11',
+    'M3 5 L7 14 L9 5 L11 12',
+    'M11 12 C11 15 14 15 14 12 C14 10 12 10 12 12 A2 2 0 1 0 16 13',
   ],
+  // Aquarius — two parallel zig-zag waves
   Aquarius: [
-    'M2 7 L4.5 4 L7.5 7 L10.5 4 L13 7 L15.5 4',
-    'M2 13 L4.5 10 L7.5 13 L10.5 10 L13 13 L15.5 10',
+    'M2 8 L5 5 L8 8 L11 5 L14 8 L16 6',
+    'M2 13 L5 10 L8 13 L11 10 L14 13 L16 11',
   ],
+  // Pisces — two inward-bowing arcs ) ( joined by a bar through both apexes
   Pisces: [
-    'M5 2 C1 6 1 12 5 16',
-    'M13 2 C17 6 17 12 13 16',
-    'M2 9 H16',
+    'M3 4 C6.5 6.5 6.5 11.5 3 14',
+    'M15 4 C11.5 6.5 11.5 11.5 15 14',
+    'M3 9 H15',
   ],
 }
 

@@ -49,7 +49,8 @@ const config: Config = {
         'purple-glow': 'radial-gradient(ellipse at top, #1e1040 0%, #03040d 70%)',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Tenor Sans', 'Inter', 'system-ui', 'sans-serif'],
+        heading: ['Inter', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
     },

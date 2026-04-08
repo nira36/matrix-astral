@@ -138,7 +138,7 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
         <polygon points={octPoints} strokeWidth="2" />
         
         {/* Main Diamond (A-B-C-D) - Rotating CW */}
-        <g className="animate-rotate-slow" style={{ transformOrigin: `${CTR}px ${CTR}px` }}>
+        <g className="animate-rotate-cw" style={{ transformOrigin: `${CTR}px ${CTR}px` }}>
           <polygon points={`${COORDS.B.x},${COORDS.B.y} ${COORDS.C.x},${COORDS.C.y} ${COORDS.D.x},${COORDS.D.y} ${COORDS.A.x},${COORDS.A.y}`} strokeWidth="2.5" />
         </g>
         
@@ -206,6 +206,13 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
             .animate-rotate-slow {
               animation: rotate-outer 300s linear infinite;
             }
+            @keyframes counter-rotate-outer {
+              from { transform: rotate(0deg); }
+              to { transform: rotate(-360deg); }
+            }
+            .counter-rotate-slow {
+              animation: counter-rotate-outer 300s linear infinite;
+            }
             .animate-glow-pulse {
               animation: glow-subtle 4s ease-in-out infinite;
             }
@@ -229,6 +236,13 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
             }
             .animate-rotate-ccw {
               animation: rotate-ccw 240s linear infinite;
+            }
+            @keyframes rotate-cw {
+              from { transform: rotate(0deg); }
+              to { transform: rotate(360deg); }
+            }
+            .animate-rotate-cw {
+              animation: rotate-cw 240s linear infinite;
             }
             @keyframes node-pulse {
               0%, 100% { transform: scale(1); }
@@ -292,10 +306,15 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
 
             return (
               <g key={`${startKey}-${j}`} className="animate-glow-pulse">
-                {/* External Arcanum */}
-                <text x={oxO} y={oyO} fill="#8B5CF6" fontSize="13" fontWeight="700" textAnchor="middle" dominantBaseline="middle">
-                  {point.number}
-                </text>
+                {/* External Arcanum — counter-rotates so it stays upright */}
+                <g
+                  className="counter-rotate-slow"
+                  style={{ transformOrigin: `${oxO}px ${oyO}px` }}
+                >
+                  <text x={oxO} y={oyO} fill="#8B5CF6" fontSize="13" fontWeight="700" textAnchor="middle" dominantBaseline="middle">
+                    {point.number}
+                  </text>
+                </g>
                 
                 {/* Internal Age Range (Rotated) */}
                 {yearText && (
