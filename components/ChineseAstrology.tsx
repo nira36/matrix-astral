@@ -763,9 +763,16 @@ function CompatibilityForm({
           <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Partner Date</label>
           <input
             type="text"
+            inputMode="numeric"
+            maxLength={10}
             placeholder="DD/MM/YYYY"
             value={partnerDate}
-            onChange={e => setPartnerDate(e.target.value)}
+            onChange={e => {
+              let v = e.target.value.replace(/[^\d/]/g, '').replace(/\//g, '')
+              if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2)
+              if (v.length > 5) v = v.slice(0, 5) + '/' + v.slice(5)
+              setPartnerDate(v.slice(0, 10))
+            }}
             className="bg-[#1f2937] border border-white/[0.08] rounded-lg px-3 py-2 text-white text-xs outline-none focus:border-accent-purple transition-all"
           />
         </div>

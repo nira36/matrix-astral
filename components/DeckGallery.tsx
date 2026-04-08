@@ -701,15 +701,15 @@ export default function DeckGallery() {
             <div className="relative z-10" ref={spreadMenuRef}>
               <button
                 onClick={() => setSpreadMenuOpen(v => !v)}
-                className="flex flex-col items-center gap-1 px-3 py-2.5 rounded-xl transition-all duration-200"
+                className="flex flex-col items-center gap-1 px-6 py-2.5 rounded-xl transition-all duration-200"
                 style={{ color: '#64748b' }}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <circle cx="12" cy="5" r="1.5" />
                   <circle cx="12" cy="12" r="1.5" />
                   <circle cx="12" cy="19" r="1.5" />
                 </svg>
-                <span className="text-[6px] font-black tracking-[0.1em] uppercase">Spreads</span>
+                <span className="text-[8px] font-black tracking-[0.2em] uppercase">Spreads</span>
               </button>
 
               {spreadMenuOpen && (

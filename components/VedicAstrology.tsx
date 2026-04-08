@@ -1,8 +1,30 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import type { NatalChartData } from '@/lib/astrology'
-import { calcNatalChart } from '@/lib/astrology'
+import type { NatalChartData, ZodiacSign } from '@/lib/astrology'
+import { calcNatalChart, ZODIAC_PATHS } from '@/lib/astrology'
+
+// ─── Rashi (Sanskrit) → Zodiac sign (English) for SVG glyph rendering ───────
+const RASHI_TO_ZODIAC: Record<string, ZodiacSign> = {
+  Mesha: 'Aries', Vrishabha: 'Taurus', Mithuna: 'Gemini', Karka: 'Cancer',
+  Simha: 'Leo', Kanya: 'Virgo', Tula: 'Libra', Vrishchika: 'Scorpio',
+  Dhanu: 'Sagittarius', Makara: 'Capricorn', Kumbha: 'Aquarius', Meena: 'Pisces',
+}
+
+function RashiGlyph({ rashi, x, y, size = 20, color = '#a78bfa' }:
+  { rashi: string; x: number; y: number; size?: number; color?: string }
+) {
+  const sign = RASHI_TO_ZODIAC[rashi]
+  if (!sign) return null
+  return (
+    <g transform={`translate(${x - size / 2}, ${y - size / 2}) scale(${size / 18})`}>
+      {ZODIAC_PATHS[sign].map((d, i) => (
+        <path key={i} d={d} fill="none" stroke={color} strokeWidth="1.4"
+          strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+      ))}
+    </g>
+  )
+}
 import type { VedicChart, VedicPlanet } from '@/lib/vedic-astrology'
 import { calcVedicChart } from '@/lib/vedic-astrology'
 import { RASHI_DATA, LAGNA_PROFILES, GRAHA_DATA, type NakshatraData, type Graha } from '@/lib/vedic-data'
@@ -160,7 +182,13 @@ export default function VedicAstrology({ natal, dateStr, birthTime }: Props) {
                   boxShadow: `0 0 40px ${lagnaRashi.color}33`,
                 }}
               >
-                <span className="text-7xl" style={{ color: lagnaRashi.color }}>{lagnaRashi.symbol}</span>
+                <svg width="80" height="80" viewBox="0 0 18 18" fill="none"
+                  stroke={lagnaRashi.color} strokeWidth="1.4"
+                  strokeLinecap="round" strokeLinejoin="round">
+                  {(ZODIAC_PATHS[RASHI_TO_ZODIAC[vedic.lagna.rashi]] ?? []).map((d, i) => (
+                    <path key={i} d={d} vectorEffect="non-scaling-stroke" />
+                  ))}
+                </svg>
               </div>
               <div className="text-center">
                 <p className="text-lg font-black" style={{ color: lagnaRashi.color }}>{vedic.lagna.rashi}</p>
@@ -317,7 +345,7 @@ function NorthIndianChart({ vedic }: { vedic: VedicChart }) {
   return (
     <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} className="max-w-full h-auto">
       {/* Outer square */}
-      <rect x="0" y="0" width={SIZE} height={SIZE} fill="#0a0a0f" stroke="#475569" strokeWidth="1.5" />
+      <rect x="0" y="0" width={SIZE} height={SIZE} fill="none" stroke="#475569" strokeWidth="1.5" />
 
       {/* Diagonals */}
       <line x1="0" y1="0" x2={SIZE} y2={SIZE} stroke="#475569" strokeWidth="1" />
@@ -353,17 +381,8 @@ function NorthIndianChart({ vedic }: { vedic: VedicChart }) {
               {vedic.houses[i].rashiIndex + 1}
             </text>
 
-            {/* Rashi symbol */}
-            <text
-              x={pos.x}
-              y={pos.y - 14}
-              textAnchor="middle"
-              fontSize="20"
-              fill={rashiData.color}
-              fontWeight="bold"
-            >
-              {rashiData.symbol}
-            </text>
+            {/* Rashi symbol — SVG glyph from natal chart */}
+            <RashiGlyph rashi={rashi} x={pos.x} y={pos.y - 14} size={22} color={rashiData.color} />
 
             {/* House number badge */}
             {isLagna && (
@@ -501,8 +520,16 @@ function PlanetsTable({ vedic }: { vedic: VedicChart }) {
                 </td>
                 <td className="py-2 px-2 text-slate-500 italic">{p.data.sanskrit}</td>
                 <td className="py-2 px-2">
-                  <span style={{ color: rashiData.color }}>{rashiData.symbol}</span>
-                  <span className="text-slate-400 ml-1">{p.rashi}</span>
+                  <span className="inline-flex items-center gap-1.5 align-middle">
+                    <svg width="14" height="14" viewBox="0 0 18 18" fill="none"
+                      stroke={rashiData.color} strokeWidth="1.4"
+                      strokeLinecap="round" strokeLinejoin="round">
+                      {(ZODIAC_PATHS[RASHI_TO_ZODIAC[p.rashi]] ?? []).map((d, i) => (
+                        <path key={i} d={d} vectorEffect="non-scaling-stroke" />
+                      ))}
+                    </svg>
+                    <span className="text-slate-400">{p.rashi}</span>
+                  </span>
                 </td>
                 <td className="py-2 px-2 text-right font-mono text-slate-400">
                   {p.signDegree}°{String(p.signMinute).padStart(2, '0')}'
@@ -577,8 +604,14 @@ function BhavasTable({ vedic }: { vedic: VedicChart }) {
                   <p className="text-[8px] text-slate-600">House {b.num}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-1">
-                <span className="text-lg" style={{ color: rashiData.color }}>{rashiData.symbol}</span>
+              <div className="flex items-center gap-1.5">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"
+                  stroke={rashiData.color} strokeWidth="1.4"
+                  strokeLinecap="round" strokeLinejoin="round">
+                  {(ZODIAC_PATHS[RASHI_TO_ZODIAC[house.rashi]] ?? []).map((d, i) => (
+                    <path key={i} d={d} vectorEffect="non-scaling-stroke" />
+                  ))}
+                </svg>
                 <span className="text-[9px] text-slate-500">{house.rashi}</span>
               </div>
             </div>
@@ -873,7 +906,7 @@ function DivisionalView({ chart }: { chart: DivisionalChart }) {
       <p className="text-[10px] text-slate-500 leading-snug italic">{chart.purpose}</p>
 
       <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} className="mx-auto">
-        <rect x="0" y="0" width={SIZE} height={SIZE} fill="#0a0a0f" stroke="#475569" strokeWidth="1" />
+        <rect x="0" y="0" width={SIZE} height={SIZE} fill="none" stroke="#475569" strokeWidth="1" />
         <line x1="0" y1="0" x2={SIZE} y2={SIZE} stroke="#475569" strokeWidth="0.7" />
         <line x1={SIZE} y1="0" x2="0" y2={SIZE} stroke="#475569" strokeWidth="0.7" />
         <polygon
@@ -887,9 +920,7 @@ function DivisionalView({ chart }: { chart: DivisionalChart }) {
           const planets = planetsByHouse.get(houseNum) ?? []
           return (
             <g key={houseNum}>
-              <text x={pos.x} y={pos.y - 14} textAnchor="middle" fontSize="14" fill={rashiData.color} fontWeight="bold">
-                {rashiData.symbol}
-              </text>
+              <RashiGlyph rashi={rashi} x={pos.x} y={pos.y - 14} size={16} color={rashiData.color} />
               {planets.map((p, j) => (
                 <text
                   key={p.graha}
@@ -931,9 +962,16 @@ function AshtakootForm({
           <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Partner Date</label>
           <input
             type="text"
+            inputMode="numeric"
+            maxLength={10}
             placeholder="DD/MM/YYYY"
             value={partnerDate}
-            onChange={e => setPartnerDate(e.target.value)}
+            onChange={e => {
+              let v = e.target.value.replace(/[^\d/]/g, '').replace(/\//g, '')
+              if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2)
+              if (v.length > 5) v = v.slice(0, 5) + '/' + v.slice(5)
+              setPartnerDate(v.slice(0, 10))
+            }}
             className="bg-[#1f2937] border border-white/[0.08] rounded-lg px-3 py-2 text-white text-xs outline-none focus:border-accent-purple transition-all"
           />
         </div>

@@ -1,22 +1,27 @@
 'use client'
 
 import React, { useState, useRef } from 'react'
-import type { NatalChartData, PlanetPosition, Aspect, AspectType, ZodiacSign } from '@/lib/astrology'
-import { ZODIAC_SIGNS, ZODIAC_GLYPHS, ZODIAC_PATHS, ZODIAC_ELEMENTS, ZODIAC_INFO, PLANET_GLYPHS, ASPECT_COLORS, ASPECT_SYMBOLS, getPlanetInterpretation } from '@/lib/astrology'
+import type { NatalChartData, PlanetPosition, Aspect, AspectType, TransitAspect, ZodiacSign } from '@/lib/astrology'
+import { ZODIAC_SIGNS, ZODIAC_GLYPHS, ZODIAC_PATHS, ZODIAC_ELEMENTS, ZODIAC_INFO, PLANET_GLYPHS, ASPECT_COLORS, ASPECT_SYMBOLS, getPlanetInterpretation, calcCrossAspects } from '@/lib/astrology'
 
 // ─── Layout constants ──────────────────────────────────────────────────────
-// New layout: outermost = houses, then zodiac ring, then planets inside, then aspects
+// Single-wheel layout: houses → zodiac ring → planets → aspects
+// Bi-wheel layout (when transitData is present): houses → zodiac → natal planets (outer)
+//                                                → transit planets (inner) → cross-aspect lines
 const SIZE = 720
 const CX = SIZE / 2
 const CY = SIZE / 2
 
-const OUTER_R = 340        // Outer boundary
-const HOUSE_LABEL_R = 325  // House number text
-const SIGN_OUTER_R = 310   // Zodiac sign ring outer edge
-const SIGN_INNER_R = 275   // Zodiac sign ring inner edge (with degree ticks)
-const PLANET_R = 245       // Planet glyphs ring
-const CUSP_INNER_R = 210   // House cusp lines end here
-const ASPECT_R = 210       // Aspect lines connect at cusp inner ring (no gap)
+const OUTER_R = 340            // Outer boundary
+const HOUSE_LABEL_R = 325      // House number text
+const SIGN_OUTER_R = 310       // Zodiac sign ring outer edge
+const SIGN_INNER_R = 275       // Zodiac sign ring inner edge (with degree ticks)
+const PLANET_R = 245           // Natal planet glyphs ring
+const TRANSIT_R = 190          // Transit planet glyphs ring (bi-wheel only)
+const CUSP_INNER_R = 210       // House cusp lines end here (single-wheel)
+const CUSP_INNER_R_BI = 150    // Shrunk cusps in bi-wheel mode (below transit ring)
+const ASPECT_R = 210           // Single-wheel aspects radius
+const CROSS_ASPECT_R = 150     // Bi-wheel cross-aspect lines live inside this radius
 
 function degToRad(d: number) { return (d * Math.PI) / 180 }
 
@@ -83,9 +88,19 @@ const FILTER_BUTTONS: { filter: AspectFilter; label: string; symbol: string; col
   { filter: 'Sextile',     label: 'Sextiles',        symbol: '⚹', color: '#3b82f6' },
 ]
 
-export default function NatalChartWheel({ data }: { data: NatalChartData }) {
+export default function NatalChartWheel({
+  data,
+  transitData,
+}: {
+  data: NatalChartData
+  /** When provided, the wheel becomes a bi-wheel: natal as outer ring, transits as inner ring,
+   *  aspects switch from natal-natal to transit→natal cross aspects. */
+  transitData?: NatalChartData
+}) {
+  const isBiWheel = !!transitData
   const [hovered, setHovered] = useState<PlanetPosition | null>(null)
   const [hoveredAspect, setHoveredAspect] = useState<Aspect | null>(null)
+  const [hoveredCross, setHoveredCross] = useState<TransitAspect | null>(null)
   const [selectedSign, setSelectedSign] = useState<{ sign: ZodiacSign; x: number; y: number } | null>(null)
   const chartRef = useRef<HTMLDivElement>(null)
   const [aspectFilter, setAspectFilter] = useState<AspectFilter>('all')
@@ -101,6 +116,8 @@ export default function NatalChartWheel({ data }: { data: NatalChartData }) {
     return () => document.removeEventListener('mousedown', handleClick)
   }, [filterOpen])
 
+  // The wheel is always anchored on the natal AC/MC — even in bi-wheel mode the
+  // houses stay the natal houses, so transit planets fall into your natal houses.
   const ascLng = data.ascendantLongitude
   const toAngle = makeChartAngle(ascLng, data.mcLongitude)
 
@@ -110,20 +127,47 @@ export default function NatalChartWheel({ data }: { data: NatalChartData }) {
     allPlanets.filter(p => p.planet !== 'Ascendant' && p.planet !== 'MC'), 10
   )
 
-  const visibleAspects = data.aspects.filter(a => {
+  // Bi-wheel: project transit planets onto the SAME angular grid as the natal chart
+  const transitAllPlanets = transitData
+    ? transitData.planets.map(p => ({ ...p, chartAngle: toAngle(p.longitude) }))
+    : []
+  const transitRealPlanets = transitAllPlanets.filter(p => p.planet !== 'Ascendant' && p.planet !== 'MC')
+  const transitGlyphPlanets = isBiWheel ? spreadAngles(transitRealPlanets, 11) : []
+
+  // Cross aspects (transit → natal) only for bi-wheel
+  const crossAspects: TransitAspect[] = isBiWheel
+    ? calcCrossAspects(transitRealPlanets, realPlanets)
+    : []
+
+  // Single-wheel aspects (natal-natal). In bi-wheel we hide them.
+  const visibleAspects = isBiWheel ? [] : data.aspects.filter(a => {
     if (a.orb > 8) return false
     return aspectFilter === 'all' || a.type === aspectFilter
   })
 
+  // Cross-aspect filter mirrors the same UI
+  const visibleCrossAspects = isBiWheel ? crossAspects.filter(a => {
+    return aspectFilter === 'all' || a.type === aspectFilter
+  }) : []
+
   const aspectCounts: Record<string, number> = {}
-  data.aspects.filter(a => a.orb <= 8).forEach(a => { aspectCounts[a.type] = (aspectCounts[a.type] || 0) + 1 })
+  if (isBiWheel) {
+    crossAspects.forEach(a => { aspectCounts[a.type] = (aspectCounts[a.type] || 0) + 1 })
+  } else {
+    data.aspects.filter(a => a.orb <= 8).forEach(a => { aspectCounts[a.type] = (aspectCounts[a.type] || 0) + 1 })
+  }
+
+  // Effective cusp inner radius — shrunk in bi-wheel so cusps reach below the transit ring
+  const effCuspInner = isBiWheel ? CUSP_INNER_R_BI : CUSP_INNER_R
 
   return (
     <div className="flex flex-col items-center gap-4 w-full">
       {/* ─── Aspect filter (compact) ─── */}
       {(() => {
         const activeBtn = FILTER_BUTTONS.find(b => b.filter === aspectFilter) ?? FILTER_BUTTONS[0]
-        const totalCount = data.aspects.filter(a => a.orb <= 8).length
+        const totalCount = isBiWheel
+          ? crossAspects.length
+          : data.aspects.filter(a => a.orb <= 8).length
         const activeCount = aspectFilter === 'all' ? totalCount : (aspectCounts[aspectFilter] || 0)
         return (
           <div className="relative inline-flex justify-center" ref={filterRef}>
@@ -272,7 +316,7 @@ export default function NatalChartWheel({ data }: { data: NatalChartData }) {
           {data.houses.map((h, i) => {
             const angle = toAngle(h.longitude)
             const pOuter = polar(CX, CY, SIGN_INNER_R, angle)
-            const pInner = polar(CX, CY, CUSP_INNER_R, angle)
+            const pInner = polar(CX, CY, effCuspInner, angle)
             const isCardinal = i === 0 || i === 3 || i === 6 || i === 9
 
             // House number between sign outer ring and outer boundary
@@ -315,16 +359,55 @@ export default function NatalChartWheel({ data }: { data: NatalChartData }) {
             )
           })}
 
-          {/* ─── AC-DC and MC-IC axis lines (dashes flow) ─── */}
-          {[180, 90].map(angle => {
-            const p1 = polar(CX, CY, SIGN_INNER_R, angle)
-            const p2 = polar(CX, CY, SIGN_INNER_R, (angle + 180) % 360)
-            return <line key={`ax${angle}`} x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y}
-              stroke="rgba(255,255,255,0.18)" strokeWidth="0.8" strokeDasharray="6 4"
-              className="dash-flow" />
+
+          {/* ─── Bi-wheel: transit→natal cross aspect lines ─── */}
+          {/* Lines live on a fictitious inner ring (CROSS_ASPECT_R), connecting the two
+             zodiac angles directly. The planet glyphs sit OUTSIDE this ring on their own
+             concentric rings, so lines never touch or pass through any planet circle.
+             This mirrors the single-wheel layout exactly. */}
+          {isBiWheel && (
+            <circle cx={CX} cy={CY} r={CROSS_ASPECT_R} fill="none"
+              stroke="rgba(167,139,250,0.10)" strokeWidth="0.6" />
+          )}
+          {isBiWheel && visibleCrossAspects.map((asp, i) => {
+            const tp = transitRealPlanets.find(p => p.planet === asp.transitPlanet)
+            const np = realPlanets.find(p => p.planet === asp.natalPlanet)
+            if (!tp || !np) return null
+            // Use raw chartAngle (real position) — the spread is only for the visible glyph,
+            // the line should reflect the true astrological angle
+            const pt1 = polar(CX, CY, CROSS_ASPECT_R, tp.chartAngle)
+            const pt2 = polar(CX, CY, CROSS_ASPECT_R, np.chartAngle)
+            const isHov = hoveredCross === asp
+            const color = ASPECT_COLORS[asp.type]
+            const isTense = asp.type === 'Square' || asp.type === 'Opposition'
+            const isFiltered = aspectFilter !== 'all'
+            // In bi-wheel ALL mode the chart can have 30+ lines — keep them very faint
+            // by default, only the tightest stand out. Filtering brings them up.
+            const tightnessBoost = asp.orb < 1.5 ? 0.18 : asp.orb < 3 ? 0.08 : 0
+            const loOp = isHov ? 0.95 : isFiltered ? 0.6 : 0.10 + tightnessBoost
+            const hiOp = isHov ? 1 : isFiltered ? 0.95 : 0.30 + tightnessBoost * 1.5
+            const dur = 5 + ((i * 37 + 13) % 8)
+            const delay = ((i * 53 + 7) % 11)
+            const isDashed = asp.type === 'Sextile'
+            return (
+              <line key={`tx${i}`} x1={pt1.x} y1={pt1.y} x2={pt2.x} y2={pt2.y}
+                stroke={color}
+                strokeWidth={isHov ? '2.5' : isFiltered ? '1.4' : isTense ? '0.9' : '0.6'}
+                strokeDasharray={isDashed ? '3 2' : undefined}
+                className={`${isDashed ? 'dash-flow ' : ''}aspect-pulse`}
+                onMouseEnter={() => setHoveredCross(asp)}
+                onMouseLeave={() => setHoveredCross(null)}
+                style={{
+                  cursor: 'pointer',
+                  '--lo': loOp,
+                  '--hi': hiOp,
+                  '--dur': `${dur}s`,
+                  '--delay': `${delay}s`,
+                } as React.CSSProperties} />
+            )
           })}
 
-          {/* ─── Aspect lines (innermost) ─── */}
+          {/* ─── Aspect lines (single-wheel mode only) ─── */}
           {visibleAspects.map((asp, i) => {
             const p1 = realPlanets.find(p => p.planet === asp.planet1)
             const p2 = realPlanets.find(p => p.planet === asp.planet2)
@@ -385,9 +468,10 @@ export default function NatalChartWheel({ data }: { data: NatalChartData }) {
                   stroke={isHov ? 'rgba(255,255,255,0.5)' : isSec ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.15)'}
                   strokeWidth="0.6" />
 
-                {/* Glyph circle */}
+                {/* Glyph circle — fully opaque in bi-wheel so cross-aspect lines passing
+                    behind cannot bleed through and look like they're cutting the planet */}
                 <circle cx={gPos.x} cy={gPos.y} r={gr}
-                  fill={isHov ? 'rgba(139,92,246,0.15)' : 'rgba(0,0,0,0.6)'}
+                  fill={isHov ? 'rgba(139,92,246,0.15)' : isBiWheel ? '#03040d' : 'rgba(0,0,0,0.6)'}
                   stroke={isHov ? 'rgba(139,92,246,0.6)' : isSec ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.25)'}
                   strokeWidth={isHov ? '1.5' : '0.7'}
                   className="transition-all duration-200" />
@@ -417,6 +501,55 @@ export default function NatalChartWheel({ data }: { data: NatalChartData }) {
               </g>
             )
           })}
+
+          {/* ─── Bi-wheel: transit planet ring (inner) ─── */}
+          {isBiWheel && (
+            <>
+              {/* Single guide ring around the transit anello */}
+              <circle cx={CX} cy={CY} r={TRANSIT_R + 14} fill="none"
+                stroke="rgba(167,139,250,0.22)" strokeWidth="0.7" />
+              {transitGlyphPlanets.map((p) => {
+                const gPos = polar(CX, CY, TRANSIT_R, p.displayAngle)
+                // Small tick from the glyph outward to its real angle on the inner side of the natal ring
+                const tickTo = polar(CX, CY, TRANSIT_R + 18, p.chartAngle)
+                const tickFrom = polar(CX, CY, TRANSIT_R + 11, p.chartAngle)
+                const isHov = hovered?.planet === p.planet && hovered === transitRealPlanets.find(tp => tp.planet === p.planet)
+                const pd = transitRealPlanets.find(ap => ap.planet === p.planet)!
+                const isSec = ['North Node', 'Lilith', 'Chiron', 'Fortune'].includes(p.planet)
+                const gr = isSec ? 7 : 9
+                const gf = isSec ? '8' : '11'
+
+                return (
+                  <g key={`t-${p.planet}`}
+                    onMouseEnter={() => setHovered(pd)}
+                    onMouseLeave={() => setHovered(null)}
+                    className="cursor-pointer">
+
+                    <line x1={tickFrom.x} y1={tickFrom.y} x2={tickTo.x} y2={tickTo.y}
+                      stroke={isHov ? 'rgba(167,139,250,0.6)' : 'rgba(167,139,250,0.18)'}
+                      strokeWidth="0.6" strokeDasharray="2 2" />
+
+                    <circle cx={gPos.x} cy={gPos.y} r={gr}
+                      fill={isHov ? 'rgba(167,139,250,0.2)' : '#03040d'}
+                      stroke={isHov ? 'rgba(167,139,250,0.85)' : 'rgba(167,139,250,0.45)'}
+                      strokeWidth={isHov ? '1.4' : '0.8'}
+                      className="transition-all duration-200" />
+
+                    <text x={gPos.x} y={gPos.y + 1}
+                      fill={isHov ? '#e9d5ff' : 'rgba(196,181,253,0.85)'}
+                      fontSize={gf} textAnchor="middle" dominantBaseline="middle">
+                      {PLANET_GLYPHS[p.planet] || p.planet[0]}
+                    </text>
+
+                    {pd.retrograde && (
+                      <text x={gPos.x + 7} y={gPos.y - 6}
+                        fill="rgba(248,113,113,0.8)" fontSize="6" fontWeight="800">R</text>
+                    )}
+                  </g>
+                )
+              })}
+            </>
+          )}
 
           <circle cx={CX} cy={CY} r="2" fill="rgba(255,255,255,0.15)" />
         </svg>
@@ -504,10 +637,33 @@ export default function NatalChartWheel({ data }: { data: NatalChartData }) {
             </div>
           </div>
         )}
+
+        {hoveredCross && !hovered && (
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50
+                          bg-[#0f0f1e] border border-violet-500/30 rounded-xl px-4 py-3 shadow-2xl shadow-black/50
+                          pointer-events-none animate-fade-up">
+            <div className="flex flex-col gap-1">
+              <p className="text-[8px] font-black uppercase tracking-widest text-violet-400/80">Transit → Natal</p>
+              <div className="flex items-center gap-2">
+                <span style={{ color: ASPECT_COLORS[hoveredCross.type] }} className="text-lg">
+                  {ASPECT_SYMBOLS[hoveredCross.type]}
+                </span>
+                <div>
+                  <span className="text-xs font-bold text-white">
+                    Transit {hoveredCross.transitPlanet} {ASPECT_SYMBOLS[hoveredCross.type]} Natal {hoveredCross.natalPlanet}
+                  </span>
+                  <p className="text-[10px] text-slate-500">
+                    {hoveredCross.type} · Orb {hoveredCross.orb}° · {hoveredCross.applying ? 'Applying' : 'Separating'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* ─── Triangular Aspect Grid ─── */}
-      <AspectGrid data={data} />
+      {/* ─── Triangular Aspect Grid (only for natal single-wheel) ─── */}
+      {!isBiWheel && <AspectGrid data={data} />}
     </div>
   )
 }

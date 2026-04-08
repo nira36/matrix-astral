@@ -214,6 +214,68 @@ function calcAspects(planets: PlanetPosition[]): Aspect[] {
   return aspects.sort((a, b) => a.orb - b.orb)
 }
 
+// ─── Cross aspects (transit → natal) ────────────────────────────────────────
+// A transit aspect connects a planet currently in the sky (transit) to a planet
+// in the natal chart. Orbs are tighter than in a single-chart calculation
+// because transits are felt only when very close.
+
+export interface TransitAspect {
+  transitPlanet: string   // current sky
+  natalPlanet: string     // birth chart
+  type: AspectType
+  orb: number
+  /** True if the transit planet is moving toward exactness (approximate). */
+  applying: boolean
+}
+
+const TRANSIT_ASPECT_ORBS: Record<AspectType, number> = {
+  Conjunction: 6,
+  Opposition:  6,
+  Trine:       5,
+  Square:      5,
+  Sextile:     3,
+}
+
+/** Outer planets only matter when they touch a personal point — skip noise. */
+const TRANSIT_PRIORITY: Record<string, number> = {
+  Sun: 5, Moon: 5, Mercury: 4, Venus: 4, Mars: 4,
+  Jupiter: 3, Saturn: 3,
+  Uranus: 2, Neptune: 2, Pluto: 2,
+  Chiron: 1, 'North Node': 1, Lilith: 1,
+}
+
+export function calcCrossAspects(
+  transit: PlanetPosition[],
+  natal: PlanetPosition[],
+): TransitAspect[] {
+  const out: TransitAspect[] = []
+  for (const t of transit) {
+    if (t.planet === 'Ascendant' || t.planet === 'MC') continue
+    for (const n of natal) {
+      const diff = angleDiff(t.longitude, n.longitude)
+      for (const asp of ASPECT_ANGLES) {
+        const orbAllowed = TRANSIT_ASPECT_ORBS[asp.type]
+        const orb = Math.abs(diff - asp.angle)
+        if (orb <= orbAllowed) {
+          out.push({
+            transitPlanet: t.planet,
+            natalPlanet: n.planet,
+            type: asp.type,
+            orb: Math.round(orb * 10) / 10,
+            applying: t.longitude < n.longitude,
+          })
+          break
+        }
+      }
+    }
+  }
+  // Sort: tightest orb first, then by transit-planet importance
+  return out.sort((a, b) => {
+    if (Math.abs(a.orb - b.orb) > 0.05) return a.orb - b.orb
+    return (TRANSIT_PRIORITY[b.transitPlanet] ?? 0) - (TRANSIT_PRIORITY[a.transitPlanet] ?? 0)
+  })
+}
+
 function assignHouses(longitude: number, houseCusps: number[]): number {
   for (let i = 0; i < 12; i++) {
     const next = (i + 1) % 12
