@@ -389,15 +389,15 @@ export default function NatalChartWheel({
             // Slight boost for tight orbs so they stand out without being loud
             const tightnessBoost = asp.orb < 1.5 ? 0.10 : asp.orb < 3 ? 0.05 : 0
             // Very narrow pulse range — barely perceptible breathing
-            const loOp = isFiltered ? 0.55 : 0.25 + tightnessBoost
-            const hiOp = isFiltered ? 0.75 : 0.36 + tightnessBoost
+            const loOp = isFiltered ? 0.55 : 0.32 + tightnessBoost
+            const hiOp = isFiltered ? 0.75 : 0.44 + tightnessBoost
             const dur = 12 + ((i * 37 + 13) % 9)
             const delay = ((i * 53 + 7) % 11)
             const isDashed = asp.type === 'Sextile'
             return (
               <line key={`tx${i}`} x1={pt1.x} y1={pt1.y} x2={pt2.x} y2={pt2.y}
                 stroke={color}
-                strokeWidth={isFiltered ? '1.4' : isTense ? '0.9' : '0.6'}
+                strokeWidth={isFiltered ? '1.4' : isTense ? '1.0' : '0.75'}
                 strokeDasharray={isDashed ? '3 2' : undefined}
                 className={`${isDashed ? 'dash-flow ' : ''}aspect-pulse`}
                 onMouseEnter={() => setHoveredCross(asp)}
@@ -442,15 +442,15 @@ export default function NatalChartWheel({
             const color = ASPECT_COLORS[asp.type]
             const isTense = asp.type === 'Square' || asp.type === 'Opposition'
             const isFiltered = aspectFilter !== 'all'
-            const loOp = isFiltered ? 0.55 : 0.32
-            const hiOp = isFiltered ? 0.75 : 0.42
+            const loOp = isFiltered ? 0.55 : 0.40
+            const hiOp = isFiltered ? 0.75 : 0.52
             const dur = 12 + ((i * 37 + 13) % 9)
             const delay = ((i * 53 + 7) % 11)
             const isDashed = asp.type === 'Sextile'
             return (
               <line key={`a${i}`} x1={pt1.x} y1={pt1.y} x2={pt2.x} y2={pt2.y}
                 stroke={color}
-                strokeWidth={isFiltered ? '1.5' : isTense ? '1' : '0.7'}
+                strokeWidth={isFiltered ? '1.5' : isTense ? '1.1' : '0.85'}
                 strokeDasharray={isDashed ? '3 2' : undefined}
                 className={`${isDashed ? 'dash-flow ' : ''}aspect-pulse`}
                 onMouseEnter={() => setHoveredAspect(asp)}

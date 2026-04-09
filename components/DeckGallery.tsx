@@ -64,7 +64,7 @@ function deckArcana(card: CardMeta) {
     return {
       ...ARCANA[22],
       name: 'The Heirs',
-      color: '#fde68a',
+      color: '#6b7280',
       keywords: ['Potential', 'Awakening', 'Spiritual Heritage', 'Soul Mission'],
       description:
         'The Heirs are the predestined ones, those who can cross the 22 Gates and who have the task and duty of completing the Complete and Eternal Cycle, understanding its aspects and defining the subject, context, time, space, and cause through the 5W \'who?-what?-when?-where?-why?\' for each Gate and each Cycle.',
@@ -274,11 +274,11 @@ function Lightbox({
 
 type Suit = 'wands' | 'cups' | 'swords' | 'disks'
 
-const SUITS: { key: Suit; name: string; element: string; color: string }[] = [
-  { key: 'wands',     name: 'Wands',     element: 'Fire',  color: '#ef4444' },
-  { key: 'cups',      name: 'Cups',      element: 'Water', color: '#3b82f6' },
-  { key: 'swords',    name: 'Swords',    element: 'Air',   color: '#a855f7' },
-  { key: 'disks', name: 'Disks', element: 'Earth', color: '#f59e0b' },
+const SUITS: { key: Suit; name: string; element: string; color: string; courtColor: string; minorColor: string }[] = [
+  { key: 'wands',   name: 'Wands',   element: 'Fire',  color: '#d1a674', courtColor: '#d1a674', minorColor: '#f0e1cc' },
+  { key: 'cups',    name: 'Cups',    element: 'Water', color: '#d1bcb7', courtColor: '#d1bcb7', minorColor: '#ece1e4' },
+  { key: 'swords',  name: 'Swords',  element: 'Air',   color: '#bac7da', courtColor: '#bac7da', minorColor: '#dee8ee' },
+  { key: 'disks',   name: 'Disks',   element: 'Earth', color: '#e7e493', courtColor: '#e7e493', minorColor: '#f2f5d5' },
 ]
 
 const MINOR_RANKS = [
@@ -307,9 +307,6 @@ function MinorCard({ suit, rankIdx, color, onClick }: { suit: Suit; rankIdx: num
   const [hasImage, setHasImage] = useState(true)
   const rank = MINOR_RANKS[rankIdx]
   const src = minorImgPath(suit, rankIdx)
-  const cardKey = `${rank} of ${SUIT_NAMES[suit].charAt(0).toUpperCase() + SUIT_NAMES[suit].slice(1)}`
-  const data = MINOR_ARCANA[cardKey]
-
   return (
     <button
       onClick={onClick}
@@ -339,10 +336,7 @@ function MinorCard({ suit, rankIdx, color, onClick }: { suit: Suit; rankIdx: num
         )}
       </div>
       <div className="mt-1.5 flex flex-col items-center gap-0.5">
-        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">{rank}</span>
-        {data?.title && (
-          <span className="text-[8px] uppercase tracking-[0.15em]" style={{ color }}>{data.title}</span>
-        )}
+        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">{rank === 'Ace' ? 'Ace' : `${rank} of ${SUIT_NAMES[suit]}`}</span>
       </div>
     </button>
   )
@@ -417,12 +411,11 @@ function MinorCourtLightbox({
   const ranks = isMinor ? MINOR_RANKS : COURT_RANKS
   const rank = ranks[sel.rankIdx]
   const suitInfo = SUITS.find(s => s.key === sel.suit)!
-  const color = suitInfo.color
+  const color = isMinor ? suitInfo.minorColor : suitInfo.courtColor
   const cardKey = `${rank} of ${SUIT_NAMES[sel.suit]}`
   const src = isMinor ? minorImgPath(sel.suit, sel.rankIdx) : courtImgPath(sel.suit, sel.rankIdx)
 
   const data = isMinor ? MINOR_ARCANA[cardKey] : COURT_CARDS[cardKey]
-  const title = isMinor && data && 'title' in data ? (data as typeof MINOR_ARCANA[string]).title : undefined
 
   const content = (
     <div
@@ -495,11 +488,6 @@ function MinorCourtLightbox({
               >
                 {rank} of {SUIT_NAMES[sel.suit]}
               </h2>
-              {title && (
-                <p className="text-[11px] text-slate-500 tracking-[0.3em] uppercase mt-1">
-                 , {title} —
-                </p>
-              )}
             </div>
             <button
               onClick={onClose}
@@ -779,7 +767,7 @@ export default function DeckGallery() {
             {/* Cards grid for active suit */}
             <div className="flex flex-wrap justify-center gap-3 md:gap-4">
               {MINOR_RANKS.map((_, rankIdx) => (
-                <MinorCard key={rankIdx} suit={activeSuit} rankIdx={rankIdx} color={SUITS.find(s => s.key === activeSuit)!.color}
+                <MinorCard key={rankIdx} suit={activeSuit} rankIdx={rankIdx} color={SUITS.find(s => s.key === activeSuit)!.minorColor}
                   onClick={() => setMinorCourtSel({ type: 'minor', suit: activeSuit, rankIdx })} />
               ))}
             </div>
@@ -811,7 +799,7 @@ export default function DeckGallery() {
             {/* Cards grid for active suit */}
             <div className="flex flex-wrap justify-center gap-3 md:gap-4">
               {COURT_RANKS.map((_, rankIdx) => (
-                <CourtCard key={rankIdx} suit={activeSuit} rankIdx={rankIdx} color={SUITS.find(s => s.key === activeSuit)!.color}
+                <CourtCard key={rankIdx} suit={activeSuit} rankIdx={rankIdx} color={SUITS.find(s => s.key === activeSuit)!.courtColor}
                   onClick={() => setMinorCourtSel({ type: 'court', suit: activeSuit, rankIdx })} />
               ))}
             </div>
