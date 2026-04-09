@@ -338,7 +338,7 @@ export default function NatalChartTable({ data }: { data: NatalChartData }) {
     <div className="flex flex-col gap-6">
       <Overview data={data} />
 
-      <Section title="Planets — Psychological Portrait" defaultOpen={true}>
+      <Section title="Planets, Psychological Portrait" defaultOpen={true}>
         <PlanetCards data={data} />
       </Section>
 
@@ -346,7 +346,7 @@ export default function NatalChartTable({ data }: { data: NatalChartData }) {
         <HousesTable data={data} />
       </Section>
 
-      <Section title="Aspects — Inner Dynamics" defaultOpen={false}>
+      <Section title="Aspects, Inner Dynamics" defaultOpen={false}>
         <AspectsSection aspects={data.aspects} />
       </Section>
     </div>

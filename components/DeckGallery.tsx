@@ -230,7 +230,7 @@ function Lightbox({
                 {deckName(card)}
               </h2>
               <p className="text-[11px] text-slate-500 tracking-[0.3em] uppercase mt-1">
-                — {card.subtitle} —
+               , {card.subtitle} —
               </p>
             </div>
             <button
@@ -497,7 +497,7 @@ function MinorCourtLightbox({
               </h2>
               {title && (
                 <p className="text-[11px] text-slate-500 tracking-[0.3em] uppercase mt-1">
-                  — {title} —
+                 , {title} —
                 </p>
               )}
             </div>
@@ -624,7 +624,7 @@ export default function DeckGallery() {
           </button>
         </div>
 
-        {/* Reading button — square tab like main nav */}
+        {/* Reading button, square tab like main nav */}
         <div className="flex justify-center">
           <div className="relative p-1.5 rounded-2xl border border-white/[0.07] bg-bg-card inline-flex overflow-visible">
             {/* Sparkle stars around the border */}
@@ -820,7 +820,7 @@ export default function DeckGallery() {
 
       </div>
 
-      {/* Lightbox — Major Arcana */}
+      {/* Lightbox, Major Arcana */}
       {selected !== null && (
         <Lightbox
           card={DECK[selected]}
@@ -830,7 +830,7 @@ export default function DeckGallery() {
         />
       )}
 
-      {/* Lightbox — Minor Arcana & Court Cards */}
+      {/* Lightbox, Minor Arcana & Court Cards */}
       {minorCourtSel !== null && (
         <MinorCourtLightbox
           sel={minorCourtSel}

@@ -321,18 +321,18 @@ function NorthIndianChart({ vedic }: { vedic: VedicChart }) {
   // House center positions in the North Indian diamond layout
   // Standard arrangement: H1 top diamond, then anticlockwise around
   const housePositions: { x: number; y: number }[] = [
-    { x: HALF,         y: HALF * 0.55 },  // 1 — top diamond center
-    { x: HALF * 0.55,  y: HALF * 0.35 },  // 2 — top left triangle
-    { x: HALF * 0.35,  y: HALF * 0.55 },  // 3 — left top triangle
-    { x: HALF * 0.55,  y: HALF },         // 4 — left diamond center
-    { x: HALF * 0.35,  y: HALF * 1.45 },  // 5 — left bottom triangle
-    { x: HALF * 0.55,  y: HALF * 1.65 },  // 6 — bottom left triangle
-    { x: HALF,         y: HALF * 1.45 },  // 7 — bottom diamond center
-    { x: HALF * 1.45,  y: HALF * 1.65 },  // 8 — bottom right triangle
-    { x: HALF * 1.65,  y: HALF * 1.45 },  // 9 — right bottom triangle
-    { x: HALF * 1.45,  y: HALF },         // 10 — right diamond center
-    { x: HALF * 1.65,  y: HALF * 0.55 },  // 11 — right top triangle
-    { x: HALF * 1.45,  y: HALF * 0.35 },  // 12 — top right triangle
+    { x: HALF,         y: HALF * 0.55 },  // 1, top diamond center
+    { x: HALF * 0.55,  y: HALF * 0.35 },  // 2, top left triangle
+    { x: HALF * 0.35,  y: HALF * 0.55 },  // 3, left top triangle
+    { x: HALF * 0.55,  y: HALF },         // 4, left diamond center
+    { x: HALF * 0.35,  y: HALF * 1.45 },  // 5, left bottom triangle
+    { x: HALF * 0.55,  y: HALF * 1.65 },  // 6, bottom left triangle
+    { x: HALF,         y: HALF * 1.45 },  // 7, bottom diamond center
+    { x: HALF * 1.45,  y: HALF * 1.65 },  // 8, bottom right triangle
+    { x: HALF * 1.65,  y: HALF * 1.45 },  // 9, right bottom triangle
+    { x: HALF * 1.45,  y: HALF },         // 10, right diamond center
+    { x: HALF * 1.65,  y: HALF * 0.55 },  // 11, right top triangle
+    { x: HALF * 1.45,  y: HALF * 0.35 },  // 12, top right triangle
   ]
 
   // Group planets by bhava
@@ -381,7 +381,7 @@ function NorthIndianChart({ vedic }: { vedic: VedicChart }) {
               {vedic.houses[i].rashiIndex + 1}
             </text>
 
-            {/* Rashi symbol — SVG glyph from natal chart */}
+            {/* Rashi symbol, SVG glyph from natal chart */}
             <RashiGlyph rashi={rashi} x={pos.x} y={pos.y - 14} size={22} color={rashiData.color} />
 
             {/* House number badge */}
@@ -454,7 +454,7 @@ function NakshatraView({
       <div className="flex flex-col gap-3 flex-1">
         {isJanma && (
           <p className="text-[9px] font-bold text-accent-purple uppercase tracking-widest">
-            ★ Moon's Birth Star — Your Janma Nakshatra
+            ★ Moon's Birth Star, Your Janma Nakshatra
           </p>
         )}
 
@@ -651,7 +651,7 @@ function DashaView({ dasha }: { dasha: VimshottariDasha }) {
       {/* Header */}
       <div className="flex flex-col gap-2 pb-4 border-b border-white/[0.05]">
         <p className="text-[10px] text-slate-400 leading-relaxed">
-          Vimshottari Dasha — the 120-year cycle of planetary periods activated by your Moon's nakshatra.
+          Vimshottari Dasha, the 120-year cycle of planetary periods activated by your Moon's nakshatra.
           Each Mahadasha shapes a major chapter of life; Antardashas refine the timing within.
         </p>
         <div className="flex flex-wrap gap-4 text-[10px] text-slate-500 mt-1 font-mono">
@@ -797,7 +797,7 @@ function YogasView({ yogas }: { yogas: Yoga[] }) {
   return (
     <div className="flex flex-col gap-3">
       <p className="text-[10px] text-slate-400 leading-relaxed mb-1">
-        Yogas — special planetary combinations that shape destiny. Each carries a distinct signature of fortune, talent, or challenge.
+        Yogas, special planetary combinations that shape destiny. Each carries a distinct signature of fortune, talent, or challenge.
       </p>
       {yogas.map((y, i) => {
         const color = YOGA_CATEGORY_COLORS[y.category]
@@ -835,7 +835,7 @@ function AspectsView({ aspects }: { aspects: VedicAspect[] }) {
   return (
     <div className="flex flex-col gap-3">
       <p className="text-[10px] text-slate-400 leading-relaxed mb-1">
-        Drishti — Vedic aspects. All planets aspect the 7th house from themselves.
+        Drishti, Vedic aspects. All planets aspect the 7th house from themselves.
         Mars also aspects 4th & 8th, Jupiter 5th & 9th, Saturn 3rd & 10th.
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -954,7 +954,7 @@ function AshtakootForm({
   return (
     <div className="flex flex-col gap-4">
       <p className="text-[11px] text-slate-400 leading-relaxed">
-        Ashtakoot Milan — the classical 36-point Vedic compatibility test. Based on Moon position,
+        Ashtakoot Milan, the classical 36-point Vedic compatibility test. Based on Moon position,
         it scores eight categories (Koota) of harmony. 18+ acceptable, 24+ very good, 32+ excellent.
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

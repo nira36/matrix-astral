@@ -561,7 +561,7 @@ export function calcCompatibility(a: BaziResult, b: BaziResult): CompatibilityRe
   let dmRelation = ''
   let dmScore = 50
   if (aDM === bDM) {
-    dmRelation = 'Same Element — Friends & Equals'
+    dmRelation = 'Same Element, Friends & Equals'
     dmScore = 70
   } else if (GENERATES[aDM] === bDM) {
     dmRelation = `You nurture them (${aDM} generates ${bDM})`
@@ -652,12 +652,12 @@ export function calcCompatibility(a: BaziResult, b: BaziResult): CompatibilityRe
 
   const notes: string[] = []
   notes.push(dmRelation)
-  if (dayMatchHarmony) notes.push('Day Pillar Harmony — natural soulmate resonance.')
-  if (dayClash)        notes.push('Day Pillar Clash — fundamental friction in core values.')
-  if (harmonies >= 3)  notes.push(`${harmonies} branch harmonies — strong overall flow.`)
-  if (clashes >= 3)    notes.push(`${clashes} branch clashes — significant turbulence.`)
-  if (elementScore > 75) notes.push('Element profiles complement each other well — you balance each other.')
-  if (elementScore < 40) notes.push('Element profiles are misaligned — both lack or overflow in similar areas.')
+  if (dayMatchHarmony) notes.push('Day Pillar Harmony, natural soulmate resonance.')
+  if (dayClash)        notes.push('Day Pillar Clash, fundamental friction in core values.')
+  if (harmonies >= 3)  notes.push(`${harmonies} branch harmonies, strong overall flow.`)
+  if (clashes >= 3)    notes.push(`${clashes} branch clashes, significant turbulence.`)
+  if (elementScore > 75) notes.push('Element profiles complement each other well, you balance each other.')
+  if (elementScore < 40) notes.push('Element profiles are misaligned, both lack or overflow in similar areas.')
 
   return {
     dayMasterRelation: dmRelation,

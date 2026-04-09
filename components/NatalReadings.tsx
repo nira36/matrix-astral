@@ -28,7 +28,7 @@ export default function NatalReadings({ data }: { data: NatalChartData }) {
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-3 mb-2">
         <h3 className="text-[10px] font-black tracking-widest uppercase text-slate-500">
-          Interpretations — Planets in Signs and Houses
+          Interpretations, Planets in Signs and Houses
         </h3>
       </div>
 
@@ -115,7 +115,7 @@ export default function NatalReadings({ data }: { data: NatalChartData }) {
                 {aspects.length > 0 && (
                   <div>
                     <h4 className="text-[10px] font-black tracking-widest uppercase text-slate-500 mb-2">
-                      {name} — Aspects
+                      {name}, Aspects
                     </h4>
                     <div className="flex flex-col gap-1">
                       {aspects.map((a, i) => {

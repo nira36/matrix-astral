@@ -6,18 +6,18 @@ import type { NumerologyResult, LifePhase } from '@/lib/numerology'
 // ─── Number meaning database ────────────────────────────────────────────────
 
 const NUMBER_MEANINGS: Record<number, { keyword: string; theme: string; energy: string; shadow: string; lesson: string }> = {
-  0: { keyword: 'Void', theme: 'Pure potential, the cosmic egg before manifestation.', energy: 'Infinite possibility', shadow: 'Paralysis, refusal to choose', lesson: 'Emptiness is not absence — it is the space where everything begins.' },
+  0: { keyword: 'Void', theme: 'Pure potential, the cosmic egg before manifestation.', energy: 'Infinite possibility', shadow: 'Paralysis, refusal to choose', lesson: 'Emptiness is not absence, it is the space where everything begins.' },
   1: { keyword: 'Initiative', theme: 'Leadership, independence, pioneering force.', energy: 'Self-directed willpower', shadow: 'Arrogance, isolation, domination', lesson: 'True leadership is acting first when no one else will.' },
   2: { keyword: 'Diplomacy', theme: 'Partnership, sensitivity, mediation.', energy: 'Receptive cooperation', shadow: 'Codependency, indecision, passivity', lesson: 'Strength is knowing when to yield without losing yourself.' },
-  3: { keyword: 'Expression', theme: 'Creativity, communication, social joy.', energy: 'Expansive self-expression', shadow: 'Scattered energy, superficiality, gossip', lesson: 'What you create reveals who you are — make it honest.' },
+  3: { keyword: 'Expression', theme: 'Creativity, communication, social joy.', energy: 'Expansive self-expression', shadow: 'Scattered energy, superficiality, gossip', lesson: 'What you create reveals who you are, make it honest.' },
   4: { keyword: 'Foundation', theme: 'Discipline, structure, endurance.', energy: 'Methodical construction', shadow: 'Rigidity, workaholism, limitation', lesson: 'Freedom is built on foundations you cannot see.' },
   5: { keyword: 'Freedom', theme: 'Change, adventure, sensory experience.', energy: 'Dynamic transformation', shadow: 'Excess, restlessness, irresponsibility', lesson: 'Real freedom requires the discipline to not run from yourself.' },
   6: { keyword: 'Responsibility', theme: 'Love, service, domestic harmony.', energy: 'Nurturing protection', shadow: 'Martyrdom, control, perfectionism', lesson: 'You cannot heal others by destroying yourself in the process.' },
   7: { keyword: 'Analysis', theme: 'Introspection, research, spiritual depth.', energy: 'Focused inner investigation', shadow: 'Paranoia, emotional withdrawal, cynicism', lesson: 'The deepest truths are found in silence, not in argument.' },
   8: { keyword: 'Power', theme: 'Authority, manifestation, material mastery.', energy: 'Concentrated ambition', shadow: 'Greed, ruthlessness, status obsession', lesson: 'Power without ethics is just organized destruction.' },
-  9: { keyword: 'Completion', theme: 'Wisdom, compassion, universal service.', energy: 'Selfless transformation', shadow: 'Bitterness, aloofness, unreleased grief', lesson: 'Letting go is not giving up — it is graduating.' },
+  9: { keyword: 'Completion', theme: 'Wisdom, compassion, universal service.', energy: 'Selfless transformation', shadow: 'Bitterness, aloofness, unreleased grief', lesson: 'Letting go is not giving up, it is graduating.' },
   11: { keyword: 'Illumination', theme: 'Spiritual insight, visionary channel.', energy: 'High-frequency intuition', shadow: 'Anxiety, nervous tension, delusion', lesson: 'The antenna that receives the most signal also carries the most static.' },
-  22: { keyword: 'Master Builder', theme: 'Large-scale manifestation, systems architect.', energy: 'Visionary pragmatism', shadow: 'Overwhelm, megalomania, self-doubt', lesson: 'Build what outlives you — not what impresses them now.' },
+  22: { keyword: 'Master Builder', theme: 'Large-scale manifestation, systems architect.', energy: 'Visionary pragmatism', shadow: 'Overwhelm, megalomania, self-doubt', lesson: 'Build what outlives you, not what impresses them now.' },
   33: { keyword: 'Master Teacher', theme: 'Compassionate healing, selfless upliftment.', energy: 'Unconditional service', shadow: 'Savior complex, emotional burnout', lesson: 'The greatest teaching is how you carry your own suffering.' },
 }
 
@@ -97,9 +97,9 @@ export default function EvolutionSection({ result }: { result: NumerologyResult 
   return (
     <div className="flex flex-col gap-10">
 
-{/* Pinnacles — detailed */}
+{/* Pinnacles, detailed */}
       <div className="flex flex-col gap-4">
-        <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">The 4 Pinnacles — Peak Energies</h3>
+        <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">The 4 Pinnacles, Peak Energies</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {result.pinnacles.map((p, i) => (
             <PinnacleCard key={i} phase={p} index={i} />
@@ -107,9 +107,9 @@ export default function EvolutionSection({ result }: { result: NumerologyResult 
         </div>
       </div>
 
-      {/* Challenges — detailed */}
+      {/* Challenges, detailed */}
       <div className="flex flex-col gap-4">
-        <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">The 4 Challenges — Growth Friction</h3>
+        <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">The 4 Challenges, Growth Friction</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {result.challenges.map((c, i) => (
             <ChallengeCard key={i} value={c} index={i} />

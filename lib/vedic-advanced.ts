@@ -55,7 +55,7 @@ function detectPanchMahapurusha(chart: VedicChart): Yoga[] {
         name, sanskrit,
         category: 'Mahapurusha',
         active: true,
-        description: `${graha} is ${p.dignity.toLowerCase()} in ${p.rashi} and occupies a Kendra (House ${p.bhava}). One of the five Mahapurusha (Great Person) Yogas — bestowing fame, character, and lasting accomplishment in the qualities of ${graha}.`,
+        description: `${graha} is ${p.dignity.toLowerCase()} in ${p.rashi} and occupies a Kendra (House ${p.bhava}). One of the five Mahapurusha (Great Person) Yogas, bestowing fame, character, and lasting accomplishment in the qualities of ${graha}.`,
       })
     }
   }
@@ -73,7 +73,7 @@ function detectGajakesari(chart: VedicChart): Yoga | null {
       sanskrit: 'गजकेसरी',
       category: 'Lunar',
       active: true,
-      description: `The Moon (House ${moon.bhava}) and Jupiter (House ${jup.bhava}) sit in mutual Kendras. The "Elephant-Lion" yoga — grants wisdom, eloquence, fame, longevity, and the steady prosperity of one whose mind and dharma are aligned. Often present in the charts of leaders and respected teachers.`,
+      description: `The Moon (House ${moon.bhava}) and Jupiter (House ${jup.bhava}) sit in mutual Kendras. The "Elephant-Lion" yoga, grants wisdom, eloquence, fame, longevity, and the steady prosperity of one whose mind and dharma are aligned. Often present in the charts of leaders and respected teachers.`,
     }
   }
   return null
@@ -107,7 +107,7 @@ function detectChandraMangala(chart: VedicChart): Yoga | null {
       sanskrit: 'चन्द्र-मंगल',
       category: 'Special',
       active: true,
-      description: `Moon and Mars occupy the same sign (${moon.rashi}). Indicates significant wealth — but earned through effort, friction, or unconventional means. The fertile mind (Moon) joined with assertive action (Mars) generates material prosperity, especially through business or property.`,
+      description: `Moon and Mars occupy the same sign (${moon.rashi}). Indicates significant wealth, but earned through effort, friction, or unconventional means. The fertile mind (Moon) joined with assertive action (Mars) generates material prosperity, especially through business or property.`,
     }
   }
   return null
@@ -133,7 +133,7 @@ function detectKemadruma(chart: VedicChart): Yoga | null {
       sanskrit: 'केमद्रुम',
       category: 'Lunar',
       active: true,
-      description: 'The Moon stands isolated — no benefic planets in the houses adjacent to it. Indicates a lonely, struggling mind, emotional instability, and difficulty finding lasting comfort. However, this yoga is often cancelled by other favorable factors and rarely manifests in pure form.',
+      description: 'The Moon stands isolated, no benefic planets in the houses adjacent to it. Indicates a lonely, struggling mind, emotional instability, and difficulty finding lasting comfort. However, this yoga is often cancelled by other favorable factors and rarely manifests in pure form.',
     }
   }
   return null
@@ -162,7 +162,7 @@ function detectNeechaBhanga(chart: VedicChart): Yoga[] {
         sanskrit: 'नीच भङ्ग',
         category: 'Cancellation',
         active: true,
-        description: `${p.graha}'s debilitation in ${p.rashi} is cancelled — ${reason}. A powerful "rags to riches" combination: hardships in early life transform into great success and authority later.`,
+        description: `${p.graha}'s debilitation in ${p.rashi} is cancelled, ${reason}. A powerful "rags to riches" combination: hardships in early life transform into great success and authority later.`,
       })
     }
   }
@@ -200,7 +200,7 @@ function detectRajYoga(chart: VedicChart): Yoga[] {
           sanskrit: 'राज योग',
           category: 'Raj',
           active: true,
-          description: `${kl} (Kendra lord) and ${tl} (Trikona lord) conjoin in ${kp.rashi}. The classical combination for power, authority, and fame — the union of action and dharma elevates the native to positions of influence.`,
+          description: `${kl} (Kendra lord) and ${tl} (Trikona lord) conjoin in ${kp.rashi}. The classical combination for power, authority, and fame, the union of action and dharma elevates the native to positions of influence.`,
         })
       }
     }
@@ -230,7 +230,7 @@ function detectDhanaYoga(chart: VedicChart): Yoga | null {
           sanskrit: 'धन योग',
           category: 'Dhana',
           active: true,
-          description: `${arr[i]} and ${arr[j]} (lords of wealth-giving houses) conjoin in ${p1.rashi}. Indicates financial prosperity earned through legitimate means — the natal blueprint for accumulating lasting wealth.`,
+          description: `${arr[i]} and ${arr[j]} (lords of wealth-giving houses) conjoin in ${p1.rashi}. Indicates financial prosperity earned through legitimate means, the natal blueprint for accumulating lasting wealth.`,
         }
       }
     }
@@ -380,7 +380,7 @@ export function calcNavamsa(chart: VedicChart): DivisionalChart {
     chart,
     'D9 Navamsa',
     'D9',
-    'Marriage, spouse, dharma, the soul\'s deeper destiny. The most important divisional chart — used to verify the strength of natal placements.',
+    'Marriage, spouse, dharma, the soul\'s deeper destiny. The most important divisional chart, used to verify the strength of natal placements.',
     navamsaSignIndex,
   )
 }

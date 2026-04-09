@@ -247,10 +247,12 @@ const TRANSIT_PRIORITY: Record<string, number> = {
 export function calcCrossAspects(
   transit: PlanetPosition[],
   natal: PlanetPosition[],
+  options: { includeAngles?: boolean } = {},
 ): TransitAspect[] {
+  const { includeAngles = false } = options
   const out: TransitAspect[] = []
   for (const t of transit) {
-    if (t.planet === 'Ascendant' || t.planet === 'MC') continue
+    if (!includeAngles && (t.planet === 'Ascendant' || t.planet === 'MC')) continue
     for (const n of natal) {
       const diff = angleDiff(t.longitude, n.longitude)
       for (const asp of ASPECT_ANGLES) {
@@ -274,6 +276,10 @@ export function calcCrossAspects(
     if (Math.abs(a.orb - b.orb) > 0.05) return a.orb - b.orb
     return (TRANSIT_PRIORITY[b.transitPlanet] ?? 0) - (TRANSIT_PRIORITY[a.transitPlanet] ?? 0)
   })
+}
+
+export function assignHouseFromCusps(longitude: number, houseCusps: number[]): number {
+  return assignHouses(longitude, houseCusps)
 }
 
 function assignHouses(longitude: number, houseCusps: number[]): number {
@@ -444,37 +450,85 @@ export function calcNatalChart(
   const meanLilith = ((83.3532465 + 4069.0137287 * T2 - 0.0103200 * T2 * T2 + 180) % 360 + 360) % 360
   rawPlanets.push({ planet: 'Lilith', longitude: meanLilith, retrograde: false })
 
-  // Chiron (simplified orbital calculation)
-  // Epoch: J2000.0, Chiron orbital elements
-  const chironMeanLng = ((209.35 + 1.4 * (t.tt / 365.25)) % 360 + 360) % 360
-  // More precise: use orbital elements
-  const chironN = t.tt / 365.25 // years from J2000
-  const chironM = ((319.33 + 0.01953 * t.tt) % 360 + 360) % 360 * D2R // mean anomaly
-  const chironE0 = 0.37896 // eccentricity
-  // Solve Kepler's equation (2 iterations)
-  let chironEA = chironM + chironE0 * Math.sin(chironM)
-  chironEA = chironM + chironE0 * Math.sin(chironEA)
-  chironEA = chironM + chironE0 * Math.sin(chironEA)
-  const chironTrueAnom = 2 * Math.atan2(
-    Math.sqrt(1 + chironE0) * Math.sin(chironEA / 2),
-    Math.sqrt(1 - chironE0) * Math.cos(chironEA / 2)
+  // ── Chiron (proper Kepler propagation + vector geocentric correction) ──
+  // Osculating heliocentric ecliptic J2000 elements from JPL Horizons,
+  // epoch JD 2460800.5 (2025-May-5 0h TDB). Accurate to ~1° within a few
+  // years of the epoch — sufficient for transit work.
+  const CHI_EPOCH_JD = 2460800.5
+  const CHI_A = 13.69885             // semi-major axis (AU)
+  const CHI_E = 0.37822324575        // eccentricity
+  const CHI_I = 6.9222515599         // inclination (deg)
+  const CHI_NODE = 209.3013504477    // longitude of ascending node (deg)
+  const CHI_PERI = 339.2467151478    // argument of perihelion (deg)
+  const CHI_M0 = 208.9157641106      // mean anomaly at epoch (deg)
+  const CHI_N = 0.0194389633         // mean motion (deg/day)
+
+  const chiJd = t.tt + 2451545.0
+  const chiDt = chiJd - CHI_EPOCH_JD
+  const chiM = (CHI_M0 + CHI_N * chiDt) * D2R
+  // Newton-Raphson Kepler solver
+  let chiE = chiM
+  for (let iter = 0; iter < 30; iter++) {
+    const f = chiE - CHI_E * Math.sin(chiE) - chiM
+    const fp = 1 - CHI_E * Math.cos(chiE)
+    const dE = f / fp
+    chiE -= dE
+    if (Math.abs(dE) < 1e-12) break
+  }
+  const chiNu = 2 * Math.atan2(
+    Math.sqrt(1 + CHI_E) * Math.sin(chiE / 2),
+    Math.sqrt(1 - CHI_E) * Math.cos(chiE / 2),
   )
-  const chironLngPeri = ((339.46 + 0.01297 * t.tt) % 360 + 360) % 360 * D2R // longitude of perihelion
-  const chironOmega = ((209.35 + 0.00795 * t.tt) % 360 + 360) % 360 * D2R // ascending node
-  const chironIncl = 6.93 * D2R
-  // Heliocentric ecliptic longitude
-  const chironArgLat = chironTrueAnom + chironLngPeri - chironOmega
-  let chironHelioLng = Math.atan2(
-    Math.sin(chironArgLat) * Math.cos(chironIncl),
-    Math.cos(chironArgLat)
-  ) + chironOmega
-  let chironLng = ((chironHelioLng * R2D) % 360 + 360) % 360
-  // Rough geocentric correction (parallax from Sun-Earth, ~few degrees max for distant objects)
-  const sunLngRad = sunLng * D2R
-  const chironDist = 13.7 // AU approximate
-  const chironCorrection = Math.atan2(Math.sin(sunLngRad - chironLng * D2R), chironDist - Math.cos(sunLngRad - chironLng * D2R)) * R2D
-  chironLng = ((chironLng + chironCorrection) % 360 + 360) % 360
-  rawPlanets.push({ planet: 'Chiron', longitude: chironLng, retrograde: false })
+  const chiR = CHI_A * (1 - CHI_E * Math.cos(chiE))
+  const chiXOrb = chiR * Math.cos(chiNu)
+  const chiYOrb = chiR * Math.sin(chiNu)
+  // Rotation perifocal → heliocentric ecliptic J2000
+  const chiCw = Math.cos(CHI_PERI * D2R), chiSw = Math.sin(CHI_PERI * D2R)
+  const chiCN = Math.cos(CHI_NODE * D2R), chiSN = Math.sin(CHI_NODE * D2R)
+  const chiCi = Math.cos(CHI_I * D2R)
+  const chiXH = chiXOrb * (chiCN * chiCw - chiSN * chiSw * chiCi) + chiYOrb * (-chiCN * chiSw - chiSN * chiCw * chiCi)
+  const chiYH = chiXOrb * (chiSN * chiCw + chiCN * chiSw * chiCi) + chiYOrb * (-chiSN * chiSw + chiCN * chiCw * chiCi)
+  // (z-component not needed for ecliptic longitude)
+  // Earth heliocentric position from astronomy-engine (equatorial J2000),
+  // rotated to ecliptic J2000 around X by the J2000 obliquity.
+  const earthEq = Astro.HelioVector(Astro.Body.Earth, t)
+  const eps0 = 23.4392911 * D2R
+  const earthXEcl = earthEq.x
+  const earthYEcl = earthEq.y * Math.cos(eps0) + earthEq.z * Math.sin(eps0)
+  const chiXG = chiXH - earthXEcl
+  const chiYG = chiYH - earthYEcl
+  // Geocentric ecliptic longitude (ignore z for longitude)
+  let chironLng = Math.atan2(chiYG, chiXG) * R2D
+  if (chironLng < 0) chironLng += 360
+  // Daily motion for retrograde flag
+  const chiM2 = (CHI_M0 + CHI_N * (chiDt - 1)) * D2R
+  let chiE2 = chiM2
+  for (let iter = 0; iter < 30; iter++) {
+    const f = chiE2 - CHI_E * Math.sin(chiE2) - chiM2
+    const fp = 1 - CHI_E * Math.cos(chiE2)
+    const dE = f / fp
+    chiE2 -= dE
+    if (Math.abs(dE) < 1e-12) break
+  }
+  const chiNu2 = 2 * Math.atan2(
+    Math.sqrt(1 + CHI_E) * Math.sin(chiE2 / 2),
+    Math.sqrt(1 - CHI_E) * Math.cos(chiE2 / 2),
+  )
+  const chiR2 = CHI_A * (1 - CHI_E * Math.cos(chiE2))
+  const chiXOrb2 = chiR2 * Math.cos(chiNu2)
+  const chiYOrb2 = chiR2 * Math.sin(chiNu2)
+  const chiXH2 = chiXOrb2 * (chiCN * chiCw - chiSN * chiSw * chiCi) + chiYOrb2 * (-chiCN * chiSw - chiSN * chiCw * chiCi)
+  const chiYH2 = chiXOrb2 * (chiSN * chiCw + chiCN * chiSw * chiCi) + chiYOrb2 * (-chiSN * chiSw + chiCN * chiCw * chiCi)
+  const tPrev2 = Astro.MakeTime(new Date(utcDate.getTime() - 86400000))
+  const earthEq2 = Astro.HelioVector(Astro.Body.Earth, tPrev2)
+  const earthXEcl2 = earthEq2.x
+  const earthYEcl2 = earthEq2.y * Math.cos(eps0) + earthEq2.z * Math.sin(eps0)
+  let chironLngPrev = Math.atan2(chiYH2 - earthYEcl2, chiXH2 - earthXEcl2) * R2D
+  if (chironLngPrev < 0) chironLngPrev += 360
+  let chironMotion = chironLng - chironLngPrev
+  if (chironMotion > 180) chironMotion -= 360
+  if (chironMotion < -180) chironMotion += 360
+  rawPlanets.push({ planet: 'Chiron', longitude: chironLng, retrograde: chironMotion < 0 })
 
   // Part of Fortune = ASC + Moon - Sun (day chart: Sun above horizon)
   // Day chart if Sun is in houses 7-12 (above horizon)
@@ -755,7 +809,7 @@ export const PLANET_IN_SIGN: Record<string, Record<string, string>> = {
 
 export const ASPECT_INTERPRETATIONS: Record<string, string> = {
   // Conjunctions
-  'Sun-Moon:Conjunction': 'Unity between will and instinct. What you want and what you feel are aligned — rare power, but little external perspective.',
+  'Sun-Moon:Conjunction': 'Unity between will and instinct. What you want and what you feel are aligned, rare power, but little external perspective.',
   'Sun-Mercury:Conjunction': 'The mind serves identity. You think from who you are; you cannot separate reasoning from ego.',
   'Sun-Venus:Conjunction': 'Natural charm. Identity expresses itself through beauty and relationship. The risk is defining yourself only to please.',
   'Sun-Mars:Conjunction': 'Intense vital energy. Will and action united. Risk: aggression as a way of existing.',

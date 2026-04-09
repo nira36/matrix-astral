@@ -160,10 +160,10 @@ function bhakootScore(rashiA: Rashi, rashiB: Rashi): { score: number; dosha: boo
   const positions = [distAB, distBA].sort((a, b) => a - b)
   const pair = `${positions[0]}-${positions[1]}`
 
-  if (pair === '6-8' || pair === '8-6') return { score: 0, dosha: true, reason: '6/8 Shadashtak — friction, illness, mutual obstruction' }
-  if (pair === '2-12') return { score: 0, dosha: true, reason: '2/12 Dwirdwadasha — financial loss, separation' }
+  if (pair === '6-8' || pair === '8-6') return { score: 0, dosha: true, reason: '6/8 Shadashtak, friction, illness, mutual obstruction' }
+  if (pair === '2-12') return { score: 0, dosha: true, reason: '2/12 Dwirdwadasha, financial loss, separation' }
 
-  return { score: 7, dosha: false, reason: 'No Bhakoot dosha — mutually supportive sign relationship' }
+  return { score: 7, dosha: false, reason: 'No Bhakoot dosha, mutually supportive sign relationship' }
 }
 
 // ─── Nadi (pulse compatibility) ─────────────────────────────────────────────
@@ -276,7 +276,7 @@ export function calcAshtakootMilan(
     sanskrit: 'योनि',
     maxScore: 4,
     score: yoniPts,
-    description: `Animal nature & sexual compatibility: ${normalizeYoni(brideMoonNakshatra.yoni)} × ${normalizeYoni(groomMoonNakshatra.yoni)}. Reveals physical and instinctual harmony — same yoni is best, mortal enemies score zero.`,
+    description: `Animal nature & sexual compatibility: ${normalizeYoni(brideMoonNakshatra.yoni)} × ${normalizeYoni(groomMoonNakshatra.yoni)}. Reveals physical and instinctual harmony, same yoni is best, mortal enemies score zero.`,
   }
 
   // 5. Graha Maitri (5 points)
@@ -286,7 +286,7 @@ export function calcAshtakootMilan(
     sanskrit: 'ग्रह मैत्री',
     maxScore: 5,
     score: gmPts,
-    description: `Friendship of Moon-sign lords: ${RASHI_DATA[brideMoonRashi].ruler} × ${RASHI_DATA[groomMoonRashi].ruler}. The most important koota for mental and emotional bonding — measures intellectual and psychological alignment.`,
+    description: `Friendship of Moon-sign lords: ${RASHI_DATA[brideMoonRashi].ruler} × ${RASHI_DATA[groomMoonRashi].ruler}. The most important koota for mental and emotional bonding, measures intellectual and psychological alignment.`,
   }
 
   // 6. Gana (6 points)
@@ -316,7 +316,7 @@ export function calcAshtakootMilan(
     sanskrit: 'नाड़ी',
     maxScore: 8,
     score: nd.score,
-    description: `Pulse / constitution: ${NADI_OF_NAKSHATRA[brideMoonNakshatra.name]} × ${NADI_OF_NAKSHATRA[groomMoonNakshatra.name]}. The most weighty koota — same Nadi is the major dosha (Nadi Dosha), affecting health, progeny, and lasting health of children.`,
+    description: `Pulse / constitution: ${NADI_OF_NAKSHATRA[brideMoonNakshatra.name]} × ${NADI_OF_NAKSHATRA[groomMoonNakshatra.name]}. The most weighty koota, same Nadi is the major dosha (Nadi Dosha), affecting health, progeny, and lasting health of children.`,
   }
 
   const total = varna.score + vashya.score + tara.score + yoni.score + grahaMaitri.score + gana.score + bhakoot.score + nadi.score
@@ -332,7 +332,7 @@ export function calcAshtakootMilan(
 
   const doshas: string[] = []
   if (bk.dosha) doshas.push(`Bhakoot Dosha: ${bk.reason}`)
-  if (nd.dosha) doshas.push(`Nadi Dosha: both partners share the same ${NADI_OF_NAKSHATRA[brideMoonNakshatra.name]} Nadi — major incompatibility for health and children`)
+  if (nd.dosha) doshas.push(`Nadi Dosha: both partners share the same ${NADI_OF_NAKSHATRA[brideMoonNakshatra.name]} Nadi, major incompatibility for health and children`)
 
   return {
     varna, vashya, tara, yoni, grahaMaitri, gana, bhakoot, nadi,

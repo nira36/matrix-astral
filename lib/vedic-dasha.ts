@@ -202,7 +202,7 @@ export const DASHA_INTERPRETATIONS: Record<Graha, string> = {
   Moon:    'An emotional, fluctuating period centered on home, mother, and the inner life. Public dealings, women, comfort, and emotional growth dominate. Watch for moodiness and instability.',
   Mars:    'An aggressive, action-oriented period. Conflicts, sports, surgery, real estate, brothers, and sexual energy come into focus. Accidents and injuries possible. Decisive action favored.',
   Mercury: 'An intellectual, communicative period. Studies, business, writing, commerce, and travel flourish. Mental work and networking pay off. Best results when Mercury is well-placed.',
-  Jupiter: 'The most auspicious dasha — wisdom, expansion, marriage, children, religion, and good fortune. Spiritual growth, education, and prosperity bloom. Often the peak of one\'s life.',
+  Jupiter: 'The most auspicious dasha, wisdom, expansion, marriage, children, religion, and good fortune. Spiritual growth, education, and prosperity bloom. Often the peak of one\'s life.',
   Venus:   'A 20-year period of pleasure, love, art, marriage, vehicles, and refinement. The longest dasha. Romance, beauty, luxury, and creative expression dominate. Material comfort is highlighted.',
   Saturn:  'A 19-year period of slow, steady karma. Hard work, responsibility, delays, lessons, longevity, and the shadow side of life. Builds lasting structures through suffering and discipline.',
   Rahu:    'An 18-year period of obsession, ambition, foreign things, technology, and unconventional gains. Sudden rises and falls. Material desires intensify. Watch for confusion and illusion.',

@@ -94,7 +94,7 @@ export default function ChineseAstrology({ dateStr, birthTime }: Props) {
   if (!bazi) {
     return (
       <div className="rounded-xl border border-red-500/20 bg-red-500/[0.04] p-6 text-center max-w-lg mx-auto">
-        <p className="text-sm text-red-400/80">Invalid date — please check your input.</p>
+        <p className="text-sm text-red-400/80">Invalid date, please check your input.</p>
       </div>
     )
   }
@@ -110,7 +110,7 @@ export default function ChineseAstrology({ dateStr, birthTime }: Props) {
           Chinese <span className="text-accent-purple">Bazi</span> · Four Pillars
         </h2>
         <p className="text-slate-500 text-sm max-w-xl mx-auto leading-relaxed">
-          The 8 Characters of Destiny — your cosmic signature decoded through the Heavenly Stems and Earthly Branches.
+          The 8 Characters of Destiny, your cosmic signature decoded through the Heavenly Stems and Earthly Branches.
         </p>
         <div className="flex items-center justify-center gap-3 mt-2 text-[10px] font-mono text-slate-600">
           <span>{bazi.lunarDate}</span>
@@ -257,7 +257,7 @@ export default function ChineseAstrology({ dateStr, birthTime }: Props) {
         <SectionLabel>Luck Pillars <span className="text-accent-purple">大運</span></SectionLabel>
         <Card>
           <p className="text-[11px] text-slate-400 leading-relaxed mb-5">
-            Da Yun — the 10-year cycles that shape the major eras of your life. Each pillar carries its own elemental flavor and 10 Gods relationship to your Day Master.
+            Da Yun, the 10-year cycles that shape the major eras of your life. Each pillar carries its own elemental flavor and 10 Gods relationship to your Day Master.
           </p>
           <LuckPillarsTimeline bazi={bazi} />
         </Card>
@@ -268,7 +268,7 @@ export default function ChineseAstrology({ dateStr, birthTime }: Props) {
         <SectionLabel>Special Stars <span className="text-accent-purple">神煞</span></SectionLabel>
         <Card>
           <p className="text-[11px] text-slate-400 leading-relaxed mb-5">
-            Shen Sha — auspicious and inauspicious stars activated by specific branches in your chart. Each one shapes a particular dimension of your destiny.
+            Shen Sha, auspicious and inauspicious stars activated by specific branches in your chart. Each one shapes a particular dimension of your destiny.
           </p>
           <SpecialStarsList stars={bazi.specialStars} />
         </Card>
@@ -279,9 +279,9 @@ export default function ChineseAstrology({ dateStr, birthTime }: Props) {
         <SectionLabel>Branch <span className="text-accent-purple">Interactions</span></SectionLabel>
         <Card>
           <p className="text-[11px] text-slate-400 leading-relaxed mb-5">
-            How the Earthly Branches in your chart relate to one another — harmonies that bring flow, clashes that create tension, and punishments that demand resolution.
+            How the Earthly Branches in your chart relate to one another, harmonies that bring flow, clashes that create tension, and punishments that demand resolution.
           </p>
-          <InteractionsList interactions={bazi.interactions} emptyMsg="No major interactions detected — your branches are independent." />
+          <InteractionsList interactions={bazi.interactions} emptyMsg="No major interactions detected, your branches are independent." />
         </Card>
       </section>
 
@@ -706,8 +706,8 @@ function AnnualTransitView({ transit, bazi }: { transit: AnnualTransit; bazi: Ba
           </p>
           <p className="text-[10px] text-slate-500">
             {bazi.favorableElements.includes(transit.stemElement)
-              ? '✓ Favorable element — supports your chart this year.'
-              : 'Neutral or challenging — work with this element consciously.'}
+              ? '✓ Favorable element, supports your chart this year.'
+              : 'Neutral or challenging, work with this element consciously.'}
           </p>
         </div>
       </div>

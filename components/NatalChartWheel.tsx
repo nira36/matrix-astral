@@ -239,6 +239,11 @@ export default function NatalChartWheel({
                 animation-delay: var(--delay);
                 opacity: var(--lo);
               }
+              /* When hovered, freeze the pulse and lock to full opacity */
+              .aspect-static {
+                animation: none !important;
+                opacity: 1 !important;
+              }
             `}</style>
           </defs>
           <circle cx={CX} cy={CY} r={OUTER_R + 10} fill="url(#chartGlow)" />
@@ -381,18 +386,18 @@ export default function NatalChartWheel({
             const color = ASPECT_COLORS[asp.type]
             const isTense = asp.type === 'Square' || asp.type === 'Opposition'
             const isFiltered = aspectFilter !== 'all'
-            // In bi-wheel ALL mode the chart can have 30+ lines — keep them very faint
-            // by default, only the tightest stand out. Filtering brings them up.
-            const tightnessBoost = asp.orb < 1.5 ? 0.18 : asp.orb < 3 ? 0.08 : 0
-            const loOp = isHov ? 0.95 : isFiltered ? 0.6 : 0.10 + tightnessBoost
-            const hiOp = isHov ? 1 : isFiltered ? 0.95 : 0.30 + tightnessBoost * 1.5
-            const dur = 5 + ((i * 37 + 13) % 8)
+            // Slight boost for tight orbs so they stand out without being loud
+            const tightnessBoost = asp.orb < 1.5 ? 0.10 : asp.orb < 3 ? 0.05 : 0
+            // Very narrow pulse range — barely perceptible breathing
+            const loOp = isFiltered ? 0.55 : 0.25 + tightnessBoost
+            const hiOp = isFiltered ? 0.75 : 0.36 + tightnessBoost
+            const dur = 12 + ((i * 37 + 13) % 9)
             const delay = ((i * 53 + 7) % 11)
             const isDashed = asp.type === 'Sextile'
             return (
               <line key={`tx${i}`} x1={pt1.x} y1={pt1.y} x2={pt2.x} y2={pt2.y}
                 stroke={color}
-                strokeWidth={isHov ? '2.5' : isFiltered ? '1.4' : isTense ? '0.9' : '0.6'}
+                strokeWidth={isFiltered ? '1.4' : isTense ? '0.9' : '0.6'}
                 strokeDasharray={isDashed ? '3 2' : undefined}
                 className={`${isDashed ? 'dash-flow ' : ''}aspect-pulse`}
                 onMouseEnter={() => setHoveredCross(asp)}
@@ -407,6 +412,26 @@ export default function NatalChartWheel({
             )
           })}
 
+          {/* ─── Bi-wheel: hovered cross-aspect overlay (drawn on top of everything) ─── */}
+          {isBiWheel && hoveredCross && (() => {
+            const tp = transitRealPlanets.find(p => p.planet === hoveredCross.transitPlanet)
+            const np = realPlanets.find(p => p.planet === hoveredCross.natalPlanet)
+            if (!tp || !np) return null
+            const pt1 = polar(CX, CY, CROSS_ASPECT_R, tp.chartAngle)
+            const pt2 = polar(CX, CY, CROSS_ASPECT_R, np.chartAngle)
+            const color = ASPECT_COLORS[hoveredCross.type]
+            return (
+              <g pointerEvents="none">
+                {/* Glow halo */}
+                <line x1={pt1.x} y1={pt1.y} x2={pt2.x} y2={pt2.y}
+                  stroke={color} strokeWidth="6" strokeLinecap="round" opacity="0.25" />
+                {/* Solid bright line on top */}
+                <line x1={pt1.x} y1={pt1.y} x2={pt2.x} y2={pt2.y}
+                  stroke={color} strokeWidth="2.5" strokeLinecap="round" opacity="1" />
+              </g>
+            )
+          })()}
+
           {/* ─── Aspect lines (single-wheel mode only) ─── */}
           {visibleAspects.map((asp, i) => {
             const p1 = realPlanets.find(p => p.planet === asp.planet1)
@@ -414,20 +439,18 @@ export default function NatalChartWheel({
             if (!p1 || !p2) return null
             const pt1 = polar(CX, CY, ASPECT_R, p1.chartAngle)
             const pt2 = polar(CX, CY, ASPECT_R, p2.chartAngle)
-            const isHov = hoveredAspect === asp
             const color = ASPECT_COLORS[asp.type]
             const isTense = asp.type === 'Square' || asp.type === 'Opposition'
             const isFiltered = aspectFilter !== 'all'
-            const loOp = isHov ? 0.9 : isFiltered ? 0.5 : 0.15
-            const hiOp = isHov ? 1 : isFiltered ? 0.9 : 0.55
-            // Pseudo-random duration (5–12s) and delay (0–10s) per line
-            const dur = 5 + ((i * 37 + 13) % 8)
+            const loOp = isFiltered ? 0.55 : 0.32
+            const hiOp = isFiltered ? 0.75 : 0.42
+            const dur = 12 + ((i * 37 + 13) % 9)
             const delay = ((i * 53 + 7) % 11)
             const isDashed = asp.type === 'Sextile'
             return (
               <line key={`a${i}`} x1={pt1.x} y1={pt1.y} x2={pt2.x} y2={pt2.y}
                 stroke={color}
-                strokeWidth={isHov ? '2.5' : isFiltered ? '1.5' : isTense ? '1' : '0.7'}
+                strokeWidth={isFiltered ? '1.5' : isTense ? '1' : '0.7'}
                 strokeDasharray={isDashed ? '3 2' : undefined}
                 className={`${isDashed ? 'dash-flow ' : ''}aspect-pulse`}
                 onMouseEnter={() => setHoveredAspect(asp)}
@@ -441,6 +464,24 @@ export default function NatalChartWheel({
                 } as React.CSSProperties} />
             )
           })}
+
+          {/* ─── Single-wheel: hovered aspect overlay (drawn on top of everything) ─── */}
+          {!isBiWheel && hoveredAspect && (() => {
+            const p1 = realPlanets.find(p => p.planet === hoveredAspect.planet1)
+            const p2 = realPlanets.find(p => p.planet === hoveredAspect.planet2)
+            if (!p1 || !p2) return null
+            const pt1 = polar(CX, CY, ASPECT_R, p1.chartAngle)
+            const pt2 = polar(CX, CY, ASPECT_R, p2.chartAngle)
+            const color = ASPECT_COLORS[hoveredAspect.type]
+            return (
+              <g pointerEvents="none">
+                <line x1={pt1.x} y1={pt1.y} x2={pt2.x} y2={pt2.y}
+                  stroke={color} strokeWidth="6" strokeLinecap="round" opacity="0.25" />
+                <line x1={pt1.x} y1={pt1.y} x2={pt2.x} y2={pt2.y}
+                  stroke={color} strokeWidth="2.5" strokeLinecap="round" opacity="1" />
+              </g>
+            )
+          })()}
 
           {/* ─── Planet glyphs (INSIDE zodiac ring) ─── */}
           {glyphPlanets.map((p) => {
