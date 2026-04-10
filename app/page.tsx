@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 import { calculate } from '@/lib/numerology'
 import type { NumerologyResult } from '@/lib/numerology'
 import { calcDestinyMatrix } from '@/lib/destinyMatrix'
@@ -47,6 +49,16 @@ import { CORE_DESCRIPTIONS } from '@/lib/numerology'
 type Tab = 'matrix' | 'deck' | 'numerology' | 'natal' | 'horoscope' | 'chinese' | 'vedic'
 
 export default function Home() {
+  const router = useRouter()
+
+  // If user is already logged in, redirect to the app
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) router.replace('/app/dashboard')
+    })
+  }, [router])
+
   const [dateStr, setDateStr] = useState('')
   const [name, setName] = useState('')
   const [numResult, setNumResult] = useState<NumerologyResult | null>(null)
