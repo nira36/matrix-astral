@@ -143,7 +143,7 @@ function useFriendNotifications(userId: string | undefined) {
 
       if (!data) return
 
-      const currentIds = new Set(data.map((r: any) => r.id as string))
+      const currentIds = new Set<string>(data.map((r: any) => r.id as string))
 
       // On first load, just record what we know — don't toast
       if (initialLoadRef.current) {
