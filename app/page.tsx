@@ -262,14 +262,19 @@ export default function Home() {
 
   return (
     <main className="min-h-screen px-4 py-14 md:py-20 bg-bg-primary text-white">
-      {/* ── Sign In ── */}
+      {/* ── Account icon ── */}
       <a
         href="/login"
-        className="fixed top-4 right-4 z-50 px-4 py-2 rounded-xl text-xs font-bold text-white
-                   bg-gradient-to-r from-violet-600 to-indigo-600
-                   hover:opacity-90 transition-opacity shadow-lg shadow-violet-900/40"
+        className="fixed top-4 right-4 z-50 w-10 h-10 rounded-full flex items-center justify-center
+                   bg-white/[0.08] border border-white/[0.1] backdrop-blur-md
+                   text-slate-400 hover:text-white hover:border-white/25
+                   transition-all duration-200"
+        aria-label="Sign In"
       >
-        Sign In
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="8" r="4" />
+          <path d="M20 21a8 8 0 1 0-16 0" />
+        </svg>
       </a>
 
       {/* ── Hero ── */}
