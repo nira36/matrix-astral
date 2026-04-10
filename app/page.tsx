@@ -261,8 +261,8 @@ export default function Home() {
   const hasResults = numResult && matResult
 
   return (
-    <main className="min-h-screen px-4 py-14 md:py-20 bg-bg-primary text-white">
-      {/* ── Account icon ── */}
+    <>
+      {/* ── Account icon (outside main to ensure fixed positioning) ── */}
       <a
         href="/login"
         className="fixed top-4 right-4 z-50 w-10 h-10 rounded-full flex items-center justify-center
@@ -277,6 +277,7 @@ export default function Home() {
         </svg>
       </a>
 
+    <main className="min-h-screen px-4 py-14 md:py-20 bg-bg-primary text-white">
       {/* ── Hero ── */}
       <div className="max-w-3xl mx-auto text-center mb-12 animate-fade-up">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10
@@ -697,6 +698,7 @@ export default function Home() {
         </div>
       )}
     </main>
+    </>
   )
 }
 
