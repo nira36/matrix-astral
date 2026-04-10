@@ -47,12 +47,16 @@ export default function FriendsPage() {
   const [actionMsg, setActionMsg] = useState<string | null>(null)
 
   // ─── Load friends & requests ────────────────────────────────────────
+  const hasFetchedRef = useRef(false)
+
   const loadFriendships = useCallback(async () => {
     if (!user) {
       setLoadingFriends(false)
       return
     }
-    setLoadingFriends(true)
+    // Only show loading spinner on first fetch, not on background re-fetches
+    // (e.g. triggered by tab switch / auth token refresh)
+    if (!hasFetchedRef.current) setLoadingFriends(true)
 
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -98,6 +102,7 @@ export default function FriendsPage() {
     } catch (err) {
       console.error('[friends] exception:', err)
     }
+    hasFetchedRef.current = true
     setLoadingFriends(false)
   }, [user, supabase])
 
