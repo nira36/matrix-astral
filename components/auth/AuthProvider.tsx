@@ -34,8 +34,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const supabase = supabaseRef.current
   const initialDoneRef = useRef(false)
 
-  const fetchProfile = useCallback(async (userId: string) => {
-    setProfileLoading(true)
+  const fetchProfile = useCallback(async (userId: string, silent = false) => {
+    // silent = true → background refresh (e.g. tab regain focus), don't show loading
+    if (!silent) setProfileLoading(true)
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any)
@@ -48,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (e) {
       console.error('[AuthProvider] fetchProfile error:', e)
     } finally {
-      setProfileLoading(false)
+      if (!silent) setProfileLoading(false)
     }
   }, [supabase])
 
@@ -102,7 +103,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const u = session?.user ?? null
         setUser(u)
         if (u) {
-          await fetchProfile(u.id)
+          // TOKEN_REFRESHED = tab regain / silent refresh → don't flash loading
+          const silent = event === 'TOKEN_REFRESHED'
+          await fetchProfile(u.id, silent)
         } else {
           setProfile(null)
           setProfileLoading(false)
