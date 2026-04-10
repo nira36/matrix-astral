@@ -47,16 +47,11 @@ export default function FriendsPage() {
   const [actionMsg, setActionMsg] = useState<string | null>(null)
 
   // ─── Load friends & requests ────────────────────────────────────────
-  const hasFetchedRef = useRef(false)
-
-  const loadFriendships = useCallback(async () => {
+  const loadFriendships = useCallback(async (signal?: AbortSignal) => {
     if (!user) {
       setLoadingFriends(false)
       return
     }
-    // Only show loading spinner on first fetch, not on background re-fetches
-    // (e.g. triggered by tab switch / auth token refresh)
-    if (!hasFetchedRef.current) setLoadingFriends(true)
 
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -67,6 +62,8 @@ export default function FriendsPage() {
         .from('friendships')
         .select('*')
         .or(`requester.eq.${user.id},addressee.eq.${user.id}`)
+
+      if (signal?.aborted) return
 
       if (fErr) {
         console.error('[friends] load error:', fErr)
@@ -89,6 +86,8 @@ export default function FriendsPage() {
         .select('id, username, display_name, sun_sign, moon_sign, rising_sign')
         .in('id', friendIds)
 
+      if (signal?.aborted) return
+
       const profileMap = new Map((profiles as any[] ?? []).map((p: any) => [p.id, p]))
 
       const enriched: FriendRow[] = (rows as any[]).map((r: any) => ({
@@ -100,13 +99,20 @@ export default function FriendsPage() {
       setPendingIncoming(enriched.filter(r => r.status === 'pending' && r.addressee === user.id))
       setPendingSent(enriched.filter(r => r.status === 'pending' && r.requester === user.id))
     } catch (err) {
+      if (signal?.aborted) return
       console.error('[friends] exception:', err)
     }
-    hasFetchedRef.current = true
     setLoadingFriends(false)
   }, [user, supabase])
 
-  useEffect(() => { loadFriendships() }, [loadFriendships])
+  // Fetch on mount; abort if component unmounts before fetch completes
+  useEffect(() => {
+    const ac = new AbortController()
+    setLoadingFriends(true)
+    loadFriendships(ac.signal)
+    return () => ac.abort()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // ─── Search users ───────────────────────────────────────────────────
   function handleSearch(val: string) {
