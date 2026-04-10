@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { AuthProvider, useAuth } from '@/components/auth/AuthProvider'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -18,9 +18,24 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  // Close sidebar on route change
+  useEffect(() => {
+    setSidebarOpen(false)
+  }, [pathname])
+
+  // Close sidebar on Escape key
+  useEffect(() => {
+    if (!sidebarOpen) return
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setSidebarOpen(false)
+    }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [sidebarOpen])
 
   useEffect(() => {
-    // Wait for both auth and profile to finish loading
     if (loading || profileLoading) return
 
     if (!user) {
@@ -42,7 +57,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) {
-    return null // redirecting to login
+    return null
   }
 
   async function handleSignOut() {
@@ -52,14 +67,56 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-bg-primary flex">
+      {/* Hamburger button */}
+      <button
+        onClick={() => setSidebarOpen(true)}
+        className="fixed top-4 left-4 z-40 w-10 h-10 rounded-xl border border-white/[0.08]
+                   bg-bg-primary/80 backdrop-blur-md flex items-center justify-center
+                   text-slate-400 hover:text-white hover:border-white/20
+                   transition-all duration-200"
+        aria-label="Open menu"
+      >
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+          <line x1="3" y1="5" x2="15" y2="5" />
+          <line x1="3" y1="9" x2="15" y2="9" />
+          <line x1="3" y1="13" x2="15" y2="13" />
+        </svg>
+      </button>
+
+      {/* Backdrop overlay */}
+      <div
+        className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
+          sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={() => setSidebarOpen(false)}
+      />
+
       {/* Sidebar */}
-      <aside className="w-56 shrink-0 border-r border-white/[0.06] bg-bg-primary flex flex-col">
-        <div className="p-5 border-b border-white/[0.06]">
+      <aside
+        className={`fixed top-0 left-0 z-50 h-full w-64 bg-bg-primary border-r border-white/[0.06]
+                    flex flex-col transition-transform duration-300 ease-out ${
+                      sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                    }`}
+      >
+        {/* Header */}
+        <div className="p-5 border-b border-white/[0.06] flex items-center justify-between">
           <Link href="/app/dashboard" className="text-sm font-black text-white tracking-tight">
             Cosmic Love Matrix
           </Link>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="w-8 h-8 rounded-lg flex items-center justify-center
+                       text-slate-500 hover:text-white hover:bg-white/[0.06] transition-all duration-200"
+            aria-label="Close menu"
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+              <line x1="2" y1="2" x2="12" y2="12" />
+              <line x1="12" y1="2" x2="2" y2="12" />
+            </svg>
+          </button>
         </div>
 
+        {/* Navigation */}
         <nav className="flex-1 p-3 flex flex-col gap-1">
           {NAV_ITEMS.map((item) => {
             const active = pathname.startsWith(item.href)
