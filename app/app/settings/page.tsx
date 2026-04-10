@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { createClient } from '@/lib/supabase/client'
@@ -12,6 +12,18 @@ import BirthPlaceInput, { type PlaceSelection } from '@/components/BirthPlaceInp
 type ProfileInsert = Database['public']['Tables']['profiles']['Insert']
 
 export default function SettingsPage() {
+  return (
+    <Suspense fallback={
+      <div className="p-8 max-w-lg mx-auto">
+        <div className="text-slate-600 text-sm animate-pulse">Loading...</div>
+      </div>
+    }>
+      <SettingsForm />
+    </Suspense>
+  )
+}
+
+function SettingsForm() {
   const { user, profile, refreshProfile } = useAuth()
   const searchParams = useSearchParams()
   const router = useRouter()
