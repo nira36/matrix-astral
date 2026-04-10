@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { AuthProvider, useAuth } from '@/components/auth/AuthProvider'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 
 const NAV_ITEMS = [
   {
@@ -54,10 +55,133 @@ const NAV_ITEMS = [
   },
 ]
 
+// ─── Toast notification ──────────────────────────────────────────────────────
+interface Toast {
+  id: number
+  message: string
+  link?: string
+}
+
+function ToastContainer({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id: number) => void }) {
+  if (toasts.length === 0) return null
+  return (
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 w-[90vw] max-w-sm">
+      {toasts.map((t) => (
+        <div
+          key={t.id}
+          className="bg-bg-elevated border border-white/10 rounded-xl px-4 py-3 shadow-xl shadow-black/40
+                     flex items-center gap-3 animate-fade-up"
+        >
+          <div className="w-8 h-8 rounded-full bg-amber-400/10 flex items-center justify-center shrink-0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <line x1="19" y1="8" x2="19" y2="14" />
+              <line x1="22" y1="11" x2="16" y2="11" />
+            </svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm text-white">{t.message}</p>
+          </div>
+          {t.link && (
+            <Link
+              href={t.link}
+              onClick={() => onDismiss(t.id)}
+              className="text-xs text-amber-400 hover:text-amber-300 shrink-0 transition-colors"
+            >
+              View
+            </Link>
+          )}
+          <button
+            onClick={() => onDismiss(t.id)}
+            className="text-slate-600 hover:text-slate-400 shrink-0 transition-colors"
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+              <line x1="3" y1="3" x2="11" y2="11" />
+              <line x1="11" y1="3" x2="3" y2="11" />
+            </svg>
+          </button>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ─── Friend request poller ───────────────────────────────────────────────────
+function useFriendNotifications(userId: string | undefined) {
+  const [toasts, setToasts] = useState<Toast[]>([])
+  const knownRequestsRef = useRef<Set<string>>(new Set())
+  const initialLoadRef = useRef(true)
+  const toastIdRef = useRef(0)
+
+  const dismiss = useCallback((id: number) => {
+    setToasts(prev => prev.filter(t => t.id !== id))
+  }, [])
+
+  // Auto-dismiss after 8s
+  useEffect(() => {
+    if (toasts.length === 0) return
+    const timers = toasts.map(t =>
+      setTimeout(() => dismiss(t.id), 8000)
+    )
+    return () => timers.forEach(clearTimeout)
+  }, [toasts, dismiss])
+
+  useEffect(() => {
+    if (!userId) return
+
+    const supabase = createClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const db = supabase as any
+
+    async function checkRequests() {
+      const { data } = await db
+        .from('friendships')
+        .select('id, requester, requester_profile:profiles!friendships_requester_fkey(display_name, username)')
+        .eq('addressee', userId)
+        .eq('status', 'pending')
+
+      if (!data) return
+
+      const currentIds = new Set(data.map((r: any) => r.id as string))
+
+      // On first load, just record what we know — don't toast
+      if (initialLoadRef.current) {
+        knownRequestsRef.current = currentIds
+        initialLoadRef.current = false
+        return
+      }
+
+      // Find new requests
+      for (const row of data) {
+        if (!knownRequestsRef.current.has(row.id)) {
+          const name = row.requester_profile?.display_name || row.requester_profile?.username || 'Someone'
+          setToasts(prev => [...prev, {
+            id: ++toastIdRef.current,
+            message: `${name} wants to connect with you`,
+            link: '/app/friends',
+          }])
+        }
+      }
+
+      knownRequestsRef.current = currentIds
+    }
+
+    // Check immediately, then every 8s
+    checkRequests()
+    const interval = setInterval(checkRequests, 8_000)
+    return () => clearInterval(interval)
+  }, [userId])
+
+  return { toasts, dismiss }
+}
+
+// ─── App Shell ───────────────────────────────────────────────────────────────
 function AppShell({ children }: { children: React.ReactNode }) {
   const { user, profile, loading, profileLoading } = useAuth()
   const pathname = usePathname()
   const router = useRouter()
+  const { toasts, dismiss } = useFriendNotifications(user?.id)
 
   useEffect(() => {
     if (loading || profileLoading) return
@@ -82,17 +206,18 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-bg-primary">
+      {/* Toast notifications */}
+      <ToastContainer toasts={toasts} onDismiss={dismiss} />
+
       {/* ── Desktop: thin left rail ── */}
       <aside className="hidden md:flex fixed top-0 left-0 z-40 h-full w-14 flex-col items-center
                          border-r border-white/5 bg-bg-primary py-5">
-        {/* Logo */}
         <Link href="/app/dashboard" className="mb-8 text-white/40 hover:text-white transition-colors">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
             <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5" />
           </svg>
         </Link>
 
-        {/* Nav items */}
         <nav className="flex flex-col gap-2 flex-1">
           {NAV_ITEMS.map((item) => {
             const active = pathname.startsWith(item.href)
@@ -108,7 +233,6 @@ function AppShell({ children }: { children: React.ReactNode }) {
                 title={item.label}
               >
                 {item.icon}
-                {/* Tooltip */}
                 <span className="absolute left-full ml-3 px-2 py-1 rounded-md bg-white/10 backdrop-blur-sm
                                  text-[11px] font-medium text-white whitespace-nowrap
                                  opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
@@ -119,7 +243,6 @@ function AppShell({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        {/* User avatar */}
         {profile && (
           <div className="w-8 h-8 rounded-full bg-white/[0.08] flex items-center justify-center
                           text-[11px] font-semibold text-white/50">
