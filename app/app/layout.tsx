@@ -165,8 +165,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto">
+      {/* Main content — pt-16 clears the fixed hamburger button */}
+      <main className="flex-1 overflow-y-auto pt-14">
         {children}
       </main>
     </div>

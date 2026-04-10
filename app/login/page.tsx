@@ -68,6 +68,19 @@ function LoginForm() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-bg-primary px-4">
+      {/* Back to site */}
+      <a
+        href="/"
+        className="fixed top-4 left-4 z-50 flex items-center gap-2 px-3 py-2 rounded-xl
+                   text-xs text-slate-500 hover:text-white transition-colors"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M19 12H5" />
+          <path d="M12 19l-7-7 7-7" />
+        </svg>
+        Back
+      </a>
+
       <div className="w-full max-w-sm flex flex-col gap-6">
         {/* Logo / Title */}
         <div className="text-center">
