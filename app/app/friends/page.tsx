@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
@@ -22,194 +22,166 @@ interface FriendRow {
   friendProfile: FriendProfile
 }
 
+const supabase = createClient()
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = supabase as any
+
+async function fetchFriendships(userId: string): Promise<{
+  friends: FriendRow[]
+  pendingIncoming: FriendRow[]
+  pendingSent: FriendRow[]
+}> {
+  const empty = { friends: [], pendingIncoming: [], pendingSent: [] }
+
+  const { data: rows, error } = await db
+    .from('friendships')
+    .select('*')
+    .or(`requester.eq.${userId},addressee.eq.${userId}`)
+
+  if (error || !rows || rows.length === 0) return empty
+
+  const friendIds = rows.map((r: any) => r.requester === userId ? r.addressee : r.requester)
+  const { data: profiles } = await db
+    .from('profiles')
+    .select('id, username, display_name, sun_sign, moon_sign, rising_sign')
+    .in('id', friendIds)
+
+  const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]))
+
+  const enriched: FriendRow[] = rows
+    .map((r: any) => ({
+      ...r,
+      friendProfile: profileMap.get(r.requester === userId ? r.addressee : r.requester),
+    }))
+    .filter((r: FriendRow) => r.friendProfile)
+
+  return {
+    friends: enriched.filter(r => r.status === 'accepted'),
+    pendingIncoming: enriched.filter(r => r.status === 'pending' && r.addressee === userId),
+    pendingSent: enriched.filter(r => r.status === 'pending' && r.requester === userId),
+  }
+}
+
 export default function FriendsPage() {
   const { user, profile } = useAuth()
-  const supabaseRef = useRef(createClient())
-  const supabase = supabaseRef.current
 
-  // ─── Search ─────────────────────────────────────────────────────────
   const [query, setQuery] = useState('')
   const [searchResults, setSearchResults] = useState<FriendProfile[]>([])
   const [searching, setSearching] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // ─── Friends & requests ─────────────────────────────────────────────
   const [friends, setFriends] = useState<FriendRow[]>([])
   const [pendingIncoming, setPendingIncoming] = useState<FriendRow[]>([])
   const [pendingSent, setPendingSent] = useState<FriendRow[]>([])
   const [loadingFriends, setLoadingFriends] = useState(true)
 
-  // ─── Invite link ────────────────────────────────────────────────────
   const [inviteLink, setInviteLink] = useState<string | null>(null)
   const [copiedInvite, setCopiedInvite] = useState(false)
-
-  // ─── Action feedback ────────────────────────────────────────────────
   const [actionMsg, setActionMsg] = useState<string | null>(null)
 
-  // ─── Load friends & requests ────────────────────────────────────────
-  const loadFriendships = useCallback(async (signal?: AbortSignal) => {
-    if (!user) {
-      setLoadingFriends(false)
-      return
-    }
-
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const db = supabase as any
-
-      // Fetch all friendships involving this user
-      const { data: rows, error: fErr } = await db
-        .from('friendships')
-        .select('*')
-        .or(`requester.eq.${user.id},addressee.eq.${user.id}`)
-
-      if (signal?.aborted) return
-
-      if (fErr) {
-        console.error('[friends] load error:', fErr)
-        setLoadingFriends(false)
-        return
-      }
-
-      if (!rows || rows.length === 0) {
-        setFriends([])
-        setPendingIncoming([])
-        setPendingSent([])
-        setLoadingFriends(false)
-        return
-      }
-
-      // Collect all friend user IDs
-      const friendIds = (rows as any[]).map((r: any) => r.requester === user.id ? r.addressee : r.requester)
-      const { data: profiles } = await db
-        .from('profiles')
-        .select('id, username, display_name, sun_sign, moon_sign, rising_sign')
-        .in('id', friendIds)
-
-      if (signal?.aborted) return
-
-      const profileMap = new Map((profiles as any[] ?? []).map((p: any) => [p.id, p]))
-
-      const enriched: FriendRow[] = (rows as any[]).map((r: any) => ({
-        ...r,
-        friendProfile: profileMap.get(r.requester === user.id ? r.addressee : r.requester) as FriendProfile,
-      })).filter((r: FriendRow) => r.friendProfile)
-
-      setFriends(enriched.filter(r => r.status === 'accepted'))
-      setPendingIncoming(enriched.filter(r => r.status === 'pending' && r.addressee === user.id))
-      setPendingSent(enriched.filter(r => r.status === 'pending' && r.requester === user.id))
-    } catch (err) {
-      if (signal?.aborted) return
-      console.error('[friends] exception:', err)
-    }
+  // ─── Load all friendships ──────────────────────────────────────────
+  async function reload() {
+    if (!user) return
+    const data = await fetchFriendships(user.id)
+    setFriends(data.friends)
+    setPendingIncoming(data.pendingIncoming)
+    setPendingSent(data.pendingSent)
     setLoadingFriends(false)
-  }, [user, supabase])
+  }
 
-  // Fetch when user becomes available; abort if component unmounts
-  const fetchedForRef = useRef<string | null>(null)
+  // Initial load — wait for user, then fetch
   useEffect(() => {
     if (!user) return
-    // Don't re-fetch if we already fetched for this user
-    if (fetchedForRef.current === user.id) return
-    fetchedForRef.current = user.id
-    const ac = new AbortController()
     setLoadingFriends(true)
-    loadFriendships(ac.signal)
-    return () => ac.abort()
-  }, [user, loadFriendships])
+    reload()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id])
 
-  // ─── Search users ───────────────────────────────────────────────────
+  // ─── Search ────────────────────────────────────────────────────────
   function handleSearch(val: string) {
     setQuery(val)
     if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (val.length < 2) { setSearchResults([]); return }
+    if (val.length < 2) { setSearchResults([]); setSearching(false); return }
+    setSearching(true)
     debounceRef.current = setTimeout(async () => {
-      setSearching(true)
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data, error } = await (supabase as any)
+        const { data } = await db
           .from('profiles')
           .select('id, username, display_name, sun_sign, moon_sign, rising_sign')
           .ilike('username', `%${val}%`)
           .neq('id', user?.id ?? '')
           .limit(10)
-        if (error) console.error('[search] error:', error)
         setSearchResults((data as FriendProfile[]) ?? [])
-      } catch (err) {
-        console.error('[search] exception:', err)
+      } catch {
         setSearchResults([])
       }
       setSearching(false)
     }, 300)
   }
 
-  // ─── Send friend request ────────────────────────────────────────────
+  // ─── Actions ───────────────────────────────────────────────────────
+  function showMsg(msg: string) {
+    setActionMsg(msg)
+    setTimeout(() => setActionMsg(null), 3000)
+  }
+
   async function sendRequest(addresseeId: string) {
     if (!user) return
-    const { error } = await (supabase as any).from('friendships').insert({
+    const { error } = await db.from('friendships').insert({
       requester: user.id,
       addressee: addresseeId,
       status: 'pending',
     })
     if (error) {
-      if (error.code === '23505') {
-        setActionMsg('Friend request already sent.')
-      } else {
-        setActionMsg(error.message)
-      }
+      showMsg(error.code === '23505' ? 'Request already sent.' : error.message)
     } else {
-      setActionMsg('Friend request sent!')
+      showMsg('Request sent!')
       setQuery('')
       setSearchResults([])
-      await loadFriendships()
+      await reload()
     }
-    setTimeout(() => setActionMsg(null), 3000)
   }
 
-  // ─── Accept / decline ──────────────────────────────────────────────
   async function acceptRequest(friendshipId: string) {
-    await (supabase as any).from('friendships').update({ status: 'accepted' }).eq('id', friendshipId)
-    await loadFriendships()
-    setActionMsg('Friend added!')
-    setTimeout(() => setActionMsg(null), 3000)
+    const { error } = await db.from('friendships').update({ status: 'accepted' }).eq('id', friendshipId)
+    if (error) {
+      showMsg('Failed to accept: ' + error.message)
+      return
+    }
+    showMsg('Friend added!')
+    await reload()
   }
 
   async function declineRequest(friendshipId: string) {
-    await (supabase as any).from('friendships').delete().eq('id', friendshipId)
-    await loadFriendships()
+    await db.from('friendships').delete().eq('id', friendshipId)
+    await reload()
   }
 
   async function removeFriend(friendshipId: string) {
-    await (supabase as any).from('friendships').delete().eq('id', friendshipId)
-    await loadFriendships()
-    setActionMsg('Friend removed.')
-    setTimeout(() => setActionMsg(null), 3000)
+    await db.from('friendships').delete().eq('id', friendshipId)
+    showMsg('Friend removed.')
+    await reload()
   }
 
-  // ─── Generate invite link ──────────────────────────────────────────
   async function generateInvite() {
     if (!user) return
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase as any)
+    const { data, error } = await db
       .from('invite_links')
       .insert({ creator: user.id, max_uses: 5 })
       .select('token')
       .single()
     if (!error && data) {
-      const link = `${window.location.origin}/invite/${(data as any).token}`
-      setInviteLink(link)
+      setInviteLink(`${window.location.origin}/invite/${data.token}`)
     }
   }
 
   function copyInvite() {
-    if (inviteLink) {
-      navigator.clipboard.writeText(inviteLink)
-      setCopiedInvite(true)
-      setTimeout(() => setCopiedInvite(false), 2000)
-    }
+    if (!inviteLink) return
+    navigator.clipboard.writeText(inviteLink)
+    setCopiedInvite(true)
+    setTimeout(() => setCopiedInvite(false), 2000)
   }
 
-  // ─── Check if user is already a friend or pending ───────────────────
   function friendStatus(userId: string): 'friend' | 'pending_sent' | 'pending_incoming' | null {
     if (friends.some(f => f.friendProfile.id === userId)) return 'friend'
     if (pendingSent.some(f => f.friendProfile.id === userId)) return 'pending_sent'
@@ -220,15 +192,14 @@ export default function FriendsPage() {
   if (!profile) return null
 
   return (
-    <div className="p-8 max-w-2xl mx-auto">
+    <div className="px-6 py-8 md:px-10 md:py-10 max-w-2xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-black text-white">Friends</h1>
+        <h1 className="text-2xl text-white">Friends</h1>
         <p className="text-sm text-slate-500 mt-1">
           Connect with others and explore cosmic compatibility.
         </p>
       </div>
 
-      {/* Action message */}
       {actionMsg && (
         <div className="mb-4 text-xs text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 rounded-lg p-3 text-center">
           {actionMsg}
@@ -245,10 +216,10 @@ export default function FriendsPage() {
           value={query}
           onChange={(e) => handleSearch(e.target.value)}
           placeholder="Search by username..."
-          className="w-full py-2.5 px-4 rounded-xl border border-white/10 bg-white/[0.04]
-            text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-white/25"
+          className="w-full py-2.5 px-4 rounded-lg border border-white/10 bg-white/[0.04]
+            text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-white/20"
         />
-        {searching && <p className="text-[10px] text-slate-600 mt-2">Searching...</p>}
+        {searching && <p className="text-xs text-slate-600 mt-2">Searching...</p>}
 
         {searchResults.length > 0 && (
           <div className="mt-2 rounded-xl border border-white/5 bg-bg-card overflow-hidden">
@@ -257,11 +228,11 @@ export default function FriendsPage() {
               return (
                 <div key={p.id} className="flex items-center justify-between gap-3 px-4 py-3 border-b border-white/[0.04] last:border-b-0">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 rounded-full bg-white/[0.08] flex items-center justify-center text-xs font-bold text-white/60 shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-white/[0.08] flex items-center justify-center text-xs font-semibold text-white/50 shrink-0">
                       {(p.display_name || p.username)?.[0]?.toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm text-white font-medium truncate">{p.display_name || p.username}</p>
+                      <p className="text-sm text-white truncate">{p.display_name || p.username}</p>
                       <p className="text-[10px] text-slate-600">
                         @{p.username}
                         {p.sun_sign && ` · ☉ ${p.sun_sign}`}
@@ -269,13 +240,13 @@ export default function FriendsPage() {
                     </div>
                   </div>
                   {status === 'friend' ? (
-                    <span className="text-[10px] text-emerald-400/70 font-bold">Friends</span>
+                    <span className="text-xs text-emerald-400/70">Friends</span>
                   ) : status === 'pending_sent' ? (
-                    <span className="text-[10px] text-amber-400/70 font-bold">Pending</span>
+                    <span className="text-xs text-amber-400/70">Pending</span>
                   ) : (
                     <button
                       onClick={() => sendRequest(p.id)}
-                      className="text-[11px] font-bold text-white bg-white/10 hover:bg-white/20
+                      className="text-xs text-white bg-white/10 hover:bg-white/20
                         px-3 py-1.5 rounded-lg transition-colors shrink-0"
                     >
                       Add
@@ -288,7 +259,7 @@ export default function FriendsPage() {
         )}
       </div>
 
-      {/* Pending incoming requests */}
+      {/* Pending incoming */}
       {pendingIncoming.length > 0 && (
         <div className="mb-8">
           <p className="text-xs font-medium uppercase tracking-wide text-amber-400/80 mb-3">
@@ -298,25 +269,25 @@ export default function FriendsPage() {
             {pendingIncoming.map((f) => (
               <div key={f.id} className="flex items-center justify-between gap-3 px-4 py-3 border-b border-white/[0.04] last:border-b-0">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-white/[0.08] flex items-center justify-center text-xs font-bold text-white/60 shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-white/[0.08] flex items-center justify-center text-xs font-semibold text-white/50 shrink-0">
                     {(f.friendProfile.display_name || f.friendProfile.username)?.[0]?.toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm text-white font-medium truncate">{f.friendProfile.display_name || f.friendProfile.username}</p>
+                    <p className="text-sm text-white truncate">{f.friendProfile.display_name || f.friendProfile.username}</p>
                     <p className="text-[10px] text-slate-600">@{f.friendProfile.username}</p>
                   </div>
                 </div>
                 <div className="flex gap-2 shrink-0">
                   <button
                     onClick={() => acceptRequest(f.id)}
-                    className="text-[11px] font-bold text-emerald-400 bg-emerald-400/10 hover:bg-emerald-400/20
+                    className="text-xs text-emerald-400 bg-emerald-400/10 hover:bg-emerald-400/20
                       px-3 py-1.5 rounded-lg transition-colors"
                   >
                     Accept
                   </button>
                   <button
                     onClick={() => declineRequest(f.id)}
-                    className="text-[11px] font-bold text-slate-500 bg-white/[0.04] hover:bg-white/[0.08]
+                    className="text-xs text-slate-500 bg-white/[0.04] hover:bg-white/[0.08]
                       px-3 py-1.5 rounded-lg transition-colors"
                   >
                     Decline
@@ -337,7 +308,7 @@ export default function FriendsPage() {
           <p className="text-sm text-slate-600">Loading...</p>
         ) : friends.length === 0 ? (
           <div className="rounded-xl border border-white/5 bg-bg-card p-6 text-center">
-            <p className="text-sm text-slate-600">No friends yet. Search for someone above or share an invite link.</p>
+            <p className="text-sm text-slate-600">No friends yet. Search above or share an invite link.</p>
           </div>
         ) : (
           <div className="rounded-xl border border-white/5 bg-bg-card overflow-hidden">
@@ -347,11 +318,11 @@ export default function FriendsPage() {
                   href={`/app/friends/${f.friendProfile.username}`}
                   className="flex items-center gap-3 min-w-0 flex-1 hover:opacity-80 transition-opacity"
                 >
-                  <div className="w-9 h-9 rounded-full bg-white/[0.08] flex items-center justify-center text-xs font-bold text-white/60 shrink-0">
+                  <div className="w-9 h-9 rounded-full bg-white/[0.08] flex items-center justify-center text-xs font-semibold text-white/50 shrink-0">
                     {(f.friendProfile.display_name || f.friendProfile.username)?.[0]?.toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm text-white font-medium truncate">{f.friendProfile.display_name || f.friendProfile.username}</p>
+                    <p className="text-sm text-white truncate">{f.friendProfile.display_name || f.friendProfile.username}</p>
                     <p className="text-[10px] text-slate-600">
                       @{f.friendProfile.username}
                       {f.friendProfile.sun_sign && ` · ☉ ${f.friendProfile.sun_sign}`}
@@ -363,7 +334,6 @@ export default function FriendsPage() {
                 <button
                   onClick={() => removeFriend(f.id)}
                   className="text-[10px] text-slate-600 hover:text-red-400 transition-colors shrink-0"
-                  title="Remove friend"
                 >
                   Remove
                 </button>
@@ -383,7 +353,7 @@ export default function FriendsPage() {
             {pendingSent.map((f) => (
               <div key={f.id} className="flex items-center justify-between gap-3 px-4 py-3 border-b border-white/[0.04] last:border-b-0">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-white/[0.08] flex items-center justify-center text-xs font-bold text-white/60 shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-white/[0.08] flex items-center justify-center text-xs font-semibold text-white/50 shrink-0">
                     {(f.friendProfile.display_name || f.friendProfile.username)?.[0]?.toUpperCase()}
                   </div>
                   <p className="text-sm text-white truncate">{f.friendProfile.display_name || f.friendProfile.username}</p>
@@ -416,7 +386,7 @@ export default function FriendsPage() {
             />
             <button
               onClick={copyInvite}
-              className="text-[11px] font-bold text-white bg-white/10 hover:bg-white/20
+              className="text-xs text-white bg-white/10 hover:bg-white/20
                 px-4 py-2 rounded-lg transition-colors shrink-0"
             >
               {copiedInvite ? 'Copied!' : 'Copy'}
@@ -425,14 +395,14 @@ export default function FriendsPage() {
         ) : (
           <button
             onClick={generateInvite}
-            className="text-[11px] font-bold text-white bg-white/10 hover:bg-white/20
+            className="text-xs text-white bg-white/10 hover:bg-white/20
               px-4 py-2 rounded-lg transition-colors"
           >
             Generate Invite Link
           </button>
         )}
         <p className="text-[10px] text-slate-600 mt-2">
-          Share this link with friends. They can sign up and you will be connected automatically.
+          Share this link. They sign up and you connect automatically.
         </p>
       </div>
     </div>
