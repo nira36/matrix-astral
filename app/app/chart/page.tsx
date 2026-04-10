@@ -46,7 +46,7 @@ import { CORE_DESCRIPTIONS } from '@/lib/numerology'
 
 import { useAuth } from '@/components/auth/AuthProvider'
 
-type Tab = 'matrix' | 'deck' | 'numerology' | 'natal' | 'horoscope' | 'chinese' | 'vedic'
+type Tab = 'matrix' | 'deck' | 'numerology' | 'natal' | 'horoscope' | 'chinese' | 'vedic' | 'readings'
 
 export default function Home() {
   const { profile } = useAuth()
@@ -746,7 +746,7 @@ export default function Home() {
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-white/[0.07] bg-bg-card p-5 md:p-7 animate-fade-up shadow-xl shadow-black/30">
+    <div className="rounded-xl border border-white/5 bg-bg-card p-6 animate-fade-up">
       {children}
     </div>
   )
@@ -754,7 +754,7 @@ function Card({ children }: { children: React.ReactNode }) {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="text-3xl font-bold tracking-tight text-white text-center mb-4 stagger">
+    <h2 className="text-2xl text-white text-center mb-4">
       {children}
     </h2>
   )
@@ -762,163 +762,33 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 // ─── Tab definitions ────────────────────────────────────────────────────────
 
-const TAB_DEFS: { key: Tab; label: string; icon: React.ReactNode }[] = [
-  { key: 'matrix', label: 'Matrix', icon: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5" />
-      <line x1="12" y1="2" x2="12" y2="22" />
-      <line x1="2" y1="8.5" x2="22" y2="15.5" />
-      <line x1="22" y1="8.5" x2="2" y2="15.5" />
-    </svg>
-  )},
-  { key: 'deck', label: 'Deck', icon: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="4" y="2" width="16" height="20" rx="2" />
-      <circle cx="12" cy="12" r="3" />
-      <line x1="12" y1="5" x2="12" y2="7" />
-      <line x1="12" y1="17" x2="12" y2="19" />
-      <line x1="7" y1="12" x2="5" y2="12" />
-      <line x1="19" y1="12" x2="17" y2="12" />
-    </svg>
-  )},
-  { key: 'numerology', label: 'Numbers', icon: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="18" height="18" rx="3" />
-      <circle cx="8.5" cy="8.5" r="1" fill="currentColor" stroke="none" />
-      <circle cx="15.5" cy="8.5" r="1" fill="currentColor" stroke="none" />
-      <circle cx="8.5" cy="15.5" r="1" fill="currentColor" stroke="none" />
-      <circle cx="15.5" cy="15.5" r="1" fill="currentColor" stroke="none" />
-      <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
-    </svg>
-  )},
-  { key: 'natal', label: 'Chart', icon: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <circle cx="12" cy="12" r="6" />
-      <line x1="12" y1="2" x2="12" y2="6" />
-      <line x1="12" y1="18" x2="12" y2="22" />
-      <line x1="2" y1="12" x2="6" y2="12" />
-      <line x1="18" y1="12" x2="22" y2="12" />
-      <circle cx="9" cy="9" r="1" fill="currentColor" stroke="none" />
-      <circle cx="15" cy="14" r="1" fill="currentColor" stroke="none" />
-    </svg>
-  )},
-  { key: 'horoscope', label: 'Horoscope', icon: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <path d="M12 2a7 7 0 0 1 0 14 7 7 0 0 1 0-14" />
-      <circle cx="12" cy="9" r="1.5" fill="currentColor" stroke="none" />
-      <path d="M8 16l2-3h4l2 3" />
-    </svg>
-  )},
-  { key: 'chinese', label: 'Bazi', icon: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7" rx="1" />
-      <rect x="14" y="3" width="7" height="7" rx="1" />
-      <rect x="3" y="14" width="7" height="7" rx="1" />
-      <rect x="14" y="14" width="7" height="7" rx="1" />
-    </svg>
-  )},
-  { key: 'vedic', label: 'Vedic', icon: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="18" height="18" />
-      <line x1="3" y1="3" x2="21" y2="21" />
-      <line x1="21" y1="3" x2="3" y2="21" />
-      <polygon points="12,3 21,12 12,21 3,12" />
-    </svg>
-  )},
+const TAB_DEFS: { key: Tab; label: string }[] = [
+  { key: 'matrix', label: 'Matrix' },
+  { key: 'numerology', label: 'Numerology' },
+  { key: 'natal', label: 'Chart' },
+  { key: 'deck', label: 'Tarot' },
+  { key: 'horoscope', label: 'Horoscope' },
+  { key: 'chinese', label: 'Bazi' },
+  { key: 'vedic', label: 'Vedic' },
 ]
 
-const VISIBLE_COUNT = 3 // tabs visible on mobile before overflow menu
-
 function TabNav({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
-  const [menuOpen, setMenuOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
-
-  // Close menu on outside click
-  useEffect(() => {
-    if (!menuOpen) return
-    function handleClick(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [menuOpen])
-
-  const visibleTabs = TAB_DEFS.slice(0, VISIBLE_COUNT)
-  const overflowTabs = TAB_DEFS.slice(VISIBLE_COUNT)
-  const activeOverflow = overflowTabs.find(t => t.key === tab)
-
   return (
-    <div className="flex justify-center mb-4">
-      <div className="flex gap-1 p-1.5 rounded-2xl border border-white/[0.07] bg-bg-card">
-        {/* Always-visible tabs */}
-        {visibleTabs.map(({ key, label, icon }) => (
+    <div className="flex justify-center mb-6">
+      <div className="flex gap-1 overflow-x-auto no-scrollbar">
+        {TAB_DEFS.map(({ key, label }) => (
           <button
             key={key}
             onClick={() => setTab(key)}
-            className="flex flex-col items-center gap-1 px-4 sm:px-5 py-2 rounded-xl transition-all duration-200"
-            style={{
-              background: tab === key ? 'linear-gradient(135deg,#7c3aed,#6366f1)' : 'transparent',
-              color: tab === key ? '#fff' : '#64748b',
-            }}
+            className={`px-4 py-2 text-xs font-medium tracking-wide whitespace-nowrap transition-colors
+              ${tab === key
+                ? 'text-white border-b-2 border-white'
+                : 'text-slate-500 hover:text-slate-300 border-b-2 border-transparent'
+              }`}
           >
-            {icon}
-            <span className="text-[7px] sm:text-[8px] font-black tracking-[0.15em] sm:tracking-[0.2em] uppercase">{label}</span>
+            {label}
           </button>
         ))}
-
-        {/* Astrology overflow menu */}
-        <div className="relative" ref={menuRef}>
-          <button
-            onClick={() => setMenuOpen(v => !v)}
-            className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all duration-200"
-            style={{
-              background: activeOverflow ? 'linear-gradient(135deg,#7c3aed,#6366f1)' : 'transparent',
-              color: activeOverflow ? '#fff' : '#64748b',
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="4" />
-              <path d="M12 2v2" />
-              <path d="M12 20v2" />
-              <path d="M4.93 4.93l1.41 1.41" />
-              <path d="M17.66 17.66l1.41 1.41" />
-              <path d="M2 12h2" />
-              <path d="M20 12h2" />
-              <path d="M4.93 19.07l1.41-1.41" />
-              <path d="M17.66 6.34l1.41-1.41" />
-            </svg>
-            <span className="text-[7px] font-black tracking-[0.15em] uppercase flex items-center gap-1">
-              Astrology
-              <svg width="8" height="8" viewBox="0 0 8 8" className="opacity-60">
-                <path d="M1.5 3 L4 5.5 L6.5 3" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </span>
-          </button>
-
-          {/* Dropdown */}
-          {menuOpen && (
-            <div className="absolute right-0 top-full mt-2 z-50 min-w-[160px] rounded-xl border border-white/[0.07] bg-bg-card shadow-2xl shadow-black/50 overflow-hidden animate-fade-up">
-              {overflowTabs.map(({ key, label, icon }) => (
-                <button
-                  key={key}
-                  onClick={() => { setTab(key); setMenuOpen(false) }}
-                  className="flex items-center gap-3 w-full px-4 py-3 transition-all duration-150 text-left"
-                  style={{
-                    background: tab === key ? 'rgba(124,58,237,0.15)' : 'transparent',
-                    color: tab === key ? '#fff' : '#94a3b8',
-                  }}
-                >
-                  {icon}
-                  <span className="text-[10px] font-bold uppercase tracking-widest">{label}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
     </div>
   )

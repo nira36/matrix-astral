@@ -163,7 +163,7 @@ function SettingsForm() {
       <form onSubmit={handleSave} className="flex flex-col gap-5">
         {/* Username */}
         <div>
-          <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
+          <label className="block text-xs font-medium uppercase tracking-wide text-slate-500 mb-1.5">
             Username
           </label>
           <input
@@ -181,7 +181,7 @@ function SettingsForm() {
 
         {/* Display name */}
         <div>
-          <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
+          <label className="block text-xs font-medium uppercase tracking-wide text-slate-500 mb-1.5">
             Display Name
           </label>
           <input
@@ -196,7 +196,7 @@ function SettingsForm() {
 
         {/* Full name for numerology */}
         <div>
-          <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
+          <label className="block text-xs font-medium uppercase tracking-wide text-slate-500 mb-1.5">
             Full Birth Name <span className="text-slate-600">(for numerology)</span>
           </label>
           <input
@@ -211,7 +211,7 @@ function SettingsForm() {
 
         {/* Birth date */}
         <div>
-          <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
+          <label className="block text-xs font-medium uppercase tracking-wide text-slate-500 mb-1.5">
             Birth Date
           </label>
           <input
@@ -226,7 +226,7 @@ function SettingsForm() {
 
         {/* Birth time */}
         <div>
-          <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
+          <label className="block text-xs font-medium uppercase tracking-wide text-slate-500 mb-1.5">
             Birth Time <span className="text-slate-600">(optional, for accurate rising sign)</span>
           </label>
           <input
@@ -250,8 +250,8 @@ function SettingsForm() {
         <button
           type="submit"
           disabled={saving}
-          className="w-full py-3 rounded-xl bg-white text-black text-sm font-bold
-            hover:bg-white/90 disabled:opacity-50 transition-colors mt-2"
+          className="w-full py-3 rounded-lg bg-white text-black text-sm font-medium
+            hover:bg-white/90 disabled:opacity-30 transition-colors mt-2"
         >
           {saving ? 'Saving...' : isOnboarding ? 'Complete Setup' : 'Save Changes'}
         </button>

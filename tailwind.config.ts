@@ -11,46 +11,31 @@ const config: Config = {
       colors: {
         bg: {
           primary: '#010208',
-          card: '#0a0b16',
-          elevated: '#0f1122',
+          card: '#08090f',
+          elevated: '#0d0e18',
         },
         accent: {
-          purple: '#7C3AED',   // More saturated, less neon
-          indigo: '#4338CA',   // Muted indigo
+          purple: '#7C3AED',
+          indigo: '#4338CA',
         },
-        masc: '#1E40AF',       // Midnight Blue
-        fem: '#9D174D',        // Deep Rose
-        pinnacle: '#B45309',   // Amber
-        challenge: '#991B1B',  // Garnet
-        cycle: '#065F46',      // Dark Jade
+        masc: '#1E40AF',
+        fem: '#9D174D',
+        pinnacle: '#B45309',
+        challenge: '#991B1B',
+        cycle: '#065F46',
       },
       animation: {
-        'fade-up': 'fadeUp 0.6s ease forwards',
-        'draw': 'draw 1.5s ease forwards',
-        'pulse-slow': 'pulse 3s cubic-bezier(0.4,0,0.6,1) infinite',
-        'card-arrive': 'cardArrive 0.5s cubic-bezier(0.16,1,0.3,1) forwards',
+        'fade-up': 'fadeUp 0.4s ease forwards',
       },
       keyframes: {
         fadeUp: {
-          from: { opacity: '0', transform: 'translateY(20px)' },
+          from: { opacity: '0', transform: 'translateY(8px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
         },
-        draw: {
-          from: { strokeDashoffset: '1000' },
-          to: { strokeDashoffset: '0' },
-        },
-        cardArrive: {
-          from: { opacity: '0', transform: 'translateY(-40px) scale(0.92)' },
-          to: { opacity: '1', transform: 'translateY(0) scale(1)' },
-        },
-      },
-      backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'purple-glow': 'radial-gradient(ellipse at top, #1e1040 0%, #03040d 70%)',
       },
       fontFamily: {
-        sans: ['Tenor Sans', 'Inter', 'system-ui', 'sans-serif'],
-        heading: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        serif: ['Tenor Sans', 'Georgia', 'serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
     },

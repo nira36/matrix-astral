@@ -262,87 +262,62 @@ export default function Home() {
 
   return (
     <>
-      {/* ── Account icon (outside main to ensure fixed positioning) ── */}
+      {/* ── Sign In ── */}
       <a
         href="/login"
-        className="fixed top-4 right-4 z-50 w-10 h-10 rounded-full flex items-center justify-center
-                   bg-white/[0.08] border border-white/[0.1] backdrop-blur-md
-                   text-slate-400 hover:text-white hover:border-white/25
-                   transition-all duration-200"
-        aria-label="Sign In"
+        className="fixed top-4 right-4 z-50 px-4 py-2 rounded-lg text-xs font-medium text-slate-400
+                   border border-white/10 hover:text-white hover:border-white/20 transition-all"
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="8" r="4" />
-          <path d="M20 21a8 8 0 1 0-16 0" />
-        </svg>
+        Sign In
       </a>
 
-    <main className="min-h-screen px-4 py-14 md:py-20 bg-bg-primary text-white">
+    <main className="min-h-screen px-4 py-16 md:py-24 bg-bg-primary text-white">
       {/* ── Hero ── */}
-      <div className="max-w-3xl mx-auto text-center mb-12 animate-fade-up">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10
-                        text-[10px] tracking-widest uppercase text-slate-500 mb-6 font-bold">
-          <div className="w-1.5 h-1.5 rounded-full bg-accent-purple animate-pulse-slow" />
-          Numerology · Destiny Matrix · Arcana
-        </div>
-
-        <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-4">
-          <span className="text-white">Cosmic Love</span>{' '}
-          <span style={{
-            background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #c084fc 100%)',
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-          }}>
-            Matrix
-          </span>
+      <div className="max-w-2xl mx-auto text-center mb-14 animate-fade-up">
+        <h1 className="text-4xl md:text-5xl text-white mb-4">
+          Cosmic Love Matrix
         </h1>
-
-        <p className="text-slate-400 max-w-lg mx-auto leading-relaxed text-sm font-medium">
-          Decode the numbers encoded in your birth date. Calculate your Destiny Matrix,
-          discover your 22 Arcana positions, chakra alignment, and numerology life chart.
+        <p className="text-slate-500 max-w-md mx-auto leading-relaxed text-sm">
+          Decode the numbers in your birth date. Destiny matrix,
+          natal chart, numerology, and arcana — all in one place.
         </p>
       </div>
 
       {/* ── Input form ── */}
       <form
         onSubmit={handleSubmit}
-        className="max-w-md mx-auto rounded-2xl border border-white/[0.07] bg-bg-card p-6 md:p-8
-                   flex flex-col gap-5 mb-10 shadow-2xl shadow-purple-950/20"
+        className="max-w-md mx-auto rounded-xl border border-white/5 bg-bg-card p-6 md:p-8
+                   flex flex-col gap-5 mb-10"
       >
         <BirthDateInput value={dateStr} onChange={setDateStr} />
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-[11px] font-semibold tracking-widest uppercase text-slate-500">
-            Full Birth Name{' '}
-            <span className="normal-case text-slate-600 tracking-normal font-normal">
-              (optional — for Expression, Soul Urge & Personality)
-            </span>
+          <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
+            Full Birth Name <span className="normal-case text-slate-600 tracking-normal font-normal">(optional)</span>
           </label>
           <input
             type="text"
             placeholder="e.g. John William Smith"
             value={name}
             onChange={e => setName(e.target.value)}
-            className="w-full bg-[#1f2937] border border-white/[0.08] rounded-xl
+            className="w-full bg-white/[0.04] border border-white/10 rounded-lg
                        px-4 py-3 text-white placeholder-slate-600 text-sm outline-none
-                       transition-all duration-200
-                       focus:border-accent-purple focus:shadow-[0_0_0_3px_rgba(139,92,246,0.15)]"
+                       transition-colors focus:border-white/20"
           />
         </div>
 
-        {/* Birth time & place (for Natal Chart) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-semibold tracking-widest uppercase text-slate-500">
+            <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
               Birth Time
             </label>
             <input
               type="time"
               value={birthTime}
               onChange={e => setBirthTime(e.target.value)}
-              className="w-full bg-[#1f2937] border border-white/[0.08] rounded-xl
-                         px-4 py-3 text-white placeholder-slate-600 text-sm outline-none
-                         transition-all duration-200
-                         focus:border-accent-purple focus:shadow-[0_0_0_3px_rgba(139,92,246,0.15)]"
+              className="w-full bg-white/[0.04] border border-white/10 rounded-lg
+                         px-4 py-3 text-white text-sm outline-none
+                         transition-colors focus:border-white/20"
             />
           </div>
           <BirthPlaceInput
@@ -366,15 +341,11 @@ export default function Home() {
         <button
           type="submit"
           disabled={loading || dateStr.length < 10}
-          className="w-full py-3.5 px-6 rounded-xl font-semibold text-sm tracking-wide
-                     text-white transition-all duration-200
-                     disabled:opacity-40 disabled:cursor-not-allowed"
-          style={{
-            background: 'linear-gradient(135deg, #7c3aed, #6366f1)',
-            boxShadow: '0 4px 28px rgba(124,58,237,0.3)',
-          }}
+          className="w-full py-3 px-6 rounded-lg font-medium text-sm
+                     bg-white text-black hover:bg-white/90
+                     disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
-          {loading ? 'Calculating...' : 'Reveal Your Matrix'}
+          {loading ? 'Calculating...' : 'Calculate'}
         </button>
       </form>
 
@@ -642,8 +613,8 @@ export default function Home() {
         </div>
         )}
 
-        <p className="text-center text-[9px] text-slate-700 pb-12 uppercase tracking-[0.3em]">
-          Cosmic Love Matrix · Pythagorean Tradition · Premium Numerology Report
+        <p className="text-center text-xs text-slate-700 pb-12">
+          Cosmic Love Matrix
         </p>
       </div>
 
@@ -704,7 +675,7 @@ export default function Home() {
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-white/[0.07] bg-bg-card p-5 md:p-7 animate-fade-up shadow-xl shadow-black/30">
+    <div className="rounded-xl border border-white/5 bg-bg-card p-6 animate-fade-up">
       {children}
     </div>
   )
@@ -712,7 +683,7 @@ function Card({ children }: { children: React.ReactNode }) {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="text-3xl font-bold tracking-tight text-white text-center mb-4 stagger">
+    <h2 className="text-2xl text-white text-center mb-4">
       {children}
     </h2>
   )

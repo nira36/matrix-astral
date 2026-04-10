@@ -5,9 +5,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Tenor+Sans&display=swap');
 
 :root {
-  --bg-primary: #03040d;
-  --font-body: 'Tenor Sans', 'Inter', system-ui, sans-serif;
-  --font-heading: 'Inter', system-ui, sans-serif;
+  --bg-primary: #010208;
 }
 
 * {
@@ -22,34 +20,35 @@ html {
 
 body {
   background-color: var(--bg-primary);
-  color: #f8fafc;
-  font-family: var(--font-body);
+  color: #e2e8f0;
+  font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Titles keep Inter — only the body text switches to Tenor Sans */
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading);
+/* Serif for display headings only */
+h1, h2 {
+  font-family: 'Tenor Sans', Georgia, serif;
+  letter-spacing: -0.01em;
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #0d0f1e;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: #1a1d2e;
   border-radius: 3px;
 }
 
-/* Smooth fade-in for result sections */
+/* Fade up */
 @keyframes fadeUp {
   from {
     opacity: 0;
-    transform: translateY(16px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -58,23 +57,31 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .animate-fade-up {
-  animation: fadeUp 0.5s ease forwards;
+  animation: fadeUp 0.4s ease forwards;
 }
 
 /* Staggered children */
 .stagger > * {
   opacity: 0;
-  animation: fadeUp 0.5s ease forwards;
+  animation: fadeUp 0.4s ease forwards;
 }
-.stagger > *:nth-child(1) { animation-delay: 0.05s; }
-.stagger > *:nth-child(2) { animation-delay: 0.10s; }
-.stagger > *:nth-child(3) { animation-delay: 0.15s; }
-.stagger > *:nth-child(4) { animation-delay: 0.20s; }
-.stagger > *:nth-child(5) { animation-delay: 0.25s; }
-.stagger > *:nth-child(6) { animation-delay: 0.30s; }
+.stagger > *:nth-child(1) { animation-delay: 0.03s; }
+.stagger > *:nth-child(2) { animation-delay: 0.06s; }
+.stagger > *:nth-child(3) { animation-delay: 0.09s; }
+.stagger > *:nth-child(4) { animation-delay: 0.12s; }
+.stagger > *:nth-child(5) { animation-delay: 0.15s; }
+.stagger > *:nth-child(6) { animation-delay: 0.18s; }
 
 /* Number input remove arrows */
 input[type='number']::-webkit-inner-spin-button,
 input[type='number']::-webkit-outer-spin-button {
   -webkit-appearance: none;
+}
+
+/* Line clamp utility */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }

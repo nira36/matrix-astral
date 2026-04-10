@@ -233,7 +233,7 @@ export default function FriendsPage() {
 
       {/* Search */}
       <div className="mb-8">
-        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
+        <label className="block text-xs font-medium uppercase tracking-wide text-slate-500 mb-2">
           Find People
         </label>
         <input
@@ -247,7 +247,7 @@ export default function FriendsPage() {
         {searching && <p className="text-[10px] text-slate-600 mt-2">Searching...</p>}
 
         {searchResults.length > 0 && (
-          <div className="mt-2 rounded-xl border border-white/[0.07] bg-white/[0.02] overflow-hidden">
+          <div className="mt-2 rounded-xl border border-white/5 bg-bg-card overflow-hidden">
             {searchResults.map((p) => {
               const status = friendStatus(p.id)
               return (
@@ -287,10 +287,10 @@ export default function FriendsPage() {
       {/* Pending incoming requests */}
       {pendingIncoming.length > 0 && (
         <div className="mb-8">
-          <p className="text-[10px] font-black uppercase tracking-widest text-amber-400/80 mb-3">
+          <p className="text-xs font-medium uppercase tracking-wide text-amber-400/80 mb-3">
             Friend Requests ({pendingIncoming.length})
           </p>
-          <div className="rounded-xl border border-white/[0.07] bg-white/[0.02] overflow-hidden">
+          <div className="rounded-xl border border-white/5 bg-bg-card overflow-hidden">
             {pendingIncoming.map((f) => (
               <div key={f.id} className="flex items-center justify-between gap-3 px-4 py-3 border-b border-white/[0.04] last:border-b-0">
                 <div className="flex items-center gap-3 min-w-0">
@@ -326,17 +326,17 @@ export default function FriendsPage() {
 
       {/* Friends list */}
       <div className="mb-8">
-        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">
+        <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-3">
           Your Friends ({friends.length})
         </p>
         {loadingFriends ? (
           <p className="text-sm text-slate-600">Loading...</p>
         ) : friends.length === 0 ? (
-          <div className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-6 text-center">
+          <div className="rounded-xl border border-white/5 bg-bg-card p-6 text-center">
             <p className="text-sm text-slate-600">No friends yet. Search for someone above or share an invite link.</p>
           </div>
         ) : (
-          <div className="rounded-xl border border-white/[0.07] bg-white/[0.02] overflow-hidden">
+          <div className="rounded-xl border border-white/5 bg-bg-card overflow-hidden">
             {friends.map((f) => (
               <div key={f.id} className="flex items-center justify-between gap-3 px-4 py-3 border-b border-white/[0.04] last:border-b-0">
                 <Link
@@ -372,10 +372,10 @@ export default function FriendsPage() {
       {/* Pending sent */}
       {pendingSent.length > 0 && (
         <div className="mb-8">
-          <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-3">
             Sent Requests ({pendingSent.length})
           </p>
-          <div className="rounded-xl border border-white/[0.07] bg-white/[0.02] overflow-hidden">
+          <div className="rounded-xl border border-white/5 bg-bg-card overflow-hidden">
             {pendingSent.map((f) => (
               <div key={f.id} className="flex items-center justify-between gap-3 px-4 py-3 border-b border-white/[0.04] last:border-b-0">
                 <div className="flex items-center gap-3 min-w-0">
@@ -397,8 +397,8 @@ export default function FriendsPage() {
       )}
 
       {/* Invite link */}
-      <div className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-5">
-        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">
+      <div className="rounded-xl border border-white/5 bg-bg-card p-5">
+        <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-3">
           Invite Link
         </p>
         {inviteLink ? (

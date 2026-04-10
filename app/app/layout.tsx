@@ -1,48 +1,70 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { AuthProvider, useAuth } from '@/components/auth/AuthProvider'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 
 const NAV_ITEMS = [
-  { href: '/app/dashboard', label: 'Dashboard', icon: '◉' },
-  { href: '/app/chart',     label: 'My Chart',  icon: '☉' },
-  { href: '/app/friends',   label: 'Friends',   icon: '☌' },
-  { href: '/app/settings',  label: 'Settings',  icon: '⚙' },
+  {
+    href: '/app/dashboard',
+    label: 'Home',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
+      </svg>
+    ),
+  },
+  {
+    href: '/app/chart',
+    label: 'Chart',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <circle cx="12" cy="12" r="4" />
+        <line x1="12" y1="2" x2="12" y2="6" />
+        <line x1="12" y1="18" x2="12" y2="22" />
+        <line x1="2" y1="12" x2="6" y2="12" />
+        <line x1="18" y1="12" x2="22" y2="12" />
+      </svg>
+    ),
+  },
+  {
+    href: '/app/friends',
+    label: 'Friends',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    ),
+  },
+  {
+    href: '/app/settings',
+    label: 'Settings',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+      </svg>
+    ),
+  },
 ]
 
 function AppShell({ children }: { children: React.ReactNode }) {
   const { user, profile, loading, profileLoading } = useAuth()
   const pathname = usePathname()
   const router = useRouter()
-  const supabase = createClient()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-
-  // Close sidebar on route change
-  useEffect(() => {
-    setSidebarOpen(false)
-  }, [pathname])
-
-  // Close sidebar on Escape key
-  useEffect(() => {
-    if (!sidebarOpen) return
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setSidebarOpen(false)
-    }
-    document.addEventListener('keydown', handleKey)
-    return () => document.removeEventListener('keydown', handleKey)
-  }, [sidebarOpen])
 
   useEffect(() => {
     if (loading || profileLoading) return
-
     if (!user) {
       router.replace('/login')
       return
     }
-
     if (!profile && !pathname.includes('/settings')) {
       router.replace('/app/settings?onboarding=true')
     }
@@ -56,119 +78,80 @@ function AppShell({ children }: { children: React.ReactNode }) {
     )
   }
 
-  if (!user) {
-    return null
-  }
-
-  async function handleSignOut() {
-    await supabase.auth.signOut()
-    router.push('/')
-  }
+  if (!user) return null
 
   return (
-    <div className="min-h-screen bg-bg-primary flex">
-      {/* Hamburger button */}
-      <button
-        onClick={() => setSidebarOpen(true)}
-        className="fixed top-4 left-4 z-40 w-10 h-10 rounded-xl border border-white/[0.08]
-                   bg-bg-primary/80 backdrop-blur-md flex items-center justify-center
-                   text-slate-400 hover:text-white hover:border-white/20
-                   transition-all duration-200"
-        aria-label="Open menu"
-      >
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-          <line x1="3" y1="5" x2="15" y2="5" />
-          <line x1="3" y1="9" x2="15" y2="9" />
-          <line x1="3" y1="13" x2="15" y2="13" />
-        </svg>
-      </button>
+    <div className="min-h-screen bg-bg-primary">
+      {/* ── Desktop: thin left rail ── */}
+      <aside className="hidden md:flex fixed top-0 left-0 z-40 h-full w-14 flex-col items-center
+                         border-r border-white/5 bg-bg-primary py-5">
+        {/* Logo */}
+        <Link href="/app/dashboard" className="mb-8 text-white/40 hover:text-white transition-colors">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5" />
+          </svg>
+        </Link>
 
-      {/* Backdrop overlay */}
-      <div
-        className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
-          sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={() => setSidebarOpen(false)}
-      />
-
-      {/* Sidebar */}
-      <aside
-        className={`fixed top-0 left-0 z-50 h-full w-64 bg-bg-primary border-r border-white/[0.06]
-                    flex flex-col transition-transform duration-300 ease-out ${
-                      sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-                    }`}
-      >
-        {/* Header */}
-        <div className="p-5 border-b border-white/[0.06] flex items-center justify-between">
-          <Link href="/app/dashboard" className="text-sm font-black text-white tracking-tight">
-            Cosmic Love Matrix
-          </Link>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="w-8 h-8 rounded-lg flex items-center justify-center
-                       text-slate-500 hover:text-white hover:bg-white/[0.06] transition-all duration-200"
-            aria-label="Close menu"
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-              <line x1="2" y1="2" x2="12" y2="12" />
-              <line x1="12" y1="2" x2="2" y2="12" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 p-3 flex flex-col gap-1">
+        {/* Nav items */}
+        <nav className="flex flex-col gap-2 flex-1">
           {NAV_ITEMS.map((item) => {
             const active = pathname.startsWith(item.href)
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                  active
-                    ? 'bg-white/[0.08] text-white font-medium'
-                    : 'text-slate-500 hover:text-slate-300 hover:bg-white/[0.04]'
-                }`}
+                className={`relative w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 group
+                  ${active
+                    ? 'text-white bg-white/[0.08]'
+                    : 'text-slate-600 hover:text-slate-300 hover:bg-white/[0.04]'
+                  }`}
+                title={item.label}
               >
-                <span className="text-base w-5 text-center">{item.icon}</span>
-                {item.label}
+                {item.icon}
+                {/* Tooltip */}
+                <span className="absolute left-full ml-3 px-2 py-1 rounded-md bg-white/10 backdrop-blur-sm
+                                 text-[11px] font-medium text-white whitespace-nowrap
+                                 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
+                  {item.label}
+                </span>
               </Link>
             )
           })}
         </nav>
 
-        {/* User footer */}
-        <div className="p-4 border-t border-white/[0.06]">
-          {profile && (
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 rounded-full bg-white/[0.08] flex items-center justify-center text-xs font-bold text-white/60">
-                {(profile.display_name || profile.username)?.[0]?.toUpperCase() || '?'}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-white truncate">
-                  {profile.display_name || profile.username}
-                </p>
-                <p className="text-[10px] text-slate-600 truncate">
-                  {profile.sun_sign && `☉ ${profile.sun_sign}`}
-                  {profile.moon_sign && ` ☽ ${profile.moon_sign}`}
-                  {profile.rising_sign && ` AC ${profile.rising_sign}`}
-                </p>
-              </div>
-            </div>
-          )}
-          <button
-            onClick={handleSignOut}
-            className="w-full text-left text-[11px] text-slate-600 hover:text-slate-400 transition-colors"
-          >
-            Sign Out
-          </button>
-        </div>
+        {/* User avatar */}
+        {profile && (
+          <div className="w-8 h-8 rounded-full bg-white/[0.08] flex items-center justify-center
+                          text-[11px] font-semibold text-white/50">
+            {(profile.display_name || profile.username)?.[0]?.toUpperCase() || '?'}
+          </div>
+        )}
       </aside>
 
-      {/* Main content — pt-16 clears the fixed hamburger button */}
-      <main className="flex-1 overflow-y-auto pt-14">
+      {/* ── Main content ── */}
+      <main className="md:ml-14 pb-20 md:pb-0 min-h-screen">
         {children}
       </main>
+
+      {/* ── Mobile: bottom tab bar ── */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40
+                       border-t border-white/5 bg-bg-primary/90 backdrop-blur-md
+                       flex items-center justify-around px-2 py-1.5 safe-bottom">
+        {NAV_ITEMS.map((item) => {
+          const active = pathname.startsWith(item.href)
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-lg transition-colors
+                ${active ? 'text-white' : 'text-slate-600'}`}
+            >
+              {item.icon}
+              <span className="text-[9px] font-medium tracking-wide">{item.label}</span>
+            </Link>
+          )
+        })}
+      </nav>
     </div>
   )
 }
