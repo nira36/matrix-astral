@@ -266,6 +266,22 @@ function SettingsForm() {
           </p>
         )}
       </form>
+
+      {/* Sign out */}
+      {!isOnboarding && (
+        <div className="mt-12 pt-6 border-t border-white/5">
+          <button
+            onClick={async () => {
+              const supabase = createClient()
+              await supabase.auth.signOut()
+              router.push('/')
+            }}
+            className="text-sm text-slate-600 hover:text-red-400 transition-colors"
+          >
+            Sign out
+          </button>
+        </div>
+      )}
     </div>
   )
 }

@@ -105,14 +105,18 @@ export default function FriendsPage() {
     setLoadingFriends(false)
   }, [user, supabase])
 
-  // Fetch on mount; abort if component unmounts before fetch completes
+  // Fetch when user becomes available; abort if component unmounts
+  const fetchedForRef = useRef<string | null>(null)
   useEffect(() => {
+    if (!user) return
+    // Don't re-fetch if we already fetched for this user
+    if (fetchedForRef.current === user.id) return
+    fetchedForRef.current = user.id
     const ac = new AbortController()
     setLoadingFriends(true)
     loadFriendships(ac.signal)
     return () => ac.abort()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [user, loadFriendships])
 
   // ─── Search users ───────────────────────────────────────────────────
   function handleSearch(val: string) {
