@@ -103,8 +103,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const u = session?.user ?? null
         setUser(u)
         if (u) {
-          // TOKEN_REFRESHED = tab regain / silent refresh → don't flash loading
-          const silent = event === 'TOKEN_REFRESHED'
+          // If we already have a profile, refresh silently in the background
+          // (e.g. tab regain fires TOKEN_REFRESHED or SIGNED_IN again).
+          // Only show loading spinner on genuine first login.
+          const silent = initialDoneRef.current
           await fetchProfile(u.id, silent)
         } else {
           setProfile(null)
