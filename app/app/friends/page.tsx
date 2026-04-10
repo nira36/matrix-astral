@@ -22,48 +22,9 @@ interface FriendRow {
   friendProfile: FriendProfile
 }
 
-const supabase = createClient()
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as any
-
-async function fetchFriendships(userId: string): Promise<{
-  friends: FriendRow[]
-  pendingIncoming: FriendRow[]
-  pendingSent: FriendRow[]
-}> {
-  const empty = { friends: [], pendingIncoming: [], pendingSent: [] }
-
-  const { data: rows, error } = await db
-    .from('friendships')
-    .select('*')
-    .or(`requester.eq.${userId},addressee.eq.${userId}`)
-
-  if (error || !rows || rows.length === 0) return empty
-
-  const friendIds = rows.map((r: any) => r.requester === userId ? r.addressee : r.requester)
-  const { data: profiles } = await db
-    .from('profiles')
-    .select('id, username, display_name, sun_sign, moon_sign, rising_sign')
-    .in('id', friendIds)
-
-  const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]))
-
-  const enriched: FriendRow[] = rows
-    .map((r: any) => ({
-      ...r,
-      friendProfile: profileMap.get(r.requester === userId ? r.addressee : r.requester),
-    }))
-    .filter((r: FriendRow) => r.friendProfile)
-
-  return {
-    friends: enriched.filter(r => r.status === 'accepted'),
-    pendingIncoming: enriched.filter(r => r.status === 'pending' && r.addressee === userId),
-    pendingSent: enriched.filter(r => r.status === 'pending' && r.requester === userId),
-  }
-}
-
 export default function FriendsPage() {
   const { user, profile } = useAuth()
+  const supabaseRef = useRef(createClient())
 
   const [query, setQuery] = useState('')
   const [searchResults, setSearchResults] = useState<FriendProfile[]>([])
@@ -78,22 +39,64 @@ export default function FriendsPage() {
   const [inviteLink, setInviteLink] = useState<string | null>(null)
   const [copiedInvite, setCopiedInvite] = useState(false)
   const [actionMsg, setActionMsg] = useState<string | null>(null)
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function getDb(): any { return supabaseRef.current as any }
 
   // ─── Load all friendships ──────────────────────────────────────────
   async function reload() {
-    if (!user) return
-    const data = await fetchFriendships(user.id)
-    setFriends(data.friends)
-    setPendingIncoming(data.pendingIncoming)
-    setPendingSent(data.pendingSent)
+    const uid = user?.id
+    if (!uid) return
+
+    const db = getDb()
+    const { data: rows, error } = await db
+      .from('friendships')
+      .select('*')
+      .or(`requester.eq.${uid},addressee.eq.${uid}`)
+
+    if (error) {
+      console.error('[friends] load error:', error)
+      setLoadingFriends(false)
+      return
+    }
+
+    if (!rows || rows.length === 0) {
+      setFriends([])
+      setPendingIncoming([])
+      setPendingSent([])
+      setLoadingFriends(false)
+      return
+    }
+
+    const friendIds = rows.map((r: any) => r.requester === uid ? r.addressee : r.requester)
+    const { data: profiles } = await db
+      .from('profiles')
+      .select('id, username, display_name, sun_sign, moon_sign, rising_sign')
+      .in('id', friendIds)
+
+    const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]))
+    const enriched: FriendRow[] = rows
+      .map((r: any) => ({
+        ...r,
+        friendProfile: profileMap.get(r.requester === uid ? r.addressee : r.requester),
+      }))
+      .filter((r: FriendRow) => r.friendProfile)
+
+    setFriends(enriched.filter(r => r.status === 'accepted'))
+    setPendingIncoming(enriched.filter(r => r.status === 'pending' && r.addressee === uid))
+    setPendingSent(enriched.filter(r => r.status === 'pending' && r.requester === uid))
     setLoadingFriends(false)
   }
 
-  // Initial load — wait for user, then fetch
+  // Initial load
   useEffect(() => {
-    if (!user) return
+    if (!user?.id) return
     setLoadingFriends(true)
     reload()
+    // Poll every 10s for incoming requests (no realtime subscription needed)
+    const interval = setInterval(reload, 10_000)
+    return () => clearInterval(interval)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id])
 
@@ -105,7 +108,7 @@ export default function FriendsPage() {
     setSearching(true)
     debounceRef.current = setTimeout(async () => {
       try {
-        const { data } = await db
+        const { data } = await getDb()
           .from('profiles')
           .select('id, username, display_name, sun_sign, moon_sign, rising_sign')
           .ilike('username', `%${val}%`)
@@ -127,11 +130,13 @@ export default function FriendsPage() {
 
   async function sendRequest(addresseeId: string) {
     if (!user) return
-    const { error } = await db.from('friendships').insert({
+    setActionLoading(addresseeId)
+    const { error } = await getDb().from('friendships').insert({
       requester: user.id,
       addressee: addresseeId,
       status: 'pending',
     })
+    setActionLoading(null)
     if (error) {
       showMsg(error.code === '23505' ? 'Request already sent.' : error.message)
     } else {
@@ -143,35 +148,45 @@ export default function FriendsPage() {
   }
 
   async function acceptRequest(friendshipId: string) {
-    const { error } = await db.from('friendships').update({ status: 'accepted' }).eq('id', friendshipId)
+    setActionLoading(friendshipId)
+    const { error } = await getDb()
+      .from('friendships')
+      .update({ status: 'accepted' })
+      .eq('id', friendshipId)
+    setActionLoading(null)
     if (error) {
-      showMsg('Failed to accept: ' + error.message)
-      return
+      console.error('[friends] accept error:', error)
+      showMsg('Failed: ' + error.message)
+    } else {
+      showMsg('Friend added!')
+      await reload()
     }
-    showMsg('Friend added!')
-    await reload()
   }
 
   async function declineRequest(friendshipId: string) {
-    await db.from('friendships').delete().eq('id', friendshipId)
+    setActionLoading(friendshipId)
+    await getDb().from('friendships').delete().eq('id', friendshipId)
+    setActionLoading(null)
     await reload()
   }
 
   async function removeFriend(friendshipId: string) {
-    await db.from('friendships').delete().eq('id', friendshipId)
+    setActionLoading(friendshipId)
+    await getDb().from('friendships').delete().eq('id', friendshipId)
+    setActionLoading(null)
     showMsg('Friend removed.')
     await reload()
   }
 
   async function generateInvite() {
     if (!user) return
-    const { data, error } = await db
+    const { data, error } = await getDb()
       .from('invite_links')
       .insert({ creator: user.id, max_uses: 5 })
       .select('token')
       .single()
     if (!error && data) {
-      setInviteLink(`${window.location.origin}/invite/${data.token}`)
+      setInviteLink(`${window.location.origin}/invite/${(data as any).token}`)
     }
   }
 
@@ -246,10 +261,11 @@ export default function FriendsPage() {
                   ) : (
                     <button
                       onClick={() => sendRequest(p.id)}
+                      disabled={actionLoading === p.id}
                       className="text-xs text-white bg-white/10 hover:bg-white/20
-                        px-3 py-1.5 rounded-lg transition-colors shrink-0"
+                        px-3 py-1.5 rounded-lg transition-colors shrink-0 disabled:opacity-50"
                     >
-                      Add
+                      {actionLoading === p.id ? '...' : 'Add'}
                     </button>
                   )}
                 </div>
@@ -280,15 +296,17 @@ export default function FriendsPage() {
                 <div className="flex gap-2 shrink-0">
                   <button
                     onClick={() => acceptRequest(f.id)}
+                    disabled={actionLoading === f.id}
                     className="text-xs text-emerald-400 bg-emerald-400/10 hover:bg-emerald-400/20
-                      px-3 py-1.5 rounded-lg transition-colors"
+                      px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
                   >
-                    Accept
+                    {actionLoading === f.id ? '...' : 'Accept'}
                   </button>
                   <button
                     onClick={() => declineRequest(f.id)}
+                    disabled={actionLoading === f.id}
                     className="text-xs text-slate-500 bg-white/[0.04] hover:bg-white/[0.08]
-                      px-3 py-1.5 rounded-lg transition-colors"
+                      px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
                   >
                     Decline
                   </button>
@@ -333,7 +351,8 @@ export default function FriendsPage() {
                 </Link>
                 <button
                   onClick={() => removeFriend(f.id)}
-                  className="text-[10px] text-slate-600 hover:text-red-400 transition-colors shrink-0"
+                  disabled={actionLoading === f.id}
+                  className="text-[10px] text-slate-600 hover:text-red-400 transition-colors shrink-0 disabled:opacity-50"
                 >
                   Remove
                 </button>
@@ -360,7 +379,8 @@ export default function FriendsPage() {
                 </div>
                 <button
                   onClick={() => declineRequest(f.id)}
-                  className="text-[10px] text-slate-600 hover:text-red-400 transition-colors"
+                  disabled={actionLoading === f.id}
+                  className="text-[10px] text-slate-600 hover:text-red-400 transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
