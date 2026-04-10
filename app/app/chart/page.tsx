@@ -44,9 +44,13 @@ import BirthPlaceInput from '@/components/BirthPlaceInput'
 import type { PlaceSelection } from '@/components/BirthPlaceInput'
 import { CORE_DESCRIPTIONS } from '@/lib/numerology'
 
+import { useAuth } from '@/components/auth/AuthProvider'
+
 type Tab = 'matrix' | 'deck' | 'numerology' | 'natal' | 'horoscope' | 'chinese' | 'vedic'
 
 export default function Home() {
+  const { profile } = useAuth()
+
   const [dateStr, setDateStr] = useState('')
   const [name, setName] = useState('')
   const [numResult, setNumResult] = useState<NumerologyResult | null>(null)
@@ -55,6 +59,8 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [tab, setTab] = useState<Tab>('matrix')
   const [calcKey, setCalcKey] = useState(0)
+  // Whether results were auto-loaded from saved profile (hides the input form)
+  const [autoLoaded, setAutoLoaded] = useState(false)
 
   // Natal chart extra fields
   const [birthTime, setBirthTime] = useState('')
@@ -62,6 +68,68 @@ export default function Home() {
   const [selectedPlace, setSelectedPlace] = useState<PlaceSelection | null>(null)
   const [natalData, setNatalData] = useState<NatalChartData | null>(null)
   const [natalMeta, setNatalMeta] = useState<{ ut: string; lst: string; lat: string; lon: string; tz: string } | null>(null)
+
+  // ─── Auto-load from saved profile ──────────────────────────────────────
+  const profileLoadedRef = useRef(false)
+  useEffect(() => {
+    if (profileLoadedRef.current || !profile?.birth_date) return
+    profileLoadedRef.current = true
+
+    const [yyyy, mm, dd] = profile.birth_date.split('-').map(Number)
+    const birthDateStr = `${String(dd).padStart(2, '0')}/${String(mm).padStart(2, '0')}/${yyyy}`
+    const birthName = profile.birth_name || profile.display_name || ''
+
+    setDateStr(birthDateStr)
+    setName(birthName)
+
+    // Numerology
+    const nr = calculate(birthDateStr, birthName)
+    const mr = calcDestinyMatrix(dd, mm, yyyy)
+    if (nr) setNumResult(nr)
+    if (mr) setMatResult(mr)
+
+    // Birth time & place
+    if (profile.birth_time) {
+      setBirthTime(profile.birth_time.slice(0, 5))
+    }
+    if (profile.birth_place) {
+      setBirthPlace(profile.birth_place)
+    }
+    if (profile.birth_lat != null && profile.birth_lon != null) {
+      const place: PlaceSelection = {
+        display: profile.birth_place || '',
+        lat: profile.birth_lat,
+        lon: profile.birth_lon,
+        country: '',
+        tz: profile.birth_tz || 1,
+      }
+      setSelectedPlace(place)
+
+      // Natal chart
+      const hour = profile.birth_time ? parseInt(profile.birth_time.split(':')[0], 10) : 12
+      const min = profile.birth_time ? parseInt(profile.birth_time.split(':')[1], 10) : 0
+      let utcOff = place.tz
+      if (isDST(yyyy, mm, dd, place.tz)) utcOff = place.tz + 1
+
+      const natal = calcNatalChart(dd, mm, yyyy, hour, min, place.lat, place.lon, utcOff)
+      setNatalData(natal)
+
+      // Metadata
+      const utHour = hour - utcOff
+      const utDate = new Date(Date.UTC(yyyy, mm - 1, dd, utHour, min, 0))
+      const utStr = `${utDate.getUTCDate().toString().padStart(2, '0')}/${(utDate.getUTCMonth() + 1).toString().padStart(2, '0')}/${utDate.getUTCFullYear()} ${utDate.getUTCHours().toString().padStart(2, '0')}:${utDate.getUTCMinutes().toString().padStart(2, '0')} UT`
+      const lstDeg = ((natal.ascendantLongitude + 90) % 360)
+      const lstH = Math.floor(lstDeg / 15)
+      const lstM = Math.floor((lstDeg / 15 - lstH) * 60)
+      const latStr = `${Math.abs(place.lat).toFixed(2)}°${place.lat >= 0 ? 'N' : 'S'}`
+      const lonStr = `${Math.abs(place.lon).toFixed(2)}°${place.lon >= 0 ? 'E' : 'W'}`
+      const tzSign = utcOff >= 0 ? '+' : ''
+      setNatalMeta({ ut: utStr, lst: `${lstH.toString().padStart(2, '0')}:${lstM.toString().padStart(2, '0')}`, lat: latStr, lon: lonStr, tz: `UTC${tzSign}${utcOff}` })
+    }
+
+    setCalcKey(k => k + 1)
+    setAutoLoaded(true)
+  }, [profile])
 
   // Chart wheel mode:
   //   'natal'    = birth chart only
@@ -250,105 +318,108 @@ export default function Home() {
 
   return (
     <main className="min-h-screen px-4 py-14 md:py-20 bg-bg-primary text-white">
-      {/* ── Hero ── */}
-      <div className="max-w-3xl mx-auto text-center mb-12 animate-fade-up">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10
-                        text-[10px] tracking-widest uppercase text-slate-500 mb-6 font-bold">
-          <div className="w-1.5 h-1.5 rounded-full bg-accent-purple animate-pulse-slow" />
-          Numerology · Destiny Matrix · Arcana
-        </div>
+      {/* ── Hero + Input form (hidden when auto-loaded from profile) ── */}
+      {!autoLoaded && (
+        <>
+          <div className="max-w-3xl mx-auto text-center mb-12 animate-fade-up">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10
+                            text-[10px] tracking-widest uppercase text-slate-500 mb-6 font-bold">
+              <div className="w-1.5 h-1.5 rounded-full bg-accent-purple animate-pulse-slow" />
+              Numerology · Destiny Matrix · Arcana
+            </div>
 
-        <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-4">
-          <span className="text-white">Cosmic Love</span>{' '}
-          <span style={{
-            background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #c084fc 100%)',
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-          }}>
-            Matrix
-          </span>
-        </h1>
+            <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-4">
+              <span className="text-white">Cosmic Love</span>{' '}
+              <span style={{
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #c084fc 100%)',
+                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+              }}>
+                Matrix
+              </span>
+            </h1>
 
-        <p className="text-slate-400 max-w-lg mx-auto leading-relaxed text-sm font-medium">
-          Decode the numbers encoded in your birth date. Calculate your Destiny Matrix,
-          discover your 22 Arcana positions, chakra alignment, and numerology life chart.
-        </p>
-      </div>
-
-      {/* ── Input form ── */}
-      <form
-        onSubmit={handleSubmit}
-        className="max-w-md mx-auto rounded-2xl border border-white/[0.07] bg-bg-card p-6 md:p-8
-                   flex flex-col gap-5 mb-10 shadow-2xl shadow-purple-950/20"
-      >
-        <BirthDateInput value={dateStr} onChange={setDateStr} />
-
-        <div className="flex flex-col gap-1.5">
-          <label className="text-[11px] font-semibold tracking-widest uppercase text-slate-500">
-            Full Birth Name{' '}
-            <span className="normal-case text-slate-600 tracking-normal font-normal">
-              (optional — for Expression, Soul Urge & Personality)
-            </span>
-          </label>
-          <input
-            type="text"
-            placeholder="e.g. John William Smith"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            className="w-full bg-[#1f2937] border border-white/[0.08] rounded-xl
-                       px-4 py-3 text-white placeholder-slate-600 text-sm outline-none
-                       transition-all duration-200
-                       focus:border-accent-purple focus:shadow-[0_0_0_3px_rgba(139,92,246,0.15)]"
-          />
-        </div>
-
-        {/* Birth time & place (for Natal Chart) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-semibold tracking-widest uppercase text-slate-500">
-              Birth Time
-            </label>
-            <input
-              type="time"
-              value={birthTime}
-              onChange={e => setBirthTime(e.target.value)}
-              className="w-full bg-[#1f2937] border border-white/[0.08] rounded-xl
-                         px-4 py-3 text-white placeholder-slate-600 text-sm outline-none
-                         transition-all duration-200
-                         focus:border-accent-purple focus:shadow-[0_0_0_3px_rgba(139,92,246,0.15)]"
-            />
+            <p className="text-slate-400 max-w-lg mx-auto leading-relaxed text-sm font-medium">
+              Decode the numbers encoded in your birth date. Calculate your Destiny Matrix,
+              discover your 22 Arcana positions, chakra alignment, and numerology life chart.
+            </p>
           </div>
-          <BirthPlaceInput
-            value={birthPlace}
-            onChange={setBirthPlace}
-            onSelect={setSelectedPlace}
-            selectedPlace={selectedPlace}
-          />
-        </div>
 
-        {error && (
-          <p className="text-red-400 text-xs flex items-center gap-1.5">
-            <svg className="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" clipRule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" />
-            </svg>
-            {error}
-          </p>
-        )}
+          <form
+            onSubmit={handleSubmit}
+            className="max-w-md mx-auto rounded-2xl border border-white/[0.07] bg-bg-card p-6 md:p-8
+                       flex flex-col gap-5 mb-10 shadow-2xl shadow-purple-950/20"
+          >
+            <BirthDateInput value={dateStr} onChange={setDateStr} />
 
-        <button
-          type="submit"
-          disabled={loading || dateStr.length < 10}
-          className="w-full py-3.5 px-6 rounded-xl font-semibold text-sm tracking-wide
-                     text-white transition-all duration-200
-                     disabled:opacity-40 disabled:cursor-not-allowed"
-          style={{
-            background: 'linear-gradient(135deg, #7c3aed, #6366f1)',
-            boxShadow: '0 4px 28px rgba(124,58,237,0.3)',
-          }}
-        >
-          {loading ? 'Calculating...' : 'Reveal Your Matrix'}
-        </button>
-      </form>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-semibold tracking-widest uppercase text-slate-500">
+                Full Birth Name{' '}
+                <span className="normal-case text-slate-600 tracking-normal font-normal">
+                  (optional — for Expression, Soul Urge & Personality)
+                </span>
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. John William Smith"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                className="w-full bg-[#1f2937] border border-white/[0.08] rounded-xl
+                           px-4 py-3 text-white placeholder-slate-600 text-sm outline-none
+                           transition-all duration-200
+                           focus:border-accent-purple focus:shadow-[0_0_0_3px_rgba(139,92,246,0.15)]"
+              />
+            </div>
+
+            {/* Birth time & place (for Natal Chart) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-semibold tracking-widest uppercase text-slate-500">
+                  Birth Time
+                </label>
+                <input
+                  type="time"
+                  value={birthTime}
+                  onChange={e => setBirthTime(e.target.value)}
+                  className="w-full bg-[#1f2937] border border-white/[0.08] rounded-xl
+                             px-4 py-3 text-white placeholder-slate-600 text-sm outline-none
+                             transition-all duration-200
+                             focus:border-accent-purple focus:shadow-[0_0_0_3px_rgba(139,92,246,0.15)]"
+                />
+              </div>
+              <BirthPlaceInput
+                value={birthPlace}
+                onChange={setBirthPlace}
+                onSelect={setSelectedPlace}
+                selectedPlace={selectedPlace}
+              />
+            </div>
+
+            {error && (
+              <p className="text-red-400 text-xs flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" clipRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" />
+                </svg>
+                {error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading || dateStr.length < 10}
+              className="w-full py-3.5 px-6 rounded-xl font-semibold text-sm tracking-wide
+                         text-white transition-all duration-200
+                         disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{
+                background: 'linear-gradient(135deg, #7c3aed, #6366f1)',
+                boxShadow: '0 4px 28px rgba(124,58,237,0.3)',
+              }}
+            >
+              {loading ? 'Calculating...' : 'Reveal Your Matrix'}
+            </button>
+          </form>
+        </>
+      )}
 
       {/* ── Tab navigation (always visible) ── */}
       <div className="max-w-6xl mx-auto flex flex-col gap-8">
