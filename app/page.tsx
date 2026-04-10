@@ -262,19 +262,15 @@ export default function Home() {
 
   return (
     <main className="min-h-screen px-4 py-14 md:py-20 bg-bg-primary text-white">
-      {/* ── Top bar ── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-5 py-3
-                       bg-bg-primary/80 backdrop-blur-md border-b border-white/[0.05]">
-        <span className="text-sm font-black text-white tracking-tight">Cosmic Love Matrix</span>
-        <a
-          href="/login"
-          className="px-4 py-2 rounded-xl text-xs font-bold text-white
-                     bg-gradient-to-r from-violet-600 to-indigo-600
-                     hover:opacity-90 transition-opacity"
-        >
-          Sign In
-        </a>
-      </nav>
+      {/* ── Sign In ── */}
+      <a
+        href="/login"
+        className="fixed top-4 right-4 z-50 px-4 py-2 rounded-xl text-xs font-bold text-white
+                   bg-gradient-to-r from-violet-600 to-indigo-600
+                   hover:opacity-90 transition-opacity shadow-lg shadow-violet-900/40"
+      >
+        Sign In
+      </a>
 
       {/* ── Hero ── */}
       <div className="max-w-3xl mx-auto text-center mb-12 animate-fade-up">
