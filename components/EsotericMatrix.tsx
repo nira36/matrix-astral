@@ -80,13 +80,18 @@ const Node = ({ point, onEnter, onLeave }: NodeProps) => {
       {(() => {
         // Use the corresponding Arcana color for each number to match the Deck section
         const arcanaColor = getArcana(point.number)?.color ?? point.color
+        // Only main diamond + octagon corners pulse (big nodes). Smaller nodes are static.
+        const animateClass = isLarge ? 'animate-node-pulse' : ''
+        const auraClass = isLarge ? 'animate-node-aura' : ''
+        const auraOpacity = isLarge ? undefined : 0.12
         return (
-          <g className="animate-node-pulse" style={{ transformOrigin: `${coord.x}px ${coord.y}px` }}>
+          <g className={animateClass} style={{ transformOrigin: `${coord.x}px ${coord.y}px` }}>
             {/* Color-matched Aura Circle */}
             <circle
               cx={coord.x} cy={coord.y} r={coord.r + 6}
               fill={arcanaColor}
-              className="animate-node-aura"
+              className={auraClass}
+              fillOpacity={auraOpacity}
             />
 
             {/* Main Node Circle */}
