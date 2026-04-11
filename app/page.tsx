@@ -50,13 +50,19 @@ type Tab = 'matrix' | 'deck' | 'numerology' | 'natal' | 'horoscope' | 'chinese' 
 
 export default function Home() {
   const router = useRouter()
+  // authChecked: null = checking, false = not logged in, true = logged in (redirecting)
+  const [authChecked, setAuthChecked] = useState<null | boolean>(null)
 
-  // If user is already logged in, redirect to the app
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) router.replace('/app/dashboard')
-    })
+      if (user) {
+        setAuthChecked(true)
+        router.replace('/app/dashboard')
+      } else {
+        setAuthChecked(false)
+      }
+    }).catch(() => setAuthChecked(false))
   }, [router])
 
   const [dateStr, setDateStr] = useState('')
@@ -259,6 +265,16 @@ export default function Home() {
   }
 
   const hasResults = numResult && matResult
+
+  // While checking auth, or if logged in (redirecting), show loading screen
+  // — avoids flashing the public form before redirecting to the dashboard.
+  if (authChecked === null || authChecked === true) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-bg-primary">
+        <div className="text-slate-600 text-sm animate-pulse">Loading...</div>
+      </div>
+    )
+  }
 
   return (
     <>
