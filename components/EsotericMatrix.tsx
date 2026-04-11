@@ -352,26 +352,20 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
                        p-4 w-64 animate-fade-up"
             style={{ left: `${(c.x / VIEWBOX) * 100}%`, top: `${(c.y / VIEWBOX) * 100}%` }}
           >
-            <div className="flex flex-col gap-2">
-              <div className="text-[10px] uppercase font-bold tracking-[0.15em] text-slate-400">
-                Punto {hoveredNode.key} · {hoveredNode.formula}
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-lg flex items-center justify-center font-bold text-2xl"
+                style={{ background: 'rgba(168,135,157,0.1)', color: '#a8879d' }}>
+                {hoveredNode.number}
               </div>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-lg flex items-center justify-center font-bold text-2xl"
-                  style={{ background: 'rgba(139,92,246,0.1)', color: '#a8879d' }}>
-                  {hoveredNode.number}
+              <div className="flex flex-col">
+                <div className="text-base font-bold text-slate-800 leading-tight">
+                  {hoveredNode.label}
                 </div>
-                <div className="flex flex-col">
-                  <div className="text-base font-bold text-slate-800 leading-tight">
-                    {hoveredNode.label}
-                  </div>
-                  <div className="text-xs text-slate-400 font-medium">
-                    {getArcana(hoveredNode.number).name}
-                  </div>
+                <div className="text-xs text-slate-400 font-medium">
+                  {getArcana(hoveredNode.number).name}
                 </div>
               </div>
             </div>
-            <div className="absolute top-[100%] left-1/2 -translate-x-1/2 border-8 border-transparent border-t-white" />
           </div>
         )
       })()}
