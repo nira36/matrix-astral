@@ -423,15 +423,16 @@ export default function LunarCycles({ result }: { result: NumerologyResult }) {
         </div>
 
         {/* Birth Moon Card */}
-        <div className="flex flex-col gap-6 p-8 rounded-2xl border border-indigo-500/15 bg-indigo-500/[0.03]">
-          <p className="text-[10px] font-black tracking-widest uppercase text-indigo-400">Your Birth Moon</p>
+        <div className="flex flex-col gap-6 p-8 rounded-2xl border"
+             style={{ borderColor: '#8b7a9d26', background: '#8b7a9d0d' }}>
+          <p className="text-[10px] font-black tracking-widest uppercase" style={{ color: '#8b7a9d' }}>Your Birth Moon</p>
           <div className="flex items-start gap-5">
             <div className="shrink-0">
               <MoonPhaseSVG age={birthMoonAge} size={80} id="birth" />
             </div>
             <div className="flex flex-col gap-2">
               <h3 className="text-lg font-black text-white">{birthPhase.name}</h3>
-              <span className="text-[10px] font-bold text-indigo-400/80 uppercase tracking-widest">{birthPhase.tone}</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#8b7a9dcc' }}>{birthPhase.tone}</span>
             </div>
           </div>
           <p className="text-[11px] text-slate-400 leading-relaxed">
@@ -459,12 +460,13 @@ export default function LunarCycles({ result }: { result: NumerologyResult }) {
 
           <div className="flex flex-col gap-4">
             {[
-              { label: 'Personal Year', value: personalYear, color: 'text-violet-400', border: 'border-violet-500/20', bg: 'bg-violet-500/[0.06]' },
-              { label: 'Personal Month', value: personalMonth, color: 'text-sky-400', border: 'border-sky-500/20', bg: 'bg-sky-500/[0.06]' },
-              { label: 'Personal Day', value: personalDay, color: 'text-emerald-400', border: 'border-emerald-500/20', bg: 'bg-emerald-500/[0.06]' },
+              { label: 'Personal Year', value: personalYear, color: '#a8879d' },
+              { label: 'Personal Month', value: personalMonth, color: '#7a8b9d' },
+              { label: 'Personal Day', value: personalDay, color: '#8b9d87' },
             ].map(t => (
-              <div key={t.label} className={`flex items-center gap-5 p-5 rounded-xl border ${t.border} ${t.bg}`}>
-                <span className={`text-4xl font-black ${t.color} w-14 text-center`}>{t.value}</span>
+              <div key={t.label} className="flex items-center gap-5 p-5 rounded-xl border"
+                   style={{ borderColor: `${t.color}33`, background: `${t.color}10` }}>
+                <span className="text-4xl font-black w-14 text-center" style={{ color: t.color }}>{t.value}</span>
                 <div className="flex flex-col gap-1 min-w-0">
                   <span className="text-[9px] font-black tracking-widest uppercase text-slate-500">{t.label}</span>
                   <span className="text-xs font-bold text-white">{TRANSIT_DATA[t.value]?.theme || 'Transition'}</span>

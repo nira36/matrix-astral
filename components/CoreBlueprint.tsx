@@ -16,7 +16,7 @@ export default function CoreBlueprint({ result }: { result: NumerologyResult }) 
     <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-bg-card p-8 md:p-12 shadow-2xl shadow-purple-950/20">
       {/* Decorative background Elements */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-accent-purple/5 rounded-full blur-3xl -mr-32 -mt-32" />
-      <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl -ml-32 -mb-32" />
+      <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full blur-3xl -ml-32 -mb-32" style={{ background: '#7a8b9d0d' }} />
 
       <div className="relative z-10 flex flex-col gap-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -52,8 +52,9 @@ export default function CoreBlueprint({ result }: { result: NumerologyResult }) 
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
           <div className="flex items-start gap-4 p-4 rounded-xl hover:bg-white/[0.02] transition-colors">
-            <div className="w-10 h-10 shrink-0 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
-              <Shield size={20} className="text-emerald-500" />
+            <div className="w-10 h-10 shrink-0 rounded-lg flex items-center justify-center border"
+                 style={{ background: '#8b9d8718', borderColor: '#8b9d8740' }}>
+              <Shield size={20} style={{ color: '#8b9d87' }} />
             </div>
             <div>
               <h4 className="text-[10px] font-black uppercase text-slate-500 mb-1">Strongest Asset</h4>
@@ -62,8 +63,9 @@ export default function CoreBlueprint({ result }: { result: NumerologyResult }) 
           </div>
 
           <div className="flex items-start gap-4 p-4 rounded-xl hover:bg-white/[0.02] transition-colors">
-            <div className="w-10 h-10 shrink-0 rounded-lg bg-rose-500/10 flex items-center justify-center border border-rose-500/20">
-              <Shield size={20} className="text-rose-500" />
+            <div className="w-10 h-10 shrink-0 rounded-lg flex items-center justify-center border"
+                 style={{ background: '#9d7a7a18', borderColor: '#9d7a7a40' }}>
+              <Shield size={20} style={{ color: '#9d7a7a' }} />
             </div>
             <div>
               <h4 className="text-[10px] font-black uppercase text-slate-500 mb-1">Shadow Challenge</h4>
@@ -72,8 +74,9 @@ export default function CoreBlueprint({ result }: { result: NumerologyResult }) 
           </div>
 
           <div className="flex items-start gap-4 p-4 rounded-xl hover:bg-white/[0.02] transition-colors">
-            <div className="w-10 h-10 shrink-0 rounded-lg bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
-              <Heart size={20} className="text-blue-500" />
+            <div className="w-10 h-10 shrink-0 rounded-lg flex items-center justify-center border"
+                 style={{ background: '#7a8b9d18', borderColor: '#7a8b9d40' }}>
+              <Heart size={20} style={{ color: '#7a8b9d' }} />
             </div>
             <div>
               <h4 className="text-[10px] font-black uppercase text-slate-500 mb-1">Soul Desire</h4>

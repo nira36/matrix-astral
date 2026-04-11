@@ -60,11 +60,11 @@ function PinnacleCard({ phase }: { phase: LifePhase; index: number }) {
         <p className="text-[11px] text-slate-400 leading-relaxed">{meaning.theme}</p>
         <div className="grid grid-cols-2 gap-3 mt-2">
           <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-            <span className="text-[8px] font-black tracking-widest uppercase text-rose-400/70 block mb-1">Shadow</span>
+            <span className="text-[8px] font-black tracking-widest uppercase block mb-1" style={{ color: '#9d7a7a' }}>Shadow</span>
             <span className="text-[10px] text-slate-500 leading-relaxed">{meaning.shadow}</span>
           </div>
           <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-            <span className="text-[8px] font-black tracking-widest uppercase text-emerald-400/70 block mb-1">Lesson</span>
+            <span className="text-[8px] font-black tracking-widest uppercase block mb-1" style={{ color: '#8b9d87' }}>Lesson</span>
             <span className="text-[10px] text-slate-500 leading-relaxed">{meaning.lesson}</span>
           </div>
         </div>

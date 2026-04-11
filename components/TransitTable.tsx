@@ -38,7 +38,7 @@ export default function TransitTable({ transits }: { transits: TransitYear[] }) 
                 </span>
               </td>
               <td className="py-3 px-4">
-                <span className="text-sm font-black text-white group-hover:text-amber-400 transition-colors">
+                <span className="text-sm font-black text-white transition-colors">
                   {t.essence}
                 </span>
               </td>

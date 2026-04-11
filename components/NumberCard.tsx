@@ -106,18 +106,18 @@ export default function NumberCard({
             <div className="flex flex-col gap-6 mt-4 pt-4 border-t border-white/[0.05] animate-fade-up">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-3">
-                  <h5 className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-400 flex items-center gap-2">
+                  <h5 className="text-[9px] font-black uppercase tracking-[0.2em] flex items-center gap-2" style={{ color: '#8b9d87' }}>
                     <Zap size={12} /> Light Side
                   </h5>
-                  <ul className="text-[11px] text-slate-300 space-y-1.5 list-disc list-inside marker:text-emerald-500/50">
+                  <ul className="text-[11px] text-slate-300 space-y-1.5 list-disc list-inside" style={{ ['--marker-color' as string]: '#8b9d8780' }}>
                     {interp.positive.map((p, i) => <li key={i}>{p}</li>)}
                   </ul>
                 </div>
                 <div className="space-y-3">
-                  <h5 className="text-[9px] font-black uppercase tracking-[0.2em] text-rose-400 flex items-center gap-2">
+                  <h5 className="text-[9px] font-black uppercase tracking-[0.2em] flex items-center gap-2" style={{ color: '#9d7a7a' }}>
                     <Shield size={12} /> Shadow Side
                   </h5>
-                  <ul className="text-[11px] text-slate-300 space-y-1.5 list-disc list-inside marker:text-rose-500/50">
+                  <ul className="text-[11px] text-slate-300 space-y-1.5 list-disc list-inside">
                     {interp.shadow.map((s, i) => <li key={i}>{s}</li>)}
                   </ul>
                 </div>
