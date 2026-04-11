@@ -77,22 +77,28 @@ const Node = ({ point, onEnter, onLeave }: NodeProps) => {
       onMouseEnter={() => onEnter(point)}
       onMouseLeave={onLeave}
     >
-      <g className="animate-node-pulse" style={{ transformOrigin: `${coord.x}px ${coord.y}px` }}>
-        {/* Color-matched Aura Circle */}
-        <circle 
-          cx={coord.x} cy={coord.y} r={coord.r + 6} 
-          fill={point.color} 
-          className="animate-node-aura"
-        />
-        
-        {/* Main Node Circle */}
-        <circle cx={coord.x} cy={coord.y} r={coord.r} fill="white" stroke={point.color} strokeWidth={isLarge ? "3" : "2"} />
-        
-        {/* Number Label */}
-        <text x={coord.x} y={coord.y} textAnchor="middle" dominantBaseline="middle" fill="#1e293b" fontSize={isLarge ? "20" : "14"} fontWeight="800">
-          {point.number}
-        </text>
-      </g>
+      {(() => {
+        // Use the corresponding Arcana color for each number to match the Deck section
+        const arcanaColor = getArcana(point.number)?.color ?? point.color
+        return (
+          <g className="animate-node-pulse" style={{ transformOrigin: `${coord.x}px ${coord.y}px` }}>
+            {/* Color-matched Aura Circle */}
+            <circle
+              cx={coord.x} cy={coord.y} r={coord.r + 6}
+              fill={arcanaColor}
+              className="animate-node-aura"
+            />
+
+            {/* Main Node Circle */}
+            <circle cx={coord.x} cy={coord.y} r={coord.r} fill="white" stroke={arcanaColor} strokeWidth={isLarge ? "3" : "2"} />
+
+            {/* Number Label */}
+            <text x={coord.x} y={coord.y} textAnchor="middle" dominantBaseline="middle" fill="#1e293b" fontSize={isLarge ? "20" : "14"} fontWeight="800">
+              {point.number}
+            </text>
+          </g>
+        )
+      })()}
     </g>
   )
 }
