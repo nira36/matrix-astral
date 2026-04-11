@@ -147,20 +147,28 @@ export default function FriendsPage() {
     // Each search gets a unique ID; only the latest one's result is applied
     const reqId = ++searchReqRef.current
     debounceRef.current = setTimeout(async () => {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
       try {
-        // Timeout wrapper — if the client is stale, abort after 5s
-        const queryPromise = getDb()
-          .from('profiles')
-          .select('id, username, display_name, sun_sign, moon_sign, rising_sign')
-          .ilike('username', `%${val}%`)
-          .neq('id', user?.id ?? '')
-          .limit(10)
+        // Direct REST call — bypasses the Supabase client singleton which
+        // goes stale after browser tab background. Public profiles are
+        // readable with just the anon key thanks to RLS (is_public = true).
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+        const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        const escaped = encodeURIComponent(`%${val}%`)
+        const selectFields = 'id,username,display_name,sun_sign,moon_sign,rising_sign'
+        const url = `${supabaseUrl}/rest/v1/profiles?select=${selectFields}&username=ilike.${escaped}&id=neq.${user?.id ?? ''}&limit=10`
 
-        const timeoutPromise = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Search timeout')), 5000)
-        )
+        const res = await fetch(url, {
+          headers: {
+            apikey: anonKey ?? '',
+            Authorization: `Bearer ${anonKey}`,
+          },
+          signal: controller.signal,
+        })
 
-        const { data } = await Promise.race([queryPromise, timeoutPromise]) as any
+        if (!res.ok) throw new Error(`Search failed: ${res.status}`)
+        const data = await res.json()
 
         if (!mountedRef.current || reqId !== searchReqRef.current) return
         setSearchResults((data as FriendProfile[]) ?? [])
@@ -169,6 +177,7 @@ export default function FriendsPage() {
         if (!mountedRef.current || reqId !== searchReqRef.current) return
         setSearchResults([])
       } finally {
+        clearTimeout(timeoutId)
         if (mountedRef.current && reqId === searchReqRef.current) {
           setSearching(false)
         }
