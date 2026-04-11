@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import InAppBrowserWarning from '@/components/InAppBrowserWarning'
 
 export const metadata: Metadata = {
   title: 'Cosmic Love Matrix',
@@ -15,6 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
       </head>
       <body className="min-h-screen bg-bg-primary text-white antialiased">
+        <InAppBrowserWarning />
         {children}
       </body>
     </html>

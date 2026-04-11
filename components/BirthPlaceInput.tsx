@@ -51,15 +51,22 @@ export default function BirthPlaceInput({ value, onChange, onSelect, selectedPla
       return
     }
     setLoading(true)
+    // 8s timeout so the input never gets stuck on slow networks / in-app browsers
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 8000)
     try {
-      const res = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`)
+      const res = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`, {
+        signal: controller.signal,
+      })
       const data: GeoResult[] = await res.json()
       setResults(data)
       setOpen(data.length > 0)
       setActiveIdx(-1)
-    } catch {
+    } catch (err) {
+      console.error('[geocode] error:', err)
       setResults([])
     } finally {
+      clearTimeout(timeoutId)
       setLoading(false)
     }
   }, [])

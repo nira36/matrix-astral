@@ -209,33 +209,43 @@ function SettingsForm() {
           />
         </div>
 
-        {/* Birth date */}
+        {/* Birth date — accepts both native picker and manual DD/MM/YYYY */}
         <div>
           <label className="block text-xs font-medium uppercase tracking-wide text-slate-500 mb-1.5">
-            Birth Date
+            Birth Date <span className="text-slate-600">(YYYY-MM-DD)</span>
           </label>
           <input
             type="date"
             value={birthDate}
             onChange={(e) => setBirthDate(e.target.value)}
+            placeholder="YYYY-MM-DD"
             required
+            pattern="\d{4}-\d{2}-\d{2}"
             className="w-full py-2.5 px-4 rounded-xl border border-white/10 bg-white/[0.04]
               text-sm text-white focus:outline-none focus:border-white/25"
           />
+          <p className="text-[10px] text-slate-600 mt-1">
+            If the date picker doesn&apos;t open, type manually: e.g. 1995-03-24
+          </p>
         </div>
 
-        {/* Birth time */}
+        {/* Birth time — accepts both native picker and manual HH:MM */}
         <div>
           <label className="block text-xs font-medium uppercase tracking-wide text-slate-500 mb-1.5">
-            Birth Time <span className="text-slate-600">(optional, for accurate rising sign)</span>
+            Birth Time <span className="text-slate-600">(HH:MM, optional)</span>
           </label>
           <input
             type="time"
             value={birthTime}
             onChange={(e) => setBirthTime(e.target.value)}
+            placeholder="HH:MM"
+            pattern="\d{2}:\d{2}"
             className="w-full py-2.5 px-4 rounded-xl border border-white/10 bg-white/[0.04]
               text-sm text-white focus:outline-none focus:border-white/25"
           />
+          <p className="text-[10px] text-slate-600 mt-1">
+            If the time picker doesn&apos;t open, type manually: e.g. 14:30
+          </p>
         </div>
 
         {/* Birth place — uses the geocoding autocomplete component */}
