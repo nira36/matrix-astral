@@ -24,7 +24,6 @@ interface FriendRow {
 
 export default function FriendsPage() {
   const { user, profile } = useAuth()
-  const supabaseRef = useRef(createClient())
 
   const [query, setQuery] = useState('')
   const [searchResults, setSearchResults] = useState<FriendProfile[]>([])
@@ -41,8 +40,12 @@ export default function FriendsPage() {
   const [actionMsg, setActionMsg] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
+  // Fresh client every time — ensures we always have current auth context.
+  // Supabase's createBrowserClient returns a singleton internally, so this
+  // isn't actually creating new connections, just getting a handle with
+  // up-to-date cookies.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function getDb(): any { return supabaseRef.current as any }
+  function getDb(): any { return createClient() as any }
 
   // ─── Load all friendships ──────────────────────────────────────────
   async function reload() {
@@ -99,7 +102,7 @@ export default function FriendsPage() {
     const interval = setInterval(reload, 3_000)
 
     // Realtime: react instantly to any change on friendships where user is involved
-    const supabase = supabaseRef.current
+    const supabase = createClient()
     const channel = supabase
       .channel(`friendships_page_${user.id}`)
       .on(
@@ -109,9 +112,16 @@ export default function FriendsPage() {
       )
       .subscribe()
 
+    // Reload when tab regains focus
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') reload()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+
     return () => {
       clearInterval(interval)
       supabase.removeChannel(channel)
+      document.removeEventListener('visibilitychange', onVisible)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id])
