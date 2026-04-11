@@ -79,14 +79,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     })
 
-    // Safety timeout — never stay on "Loading..." forever
+    // Safety timeout — never stay on "Loading..." forever.
+    // 3s is enough for getUser() on slow mobile networks.
     const safetyTimer = setTimeout(() => {
       if (mounted) {
         initialDoneRef.current = true
         setLoading(false)
         setProfileLoading(false)
       }
-    }, 5000)
+    }, 3000)
 
     // Listen for auth changes — skip INITIAL_SESSION to avoid race with getUser()
     const { data: { subscription } } = supabase.auth.onAuthStateChange(

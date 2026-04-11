@@ -64,7 +64,7 @@ export default function InAppBrowserWarning() {
   }
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[200] bg-amber-900/90 backdrop-blur-md border-b border-amber-500/30 px-4 py-3">
+    <div className="fixed top-0 left-0 right-0 z-[200] bg-amber-950 border-b border-amber-500/30 px-4 py-3">
       <div className="max-w-2xl mx-auto flex items-start gap-3">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fcd34d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5">
           <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>

@@ -72,7 +72,14 @@ function SettingsForm() {
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
-    if (!user) return
+    if (!user) {
+      setMessage({ type: 'error', text: 'Not logged in. Please refresh.' })
+      return
+    }
+    if (!birthDate) {
+      setMessage({ type: 'error', text: 'Please enter your birth date.' })
+      return
+    }
     if (!selectedPlace) {
       setMessage({ type: 'error', text: 'Please select a birth place from the suggestions.' })
       return
@@ -80,71 +87,83 @@ function SettingsForm() {
     setSaving(true)
     setMessage(null)
 
-    // Parse birth date
-    const [yyyy, mm, dd] = birthDate.split('-').map(Number)
-    const [hh, mi] = birthTime ? birthTime.split(':').map(Number) : [12, 0]
-    const hasBirthTime = !!birthTime
+    try {
+      // Parse birth date (expected format: YYYY-MM-DD)
+      const parts = birthDate.split('-').map(Number)
+      if (parts.length !== 3 || parts.some(isNaN)) {
+        throw new Error('Invalid birth date format. Use YYYY-MM-DD.')
+      }
+      const [yyyy, mm, dd] = parts
+      const [hh, mi] = birthTime ? birthTime.split(':').map(Number) : [12, 0]
+      const hasBirthTime = !!birthTime
 
-    // Compute natal chart
-    const dst = isDST(yyyy, mm, dd, selectedPlace.tz)
-    const tzOffset = selectedPlace.tz + (dst ? 1 : 0)
-    const natalChart = calcNatalChart(dd, mm, yyyy, hh, mi, selectedPlace.lat, selectedPlace.lon, tzOffset)
+      // Compute natal chart
+      const dst = isDST(yyyy, mm, dd, selectedPlace.tz)
+      const tzOffset = selectedPlace.tz + (dst ? 1 : 0)
+      const natalChart = calcNatalChart(dd, mm, yyyy, hh, mi, selectedPlace.lat, selectedPlace.lon, tzOffset)
 
-    // Extract identity
-    const sunSign = natalChart.planets.find(p => p.planet === 'Sun')?.sign || null
-    const moonSign = natalChart.planets.find(p => p.planet === 'Moon')?.sign || null
-    const risingSign = hasBirthTime
-      ? natalChart.planets.find(p => p.planet === 'Ascendant')?.sign || null
-      : null
+      const sunSign = natalChart.planets.find(p => p.planet === 'Sun')?.sign || null
+      const moonSign = natalChart.planets.find(p => p.planet === 'Moon')?.sign || null
+      const risingSign = hasBirthTime
+        ? natalChart.planets.find(p => p.planet === 'Ascendant')?.sign || null
+        : null
 
-    // Compute numerology (if we have a name)
-    let numerologyResult = null
-    let lifePath = null
-    if (birthName) {
-      const dateStr = `${dd}/${mm}/${yyyy}`
-      numerologyResult = calcNumerology(dateStr, birthName)
-      lifePath = numerologyResult?.core.lifePath ?? null
-    }
+      let numerologyResult = null
+      let lifePath = null
+      if (birthName) {
+        const dateStr = `${dd}/${mm}/${yyyy}`
+        numerologyResult = calcNumerology(dateStr, birthName)
+        lifePath = numerologyResult?.core.lifePath ?? null
+      }
 
-    const profileData: ProfileInsert = {
-      id: user.id,
-      username: username.toLowerCase().trim(),
-      display_name: displayName || null,
-      birth_date: birthDate,
-      birth_time: birthTime ? `${birthTime}:00` : null,
-      birth_place: birthPlace || null,
-      birth_lat: selectedPlace.lat,
-      birth_lon: selectedPlace.lon,
-      birth_tz: selectedPlace.tz,
-      birth_name: birthName || null,
-      sun_sign: sunSign,
-      moon_sign: moonSign,
-      rising_sign: risingSign,
-      life_path: lifePath,
-      natal_chart_json: JSON.parse(JSON.stringify(natalChart)),
-      numerology_json: numerologyResult ? JSON.parse(JSON.stringify(numerologyResult)) : null,
-    }
+      const profileData: ProfileInsert = {
+        id: user.id,
+        username: username.toLowerCase().trim(),
+        display_name: displayName || null,
+        birth_date: birthDate,
+        birth_time: birthTime ? `${birthTime}:00` : null,
+        birth_place: birthPlace || null,
+        birth_lat: selectedPlace.lat,
+        birth_lon: selectedPlace.lon,
+        birth_tz: selectedPlace.tz,
+        birth_name: birthName || null,
+        sun_sign: sunSign,
+        moon_sign: moonSign,
+        rising_sign: risingSign,
+        life_path: lifePath,
+        natal_chart_json: JSON.parse(JSON.stringify(natalChart)),
+        numerology_json: numerologyResult ? JSON.parse(JSON.stringify(numerologyResult)) : null,
+      }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const db = supabase as any
-    const { error } = profile
-      ? await db.from('profiles').update(profileData).eq('id', user.id)
-      : await db.from('profiles').insert(profileData)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const db = supabase as any
+      const { error } = profile
+        ? await db.from('profiles').update(profileData).eq('id', user.id)
+        : await db.from('profiles').insert(profileData)
 
-    if (error) {
-      if (error.code === '23505' && error.message.includes('username')) {
-        setMessage({ type: 'error', text: 'Username is already taken.' })
+      if (error) {
+        console.error('[settings] save error:', error)
+        if (error.code === '23505' && error.message.includes('username')) {
+          setMessage({ type: 'error', text: 'Username is already taken.' })
+        } else {
+          setMessage({ type: 'error', text: error.message || 'Failed to save profile.' })
+        }
       } else {
-        setMessage({ type: 'error', text: error.message })
+        await refreshProfile()
+        setMessage({ type: 'success', text: 'Profile saved!' })
+        if (isOnboarding) {
+          router.push('/app/dashboard')
+        }
       }
-    } else {
-      await refreshProfile()
-      setMessage({ type: 'success', text: 'Profile saved!' })
-      if (isOnboarding) {
-        router.push('/app/dashboard')
-      }
+    } catch (err) {
+      console.error('[settings] save exception:', err)
+      setMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Something went wrong while saving.',
+      })
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   return (

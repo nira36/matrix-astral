@@ -295,7 +295,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* ── Mobile: bottom tab bar ── */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40
-                       border-t border-white/5 bg-bg-primary/90 backdrop-blur-md
+                       border-t border-white/5 bg-bg-primary
                        flex items-center justify-around px-2 py-1.5 safe-bottom">
         {NAV_ITEMS.map((item) => {
           const active = pathname.startsWith(item.href)
