@@ -2,6 +2,7 @@
 
 import { MASTER_NUMBERS, NUMBER_MEANINGS } from '@/lib/numerology'
 import { INTERPRETATIONS } from '@/lib/interpretations'
+import { getArcana } from '@/lib/arcana'
 import { useState } from 'react'
 import { ChevronDown, ChevronUp, Star, Shield, Zap, Heart, Briefcase } from 'lucide-react'
 import Tooltip from './Tooltip'
@@ -18,9 +19,11 @@ export default function NumberCard({
   label,
   value,
   tooltip,
-  color = '#8b5cf6',
+  color,
   delay = 0,
 }: NumberCardProps) {
+  // Derive color from the corresponding Major Arcana to match the Deck section
+  const resolvedColor = color ?? getArcana(value)?.color ?? '#8b5cf6'
   const [isExpanded, setIsExpanded] = useState(false)
   const isMaster = MASTER_NUMBERS.has(value)
   const interp = INTERPRETATIONS[value]
@@ -45,7 +48,7 @@ export default function NumberCard({
       {/* Subtle top glow */}
       <div
         className="absolute inset-x-0 top-0 h-px opacity-60"
-        style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)` }}
+        style={{ background: `linear-gradient(90deg, transparent, ${resolvedColor}, transparent)` }}
       />
 
       <div className="flex justify-between items-start">
@@ -77,14 +80,14 @@ export default function NumberCard({
           <div className="flex items-baseline gap-2">
             <span
               className="text-5xl font-black tabular-nums leading-none tracking-tighter"
-              style={{ color }}
+              style={{ color: resolvedColor }}
             >
               {value}
             </span>
             {isMaster && (
               <span
                 className="text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full border"
-                style={{ color, borderColor: `${color}44`, background: `${color}11` }}
+                style={{ color: resolvedColor, borderColor: `${resolvedColor}44`, background: `${resolvedColor}11` }}
               >
                 master
               </span>

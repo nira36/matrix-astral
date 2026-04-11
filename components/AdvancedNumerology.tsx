@@ -3,6 +3,7 @@
 import React from 'react'
 import { INTERPRETATIONS } from '@/lib/interpretations'
 import { NUMBER_MEANINGS } from '@/lib/numerology'
+import { getArcana } from '@/lib/arcana'
 import type { NumerologyResult } from '@/lib/numerology'
 
 interface CardProps {
@@ -10,20 +11,24 @@ interface CardProps {
   sublabel: string
   value: number | string
   meaning?: string
-  color: string
-  bg: string
-  border: string
 }
 
-function NumCard({ label, sublabel, value, meaning, color, bg, border }: CardProps) {
+function NumCard({ label, sublabel, value, meaning }: CardProps) {
+  const color = typeof value === 'number' ? (getArcana(value)?.color ?? '#8b5cf6') : '#8b5cf6'
   return (
-    <div className={`flex flex-col gap-3 p-5 rounded-2xl border ${border} ${bg}`}>
+    <div
+      className="flex flex-col gap-3 p-5 rounded-2xl border"
+      style={{
+        background: `${color}08`,
+        borderColor: `${color}25`,
+      }}
+    >
       <div>
-        <p className={`text-[10px] font-black tracking-widest uppercase ${color}`}>{label}</p>
+        <p className="text-[10px] font-black tracking-widest uppercase" style={{ color }}>{label}</p>
         <p className="text-[9px] text-slate-600 uppercase tracking-widest mt-0.5">{sublabel}</p>
       </div>
       <div className="flex items-baseline gap-2">
-        <span className={`text-4xl font-black ${color}`}>{value}</span>
+        <span className="text-4xl font-black" style={{ color }}>{value}</span>
         <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
           {typeof value === 'number' ? (INTERPRETATIONS[value]?.archetype || '') : ''}
         </span>
@@ -34,7 +39,7 @@ function NumCard({ label, sublabel, value, meaning, color, bg, border }: CardPro
 }
 
 export default function AdvancedNumerology({ result }: { result: NumerologyResult }) {
-  const { advanced, core } = result
+  const { advanced } = result
 
   const cards: CardProps[] = [
     {
@@ -42,54 +47,36 @@ export default function AdvancedNumerology({ result }: { result: NumerologyResul
       sublabel: '9 − missing numbers',
       value: advanced.subconsciousSelf,
       meaning: 'Your instinctive response under pressure. How many vibrational areas you have mastered.',
-      color: 'text-violet-400',
-      bg: 'bg-violet-500/[0.04]',
-      border: 'border-violet-500/20',
     },
     {
       label: 'Shadow Number',
       sublabel: '9 − Life Path',
       value: advanced.shadowNumber,
-      meaning: `The energy you resist or project onto others. Integrating it unlocks hidden power.`,
-      color: 'text-slate-300',
-      bg: 'bg-white/[0.02]',
-      border: 'border-white/[0.08]',
+      meaning: 'The energy you resist or project onto others. Integrating it unlocks hidden power.',
     },
     {
       label: 'Heritage Number',
       sublabel: 'Day + Month (reduced)',
       value: advanced.heritageNumber,
       meaning: 'The ancestral imprint carried from family lineage into this incarnation.',
-      color: 'text-amber-400',
-      bg: 'bg-amber-500/[0.04]',
-      border: 'border-amber-500/20',
     },
     {
       label: 'Balance Number',
       sublabel: 'Initials reduced',
       value: advanced.balanceNumber,
       meaning: 'How you restore equilibrium in conflict. Your instinctive coping strategy.',
-      color: 'text-sky-400',
-      bg: 'bg-sky-500/[0.04]',
-      border: 'border-sky-500/20',
     },
     {
       label: 'Realization',
       sublabel: 'Life Path + Soul Urge',
       value: advanced.realization,
       meaning: 'The ultimate personal achievement available to you in this lifetime.',
-      color: 'text-emerald-400',
-      bg: 'bg-emerald-500/[0.04]',
-      border: 'border-emerald-500/20',
     },
     {
       label: 'Rational Thought',
       sublabel: 'Life Path + First Name length',
       value: advanced.rationalThought,
       meaning: 'How your mind processes information and arrives at conclusions.',
-      color: 'text-rose-400',
-      bg: 'bg-rose-500/[0.04]',
-      border: 'border-rose-500/20',
     },
   ]
 
@@ -103,44 +90,52 @@ export default function AdvancedNumerology({ result }: { result: NumerologyResul
 
       {/* Hidden Passion / Passion Numbers */}
       {advanced.hiddenPassion.length > 0 && (
-        <div className="p-6 rounded-2xl border border-orange-500/20 bg-orange-500/[0.03]">
-          <p className="text-[10px] font-black tracking-widest uppercase text-orange-400 mb-4">
+        <div className="p-6 rounded-2xl border border-white/[0.06] bg-white/[0.02]">
+          <p className="text-[10px] font-black tracking-widest uppercase text-slate-400 mb-4">
             Passion Numbers · Dominant Vibrations
           </p>
           <div className="flex flex-wrap gap-3">
-            {advanced.hiddenPassion.map(n => (
-              <div key={n} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-orange-500/10 border border-orange-500/20">
-                <span className="text-2xl font-black text-orange-400">{n}</span>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">
-                    {INTERPRETATIONS[n]?.archetype}
-                  </p>
-                  <p className="text-[9px] text-slate-500">{INTERPRETATIONS[n]?.positive?.[0]}</p>
+            {advanced.hiddenPassion.map(n => {
+              const c = getArcana(n)?.color ?? '#8b5cf6'
+              return (
+                <div key={n} className="flex items-center gap-2 px-3 py-2 rounded-xl border"
+                  style={{ background: `${c}12`, borderColor: `${c}30` }}>
+                  <span className="text-2xl font-black" style={{ color: c }}>{n}</span>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">
+                      {INTERPRETATIONS[n]?.archetype}
+                    </p>
+                    <p className="text-[9px] text-slate-500">{INTERPRETATIONS[n]?.positive?.[0]}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}
 
       {/* Karmic Lessons */}
       {advanced.karmicLessons.length > 0 && (
-        <div className="p-6 rounded-2xl border border-rose-500/20 bg-rose-500/[0.03]">
-          <p className="text-[10px] font-black tracking-widest uppercase text-rose-400 mb-4">
+        <div className="p-6 rounded-2xl border border-white/[0.06] bg-white/[0.02]">
+          <p className="text-[10px] font-black tracking-widest uppercase text-slate-400 mb-4">
             Karmic Lessons · Missing Vibrations
           </p>
           <div className="flex flex-wrap gap-3">
-            {advanced.karmicLessons.map(n => (
-              <div key={n} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20">
-                <span className="text-2xl font-black text-rose-400">{n}</span>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">
-                    {INTERPRETATIONS[n]?.archetype}
-                  </p>
-                  <p className="text-[9px] text-slate-500">{NUMBER_MEANINGS[n]?.slice(0, 50)}</p>
+            {advanced.karmicLessons.map(n => {
+              const c = getArcana(n)?.color ?? '#8b5cf6'
+              return (
+                <div key={n} className="flex items-center gap-2 px-3 py-2 rounded-xl border"
+                  style={{ background: `${c}12`, borderColor: `${c}30` }}>
+                  <span className="text-2xl font-black" style={{ color: c }}>{n}</span>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">
+                      {INTERPRETATIONS[n]?.archetype}
+                    </p>
+                    <p className="text-[9px] text-slate-500">{NUMBER_MEANINGS[n]?.slice(0, 50)}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}

@@ -2,6 +2,7 @@
 
 import React from 'react'
 import type { NumerologyResult, LifePhase } from '@/lib/numerology'
+import { getArcana } from '@/lib/arcana'
 
 // ─── Number meaning database ────────────────────────────────────────────────
 
@@ -27,33 +28,33 @@ function getMeaning(n: number) {
 
 // ─── Pinnacle Detail Card ────────────────────────────────────────────────────
 
-function PinnacleCard({ phase, index }: { phase: LifePhase; index: number }) {
+function PinnacleCard({ phase }: { phase: LifePhase; index: number }) {
   const meaning = getMeaning(phase.number)
-  const colors = [
-    { bg: 'bg-violet-500/[0.06]', border: 'border-violet-500/20', text: 'text-violet-400', num: 'text-violet-300' },
-    { bg: 'bg-sky-500/[0.06]', border: 'border-sky-500/20', text: 'text-sky-400', num: 'text-sky-300' },
-    { bg: 'bg-amber-500/[0.06]', border: 'border-amber-500/20', text: 'text-amber-400', num: 'text-amber-300' },
-    { bg: 'bg-emerald-500/[0.06]', border: 'border-emerald-500/20', text: 'text-emerald-400', num: 'text-emerald-300' },
-  ]
-  const c = colors[index % 4]
+  const color = getArcana(phase.number)?.color ?? '#8b5cf6'
 
   return (
-    <div className={`relative rounded-2xl border ${c.border} ${c.bg} p-5 transition-all hover:scale-[1.01] ${phase.isActive ? 'ring-1 ring-white/10' : ''}`}>
+    <div
+      className={`relative rounded-2xl border p-5 transition-all hover:scale-[1.01] ${phase.isActive ? 'ring-1 ring-white/10' : ''}`}
+      style={{
+        background: `${color}10`,
+        borderColor: `${color}33`,
+      }}
+    >
       {phase.isActive && (
         <div className="absolute top-3 right-3">
           <span className="text-[8px] font-black tracking-widest uppercase bg-white/10 text-white/60 px-2 py-0.5 rounded-full">Now</span>
         </div>
       )}
       <div className="flex items-start gap-4">
-        <div className={`text-4xl font-black ${c.num} leading-none`}>{phase.number}</div>
+        <div className="text-4xl font-black leading-none" style={{ color }}>{phase.number}</div>
         <div className="flex flex-col gap-1 min-w-0">
-          <span className={`text-[9px] font-black tracking-widest uppercase ${c.text}`}>{phase.label}</span>
+          <span className="text-[9px] font-black tracking-widest uppercase" style={{ color }}>{phase.label}</span>
           <span className="text-[10px] text-slate-600 font-mono">Age {phase.startAge}–{phase.endAge >= 100 ? '∞' : phase.endAge}</span>
         </div>
       </div>
       <div className="mt-4 flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <span className={`text-[9px] font-black uppercase tracking-widest ${c.text}`}>{meaning.keyword}</span>
+          <span className="text-[9px] font-black uppercase tracking-widest" style={{ color }}>{meaning.keyword}</span>
           <span className="text-[10px] text-slate-500">— {meaning.energy}</span>
         </div>
         <p className="text-[11px] text-slate-400 leading-relaxed">{meaning.theme}</p>
@@ -76,16 +77,23 @@ function PinnacleCard({ phase, index }: { phase: LifePhase; index: number }) {
 
 function ChallengeCard({ value, index }: { value: number; index: number }) {
   const meaning = getMeaning(value)
+  const color = getArcana(value)?.color ?? '#8b5cf6'
   const labels = ['Youth Challenge', 'Growth Challenge', 'Master Challenge', 'Final Challenge']
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 hover:bg-white/[0.04] transition-all group">
+    <div
+      className="rounded-xl border p-4 hover:bg-white/[0.04] transition-all group"
+      style={{
+        background: `${color}08`,
+        borderColor: `${color}25`,
+      }}
+    >
       <div className="flex items-center justify-between mb-3">
-        <span className="text-[9px] font-black tracking-widest uppercase text-slate-500 group-hover:text-rose-400/70 transition-colors">{labels[index]}</span>
-        <span className="text-2xl font-black text-white/80">{value}</span>
+        <span className="text-[9px] font-black tracking-widest uppercase transition-colors" style={{ color }}>{labels[index]}</span>
+        <span className="text-2xl font-black" style={{ color }}>{value}</span>
       </div>
       <p className="text-[10px] text-slate-500 leading-relaxed mb-2">{meaning.theme}</p>
-      <p className="text-[10px] text-slate-600 italic leading-relaxed">"{meaning.lesson}"</p>
+      <p className="text-[10px] text-slate-600 italic leading-relaxed">&quot;{meaning.lesson}&quot;</p>
     </div>
   )
 }
@@ -123,19 +131,25 @@ export default function EvolutionSection({ result }: { result: NumerologyResult 
         <div className="flex flex-col gap-4">
           {result.lifeCycles.map((c, i) => {
             const meaning = getMeaning(c.number)
-            const cycleColors = ['text-cyan-400', 'text-amber-400', 'text-rose-400']
-            const cycleBgs = ['bg-cyan-500/[0.06] border-cyan-500/20', 'bg-amber-500/[0.06] border-amber-500/20', 'bg-rose-500/[0.06] border-rose-500/20']
+            const color = getArcana(c.number)?.color ?? '#8b5cf6'
             return (
-              <div key={i} className={`p-4 rounded-xl border ${cycleBgs[i] || cycleBgs[0]}`}>
+              <div
+                key={i}
+                className="p-4 rounded-xl border"
+                style={{
+                  background: `${color}08`,
+                  borderColor: `${color}25`,
+                }}
+              >
                 <div className="flex items-center gap-4 mb-3">
-                  <span className={`text-3xl font-black ${cycleColors[i] || cycleColors[0]}`}>{c.number}</span>
+                  <span className="text-3xl font-black" style={{ color }}>{c.number}</span>
                   <div>
                     <div className="text-xs font-bold text-slate-300">{c.label}</div>
                     <div className="text-[10px] text-slate-600 font-mono">Age {c.startAge}–{c.endAge >= 100 ? '∞' : c.endAge}</div>
                   </div>
                 </div>
                 <p className="text-[10px] text-slate-500 leading-relaxed mb-1">{meaning.theme}</p>
-                <p className="text-[10px] text-slate-600 italic">"{meaning.lesson}"</p>
+                <p className="text-[10px] text-slate-600 italic">&quot;{meaning.lesson}&quot;</p>
               </div>
             )
           })}

@@ -549,18 +549,11 @@ export default function Home() {
                 
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                   {(Object.keys(numResult.core) as Array<keyof typeof numResult.core>).map(key => (
-                    <NumberCard 
+                    <NumberCard
                       key={key}
                       label={CORE_DESCRIPTIONS[key].label}
                       value={numResult.core[key]}
                       tooltip={CORE_DESCRIPTIONS[key].tooltip}
-                      color={
-                        key === 'lifePath' ? '#7c3aed' :
-                        key === 'birthDayNumber' ? '#b45309' :
-                        key === 'expression' ? '#2563eb' :
-                        key === 'soulUrge' ? '#be123c' :
-                        key === 'personality' ? '#047857' : '#ea580c'
-                      }
                     />
                   ))}
                 </div>
