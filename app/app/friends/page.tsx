@@ -89,14 +89,30 @@ export default function FriendsPage() {
     setLoadingFriends(false)
   }
 
-  // Initial load
+  // Initial load + polling + realtime
   useEffect(() => {
     if (!user?.id) return
     setLoadingFriends(true)
     reload()
-    // Poll every 10s for incoming requests (no realtime subscription needed)
-    const interval = setInterval(reload, 10_000)
-    return () => clearInterval(interval)
+
+    // Poll every 3 seconds (cheap fallback)
+    const interval = setInterval(reload, 3_000)
+
+    // Realtime: react instantly to any change on friendships where user is involved
+    const supabase = supabaseRef.current
+    const channel = supabase
+      .channel(`friendships_page_${user.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'friendships' },
+        () => reload(),
+      )
+      .subscribe()
+
+    return () => {
+      clearInterval(interval)
+      supabase.removeChannel(channel)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id])
 
