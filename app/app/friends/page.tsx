@@ -164,34 +164,49 @@ export default function FriendsPage() {
   }
 
   async function acceptRequest(friendshipId: string) {
-    setActionLoading(friendshipId)
+    // Optimistic: move from pending → friends immediately
+    const accepted = pendingIncoming.find(f => f.id === friendshipId)
+    if (accepted) {
+      setPendingIncoming(prev => prev.filter(f => f.id !== friendshipId))
+      setFriends(prev => [...prev, { ...accepted, status: 'accepted' }])
+    }
+
     const { error } = await getDb()
       .from('friendships')
       .update({ status: 'accepted' })
       .eq('id', friendshipId)
-    setActionLoading(null)
+
     if (error) {
       console.error('[friends] accept error:', error)
       showMsg('Failed: ' + error.message)
+      await reload() // revert on error
     } else {
       showMsg('Friend added!')
-      await reload()
     }
   }
 
   async function declineRequest(friendshipId: string) {
-    setActionLoading(friendshipId)
-    await getDb().from('friendships').delete().eq('id', friendshipId)
-    setActionLoading(null)
-    await reload()
+    // Optimistic: remove immediately
+    setPendingIncoming(prev => prev.filter(f => f.id !== friendshipId))
+    setPendingSent(prev => prev.filter(f => f.id !== friendshipId))
+
+    const { error } = await getDb().from('friendships').delete().eq('id', friendshipId)
+    if (error) {
+      console.error('[friends] decline error:', error)
+      await reload()
+    }
   }
 
   async function removeFriend(friendshipId: string) {
-    setActionLoading(friendshipId)
-    await getDb().from('friendships').delete().eq('id', friendshipId)
-    setActionLoading(null)
+    // Optimistic: remove from friends list immediately
+    setFriends(prev => prev.filter(f => f.id !== friendshipId))
     showMsg('Friend removed.')
-    await reload()
+
+    const { error } = await getDb().from('friendships').delete().eq('id', friendshipId)
+    if (error) {
+      console.error('[friends] remove error:', error)
+      await reload()
+    }
   }
 
   async function generateInvite() {
