@@ -49,7 +49,7 @@ import { useAuth } from '@/components/auth/AuthProvider'
 type Tab = 'matrix' | 'deck' | 'numerology' | 'natal' | 'horoscope' | 'chinese' | 'vedic' | 'readings'
 
 export default function Home() {
-  const { profile } = useAuth()
+  const { profile, profileLoading } = useAuth()
 
   const [dateStr, setDateStr] = useState('')
   const [name, setName] = useState('')
@@ -315,6 +315,18 @@ export default function Home() {
   }
 
   const hasResults = numResult && matResult
+  // True when we know we'll auto-load from profile but haven't finished yet.
+  // Hides the form flash during mount → useEffect cycle.
+  const willAutoLoad = !!profile?.birth_date && !autoLoaded
+
+  // Show loading while profile is still loading OR while auto-load is pending
+  if (profileLoading || willAutoLoad) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-bg-primary">
+        <div className="text-slate-600 text-sm animate-pulse">Loading...</div>
+      </main>
+    )
+  }
 
   return (
     <main className="min-h-screen px-4 py-14 md:py-20 bg-bg-primary text-white">
