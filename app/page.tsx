@@ -513,11 +513,13 @@ export default function Home() {
               {/* Core Cards */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {[
-                  { label: 'Comfort Zone', value: matResult.points.E.number, color: '#D97706' },
-                  { label: 'Soul/Day', value: matResult.points.A.number, color: '#8B5CF6' },
-                  { label: 'Karmic Tail', value: matResult.points.D.number, color: '#EF4444' },
-                  { label: `Year ${new Date().getFullYear()}`, value: matResult.personalYear, color: '#F59E0B' },
-                ].map(({ label, value, color }) => (
+                  { label: 'Comfort Zone', value: matResult.points.E.number },
+                  { label: 'Soul/Day', value: matResult.points.A.number },
+                  { label: 'Karmic Tail', value: matResult.points.D.number },
+                  { label: `Year ${new Date().getFullYear()}`, value: matResult.personalYear },
+                ].map(({ label, value }) => {
+                  const color = getArcana(value)?.color ?? '#8b5cf6'
+                  return (
                   <div key={label} className="rounded-xl border border-white/[0.07] bg-bg-card px-5 py-4 shadow-lg shadow-black/20">
                     <span className="text-[10px] font-black tracking-widest uppercase mb-1 block" style={{ color }}>{label}</span>
                     <div className="flex items-baseline gap-2">
@@ -525,7 +527,8 @@ export default function Home() {
                       <span className="text-[10px] text-slate-500 font-bold uppercase truncate">{getArcana(value).name}</span>
                     </div>
                   </div>
-                ))}
+                  )
+                })}
               </div>
 
               <div className="flex flex-col gap-12">

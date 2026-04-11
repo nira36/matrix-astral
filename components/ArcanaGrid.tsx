@@ -14,10 +14,11 @@ const CATEGORIES = [
 
 function ArcanaMiniCard({ point }: { point: MatrixPoint }) {
   const arcana = getArcana(point.number)
+  const color = arcana?.color ?? point.color
   return (
     <div className="flex items-center gap-2 p-2 rounded-lg border border-white/[0.04] bg-white/[0.01] hover:border-white/[0.1] transition-all">
       <div className="w-8 h-8 rounded shrink-0 flex items-center justify-center font-bold text-sm"
-        style={{ background: `${point.color}15`, color: point.color, border: `1px solid ${point.color}25` }}>
+        style={{ background: `${color}15`, color, border: `1px solid ${color}25` }}>
         {point.number}
       </div>
       <div className="flex flex-col min-w-0">
