@@ -161,12 +161,12 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
         <polygon points={octPoints} strokeWidth="2" />
         
         {/* Main Diamond (A-B-C-D) - Rotating CW */}
-        <g className="animate-rotate-cw" style={{ transformOrigin: `${CTR}px ${CTR}px` }}>
+        <g className="animate-rotate-cw" style={{ transformOrigin: `${CTR}px ${CTR}px`, willChange: 'transform' }}>
           <polygon points={`${COORDS.B.x},${COORDS.B.y} ${COORDS.C.x},${COORDS.C.y} ${COORDS.D.x},${COORDS.D.y} ${COORDS.A.x},${COORDS.A.y}`} strokeWidth="2.5" />
         </g>
-        
+
         {/* Main Square (F-G-H-I) - Rotating CCW */}
-        <g className="animate-rotate-ccw" style={{ transformOrigin: `${CTR}px ${CTR}px` }}>
+        <g className="animate-rotate-ccw" style={{ transformOrigin: `${CTR}px ${CTR}px`, willChange: 'transform' }}>
           <polygon points={`${COORDS.F.x},${COORDS.F.y} ${COORDS.G.x},${COORDS.G.y} ${COORDS.H.x},${COORDS.H.y} ${COORDS.I.x},${COORDS.I.y}`} strokeWidth="2.5" />
         </g>
         
@@ -214,7 +214,7 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
     }
 
     return (
-      <g id="age-circle-layer" className="animate-rotate-slow" style={{ transformOrigin: `${CTR}px ${CTR}px` }}>
+      <g id="age-circle-layer" className="animate-rotate-slow" style={{ transformOrigin: `${CTR}px ${CTR}px`, willChange: 'transform' }}>
         <style>
           {`
             @keyframes rotate-outer {
@@ -276,11 +276,11 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
               50% { fill-opacity: 0.25; }
             }
             .animate-node-pulse {
-              animation: node-pulse 3s ease-in-out infinite;
+              animation: node-pulse 6s ease-in-out infinite;
               animation-delay: inherit;
             }
             .animate-node-aura {
-              animation: node-aura-pulse 3s ease-in-out infinite;
+              animation: node-aura-pulse 6s ease-in-out infinite;
               animation-delay: inherit;
             }
             @keyframes dash-scroll {
@@ -365,7 +365,13 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
     <div
       ref={wrapperRef}
       className={`relative w-full max-w-5xl mx-auto p-2 sm:p-4 bg-transparent ${isVisible ? '' : 'matrix-paused'} ${className}`}
-      style={{ contentVisibility: 'auto' }}
+      style={{
+        contentVisibility: 'auto',
+        // Force the browser to promote this subtree to a GPU compositing layer.
+        // Animations run on GPU instead of repainting the whole page each frame.
+        transform: 'translateZ(0)',
+        contain: 'layout style paint',
+      }}
     >
       {/* Custom Tooltip */}
       {hoveredNode && (() => {
@@ -397,7 +403,7 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
 
       <svg
         viewBox={`0 0 ${VIEWBOX} ${VIEWBOX}`}
-        className="w-full h-auto drop-shadow-2xl"
+        className="w-full h-auto"
         xmlns="http://www.w3.org/2000/svg"
         style={{ fontFamily: FONT_SANS }}
       >
