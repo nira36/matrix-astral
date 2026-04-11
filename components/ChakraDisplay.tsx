@@ -29,7 +29,7 @@ export default function ChakraDisplay({ result }: { result: DestinyMatrixResult 
                 <td className="py-4 px-6">
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.5)]" style={{ background: chakra.color }} />
-                    <span className="text-[12px] font-bold tracking-wide" style={{ color: chakra.color }}>
+                    <span className="text-[12px] font-bold tracking-wide" style={{ color: chakra.color, filter: 'brightness(1.5)' }}>
                       {chakra.name}
                     </span>
                   </div>
@@ -66,17 +66,17 @@ export default function ChakraDisplay({ result }: { result: DestinyMatrixResult 
                 </span>
               </td>
               <td className="py-5 px-6 text-center">
-                <span className="text-sm font-black text-white">
+                <span className="text-sm font-black" style={{ color: '#a8879d' }}>
                   {total.phys} — {getArcana(total.phys).name}
                 </span>
               </td>
               <td className="py-5 px-6 text-center">
-                <span className="text-sm font-black text-white">
+                <span className="text-sm font-black" style={{ color: '#a8879d' }}>
                   {total.ener} — {getArcana(total.ener).name}
                 </span>
               </td>
               <td className="py-5 px-6 text-center">
-                <span className="text-sm font-black text-white">
+                <span className="text-sm font-black" style={{ color: '#a8879d' }}>
                   {total.emot} — {getArcana(total.emot).name}
                 </span>
               </td>

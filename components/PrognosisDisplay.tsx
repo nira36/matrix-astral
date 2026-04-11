@@ -38,14 +38,14 @@ export default function PrognosisDisplay({ result }: { result: DestinyMatrixResu
             <div key={sIdx} className="flex flex-col rounded-2xl border border-white/[0.08] bg-bg-card overflow-hidden shadow-xl w-full md:w-[calc(50%-12px)] lg:w-1/4 lg:min-w-0">
               <button
                 onClick={() => toggle(sIdx)}
-                className="flex items-center justify-between bg-accent-purple/10 py-4 px-4 border-b border-white/[0.08] cursor-pointer transition-colors hover:bg-accent-purple/15"
+                className="flex items-center justify-between py-4 px-4 border-b border-white/[0.08] cursor-pointer transition-colors hover:bg-white/[0.03]"
               >
-                <h3 className="text-sm font-bold text-accent-purple tracking-wide">
+                <h3 className="text-sm font-bold text-white tracking-wide">
                   {segment.title}
                 </h3>
                 <ChevronDown
                   size={18}
-                  className={`text-accent-purple transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
+                  className={`text-white transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
                 />
               </button>
 
