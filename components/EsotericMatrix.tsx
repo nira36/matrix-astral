@@ -171,10 +171,10 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
         </g>
         
         {/* Radial Axes (dashed) - Flowing */}
-        <line x1={COORDS.A.x} y1={COORDS.A.y} x2={COORDS.C.x} y2={COORDS.C.y} strokeDasharray="6 4" opacity="0.5" className="animate-dash-scroll" />
-        <line x1={COORDS.B.x} y1={COORDS.B.y} x2={COORDS.D.x} y2={COORDS.D.y} strokeDasharray="6 4" opacity="0.5" className="animate-dash-scroll" />
-        <line x1={COORDS.F.x} y1={COORDS.F.y} x2={COORDS.H.x} y2={COORDS.H.y} strokeDasharray="6 4" opacity="0.5" className="animate-dash-scroll" />
-        <line x1={COORDS.G.x} y1={COORDS.G.y} x2={COORDS.I.x} y2={COORDS.I.y} strokeDasharray="6 4" opacity="0.5" className="animate-dash-scroll" />
+        <line x1={COORDS.A.x} y1={COORDS.A.y} x2={COORDS.C.x} y2={COORDS.C.y} strokeDasharray="6 4" opacity="0.5" />
+        <line x1={COORDS.B.x} y1={COORDS.B.y} x2={COORDS.D.x} y2={COORDS.D.y} strokeDasharray="6 4" opacity="0.5" />
+        <line x1={COORDS.F.x} y1={COORDS.F.y} x2={COORDS.H.x} y2={COORDS.H.y} strokeDasharray="6 4" opacity="0.5" />
+        <line x1={COORDS.G.x} y1={COORDS.G.y} x2={COORDS.I.x} y2={COORDS.I.y} strokeDasharray="6 4" opacity="0.5" />
       </g>
     )
   }
@@ -417,7 +417,7 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
         {renderChakraLines()}
 
         {/* 3. Bridge Line - Flowing */}
-        <line x1={COORDS.M.x} y1={COORDS.M.y} x2={COORDS.L.x} y2={COORDS.L.y} stroke="#f472b6" strokeWidth="2.5" strokeDasharray="8 4" opacity="0.6" className="animate-dash-scroll" />
+        <line x1={COORDS.M.x} y1={COORDS.M.y} x2={COORDS.L.x} y2={COORDS.L.y} stroke="#f472b6" strokeWidth="2.5" strokeDasharray="8 4" opacity="0.6" />
 
         {/* 4. Nodes Layer */}
         {Object.values(result.points).map((point, i) => (
