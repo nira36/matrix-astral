@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import type { DestinyMatrixResult, MatrixPoint } from '@/lib/destinyMatrix'
 import { getArcana } from '@/lib/arcana'
 
@@ -105,6 +105,19 @@ const Node = ({ point, onEnter, onLeave }: NodeProps) => {
 
 export default function EsotericMatrix({ result, className = "" }: { result: DestinyMatrixResult, className?: string }) {
   const [hoveredNode, setHoveredNode] = useState<MatrixPoint | null>(null)
+  const [isVisible, setIsVisible] = useState(true)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+
+  // Pause animations when the octagram is off-screen (saves CPU/GPU dramatically)
+  useEffect(() => {
+    if (!wrapperRef.current || typeof IntersectionObserver === 'undefined') return
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsVisible(entry.isIntersecting),
+      { rootMargin: '100px' },
+    )
+    observer.observe(wrapperRef.current)
+    return () => observer.disconnect()
+  }, [])
 
   const handleEnter = (p: MatrixPoint) => setHoveredNode(p)
   const handleLeave = () => setHoveredNode(null)
@@ -273,6 +286,10 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
             .animate-dash-scroll {
               animation: dash-scroll 3s linear infinite;
             }
+            /* Pause all animations when the octagram is off-screen */
+            .matrix-paused * {
+              animation-play-state: paused !important;
+            }
           `}
         </style>
         {sequence.map((startKey, idx) => {
@@ -341,7 +358,11 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
   }
 
   return (
-    <div className={`relative w-full max-w-5xl mx-auto p-2 sm:p-4 bg-transparent ${className}`}>
+    <div
+      ref={wrapperRef}
+      className={`relative w-full max-w-5xl mx-auto p-2 sm:p-4 bg-transparent ${isVisible ? '' : 'matrix-paused'} ${className}`}
+      style={{ contentVisibility: 'auto' }}
+    >
       {/* Custom Tooltip */}
       {hoveredNode && (() => {
         const c = COORDS[hoveredNode.key]
@@ -378,7 +399,7 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
       >
         <defs>
           <filter id="aura-blur" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="12" result="blur" />
+            <feGaussianBlur stdDeviation="6" result="blur" />
           </filter>
           <radialGradient id="grad-center-esoteric" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#a8879d" stopOpacity="0.15" />
