@@ -53,10 +53,20 @@ export default function FriendsPage() {
     if (!uid) return
 
     const db = getDb()
-    const { data: rows, error } = await db
+
+    // 5s timeout — if the Supabase client is stale (after tab background),
+    // the query can hang forever. Timeout forces a retry on next poll.
+    const queryPromise = db
       .from('friendships')
       .select('*')
       .or(`requester.eq.${uid},addressee.eq.${uid}`)
+
+    const timeoutPromise = new Promise<{ data: null; error: Error }>((resolve) =>
+      setTimeout(() => resolve({ data: null, error: new Error('Query timeout') }), 5000)
+    )
+
+    const result = await Promise.race([queryPromise, timeoutPromise]) as { data: any; error: any }
+    const { data: rows, error } = result
 
     if (error) {
       console.error('[friends] load error:', error)
@@ -92,27 +102,16 @@ export default function FriendsPage() {
     setLoadingFriends(false)
   }
 
-  // Initial load + polling + realtime
+  // Initial load + polling
   useEffect(() => {
     if (!user?.id) return
     setLoadingFriends(true)
     reload()
 
-    // Poll every 3 seconds (cheap fallback)
+    // Poll every 3 seconds
     const interval = setInterval(reload, 3_000)
 
-    // Realtime: react instantly to any change on friendships where user is involved
-    const supabase = createClient()
-    const channel = supabase
-      .channel(`friendships_page_${user.id}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'friendships' },
-        () => reload(),
-      )
-      .subscribe()
-
-    // Reload when tab regains focus
+    // Reload when tab regains focus (intervals are throttled in background)
     const onVisible = () => {
       if (document.visibilityState === 'visible') reload()
     }
@@ -120,7 +119,6 @@ export default function FriendsPage() {
 
     return () => {
       clearInterval(interval)
-      supabase.removeChannel(channel)
       document.removeEventListener('visibilitychange', onVisible)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -150,12 +148,20 @@ export default function FriendsPage() {
     const reqId = ++searchReqRef.current
     debounceRef.current = setTimeout(async () => {
       try {
-        const { data } = await getDb()
+        // Timeout wrapper — if the client is stale, abort after 5s
+        const queryPromise = getDb()
           .from('profiles')
           .select('id, username, display_name, sun_sign, moon_sign, rising_sign')
           .ilike('username', `%${val}%`)
           .neq('id', user?.id ?? '')
           .limit(10)
+
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Search timeout')), 5000)
+        )
+
+        const { data } = await Promise.race([queryPromise, timeoutPromise]) as any
+
         if (!mountedRef.current || reqId !== searchReqRef.current) return
         setSearchResults((data as FriendProfile[]) ?? [])
       } catch (err) {
