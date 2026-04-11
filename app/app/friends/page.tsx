@@ -127,11 +127,27 @@ export default function FriendsPage() {
   }, [user?.id])
 
   // ─── Search ────────────────────────────────────────────────────────
+  const mountedRef = useRef(true)
+  const searchReqRef = useRef(0)
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [])
+
   function handleSearch(val: string) {
     setQuery(val)
     if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (val.length < 2) { setSearchResults([]); setSearching(false); return }
+    if (val.length < 2) {
+      setSearchResults([])
+      setSearching(false)
+      return
+    }
     setSearching(true)
+    // Each search gets a unique ID; only the latest one's result is applied
+    const reqId = ++searchReqRef.current
     debounceRef.current = setTimeout(async () => {
       try {
         const { data } = await getDb()
@@ -140,11 +156,17 @@ export default function FriendsPage() {
           .ilike('username', `%${val}%`)
           .neq('id', user?.id ?? '')
           .limit(10)
+        if (!mountedRef.current || reqId !== searchReqRef.current) return
         setSearchResults((data as FriendProfile[]) ?? [])
-      } catch {
+      } catch (err) {
+        console.error('[friends] search error:', err)
+        if (!mountedRef.current || reqId !== searchReqRef.current) return
         setSearchResults([])
+      } finally {
+        if (mountedRef.current && reqId === searchReqRef.current) {
+          setSearching(false)
+        }
       }
-      setSearching(false)
     }, 300)
   }
 
