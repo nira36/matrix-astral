@@ -46,13 +46,39 @@ export default function FriendsPage() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
 
-  async function getAccessToken(): Promise<string> {
-    const { data } = await createClient().auth.getSession()
-    return data.session?.access_token ?? anonKey
+  // Read access token synchronously from the Supabase cookie.
+  // Avoids calling auth.getSession() which may try to refresh the token
+  // using the broken client and hang forever.
+  function getAccessTokenFromCookie(): string | null {
+    if (typeof document === 'undefined') return null
+    const projectRef = supabaseUrl.replace('https://', '').split('.')[0]
+    const cookieName = `sb-${projectRef}-auth-token`
+    const match = document.cookie
+      .split('; ')
+      .find(c => c.startsWith(cookieName + '='))
+    if (!match) return null
+    try {
+      const raw = decodeURIComponent(match.split('=').slice(1).join('='))
+      // Cookie value is a JSON array or base64-prefixed JSON
+      const jsonStr = raw.startsWith('base64-')
+        ? atob(raw.slice(7))
+        : raw
+      const parsed = JSON.parse(jsonStr)
+      return parsed?.access_token ?? (Array.isArray(parsed) ? parsed[0] : null)
+    } catch {
+      return null
+    }
   }
 
-  async function restFetch(path: string, init: RequestInit = {}, timeoutMs = 8000): Promise<Response> {
-    const token = await getAccessToken()
+  // Direct REST helper — never touches the Supabase client.
+  // Pass `auth: true` for operations that need the user's session token.
+  async function restFetch(
+    path: string,
+    init: RequestInit = {},
+    opts: { timeoutMs?: number; auth?: boolean } = {}
+  ): Promise<Response> {
+    const { timeoutMs = 8000, auth = true } = opts
+    const token = auth ? (getAccessTokenFromCookie() ?? anonKey) : anonKey
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
     try {
@@ -177,7 +203,7 @@ export default function FriendsPage() {
         const res = await restFetch(
           `profiles?select=${selectFields}&username=ilike.${escaped}&id=neq.${user?.id ?? ''}&limit=10`,
           { method: 'GET' },
-          5000
+          { timeoutMs: 5000, auth: false }
         )
         if (!res.ok) throw new Error(`Search failed: ${res.status}`)
         const data = await res.json()
