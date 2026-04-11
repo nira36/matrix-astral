@@ -129,27 +129,26 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
     
     return (
       <g id="geometry-lines" stroke={stroke} strokeWidth="1.5" fill="none">
-        {/* Aura Layer 1: Full Octagon Breath (Continuous Glow) */}
+        {/* Aura Layer 1: Full Octagon Breath (no blur filter — huge perf win) */}
         <polygon
           points={octPoints}
           className="animate-aura-breathe"
           stroke="#a8879d"
-          strokeWidth="6"
-          filter="url(#aura-blur)"
+          strokeWidth="4"
           strokeLinecap="round"
+          opacity="0.4"
           style={{ vectorEffect: 'non-scaling-stroke' }}
         />
 
-        {/* Aura Layer 2: Flowing Energy (Clockwise Trace) */}
+        {/* Aura Layer 2: Flowing Energy trace */}
         <polygon
           points={octPoints}
           className="animate-aura-trace"
           stroke="#a8879d"
-          strokeWidth="8"
+          strokeWidth="3"
           strokeDasharray="600 1850"
-          filter="url(#aura-blur)"
           strokeLinecap="round"
-          opacity="0.2"
+          opacity="0.5"
           style={{ vectorEffect: 'non-scaling-stroke' }}
         />
 
@@ -398,9 +397,6 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
         style={{ fontFamily: FONT_SANS }}
       >
         <defs>
-          <filter id="aura-blur" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="6" result="blur" />
-          </filter>
           <radialGradient id="grad-center-esoteric" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#a8879d" stopOpacity="0.15" />
             <stop offset="100%" stopColor="#a8879d" stopOpacity="0" />
