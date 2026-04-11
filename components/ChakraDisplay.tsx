@@ -59,9 +59,9 @@ export default function ChakraDisplay({ result }: { result: DestinyMatrixResult 
             ))}
             
             {/* Row Generale */}
-            <tr className="bg-purple-500/10 border-t-2 border-purple-500/20">
+            <tr style={{ background: '#a8879d1a', borderTop: '2px solid #a8879d33' }}>
               <td className="py-5 px-6">
-                <span className="text-[12px] font-black tracking-widest uppercase text-purple-400">
+                <span className="text-[12px] font-black tracking-widest uppercase" style={{ color: '#a8879d' }}>
                   General
                 </span>
               </td>

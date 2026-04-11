@@ -214,14 +214,15 @@ export function calcDestinyMatrix(
     { area: 'Finance/Career',   values: `L: ${p.L.number}, R2: ${p.R2.number}, R: ${p.R.number}` },
   ]
 
+  // Muted, earthy palette that harmonizes with The Magician (#a8879d)
   const chakraMap: Record<string, ChakraMapItem> = {
-    sahasrara:    { name: 'Sahasrara (Crown)',       phys: A, ener: B, emot: sahasrara,    color: '#581C87', points: ['A', 'B'] },
-    ajna:         { name: 'Ajna (Third Eye)',        phys: O, ener: P, emot: ajna,         color: '#312E81', points: ['O', 'P'] },
-    vishuddha:    { name: 'Vishuddha (Throat)',      phys: J, ener: K, emot: vishuddha,    color: '#1E3A8A', points: ['J', 'K'] },
-    anahata:      { name: 'Anahata (Heart)',         phys: S, ener: T, emot: anahata,      color: '#064E3B', points: ['S', 'T'] },
-    manipura:     { name: 'Manipura (Solar Plexus)', phys: E, ener: E, emot: manipura,     color: '#854D0E', points: ['E', 'E'] },
-    svadhisthana: { name: 'Svadhisthana (Sacral)',   phys: L, ener: M, emot: svadhisthana, color: '#9A3412', points: ['L', 'M'] },
-    muladhara:    { name: 'Muladhara (Root)',        phys: C, ener: D, emot: muladhara,    color: '#7F1D1D', points: ['C', 'D'] },
+    sahasrara:    { name: 'Sahasrara (Crown)',       phys: A, ener: B, emot: sahasrara,    color: '#a8879d', points: ['A', 'B'] },
+    ajna:         { name: 'Ajna (Third Eye)',        phys: O, ener: P, emot: ajna,         color: '#8b7a9d', points: ['O', 'P'] },
+    vishuddha:    { name: 'Vishuddha (Throat)',      phys: J, ener: K, emot: vishuddha,    color: '#7a8b9d', points: ['J', 'K'] },
+    anahata:      { name: 'Anahata (Heart)',         phys: S, ener: T, emot: anahata,      color: '#8b9d87', points: ['S', 'T'] },
+    manipura:     { name: 'Manipura (Solar Plexus)', phys: E, ener: E, emot: manipura,     color: '#b8a87a', points: ['E', 'E'] },
+    svadhisthana: { name: 'Svadhisthana (Sacral)',   phys: L, ener: M, emot: svadhisthana, color: '#b8927a', points: ['L', 'M'] },
+    muladhara:    { name: 'Muladhara (Root)',        phys: C, ener: D, emot: muladhara,    color: '#9d7a7a', points: ['C', 'D'] },
   }
 
   const cList = Object.values(chakraMap)
