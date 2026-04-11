@@ -40,66 +40,88 @@ export default function FriendsPage() {
   const [actionMsg, setActionMsg] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
-  // Fresh client every time — ensures we always have current auth context.
-  // Supabase's createBrowserClient returns a singleton internally, so this
-  // isn't actually creating new connections, just getting a handle with
-  // up-to-date cookies.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function getDb(): any { return createClient() as any }
+  // ─── Direct REST helpers — bypass Supabase client singleton ─────────
+  // The SSR client singleton gets stuck after tab background. Direct fetch
+  // calls always work. Auth token is read fresh from the session each time.
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
+
+  async function getAccessToken(): Promise<string> {
+    const { data } = await createClient().auth.getSession()
+    return data.session?.access_token ?? anonKey
+  }
+
+  async function restFetch(path: string, init: RequestInit = {}, timeoutMs = 8000): Promise<Response> {
+    const token = await getAccessToken()
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+    try {
+      return await fetch(`${supabaseUrl}/rest/v1/${path}`, {
+        ...init,
+        headers: {
+          apikey: anonKey,
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=representation',
+          ...(init.headers || {}),
+        },
+        signal: controller.signal,
+      })
+    } finally {
+      clearTimeout(timeoutId)
+    }
+  }
 
   // ─── Load all friendships ──────────────────────────────────────────
   async function reload() {
     const uid = user?.id
     if (!uid) return
 
-    const db = getDb()
+    try {
+      // Fetch friendships where user is requester or addressee
+      const res = await restFetch(
+        `friendships?select=*&or=(requester.eq.${uid},addressee.eq.${uid})`,
+        { method: 'GET' }
+      )
+      if (!res.ok) {
+        console.error('[friends] load failed:', res.status)
+        setLoadingFriends(false)
+        return
+      }
+      const rows = await res.json() as any[]
 
-    // 5s timeout — if the Supabase client is stale (after tab background),
-    // the query can hang forever. Timeout forces a retry on next poll.
-    const queryPromise = db
-      .from('friendships')
-      .select('*')
-      .or(`requester.eq.${uid},addressee.eq.${uid}`)
+      if (!rows || rows.length === 0) {
+        setFriends([])
+        setPendingIncoming([])
+        setPendingSent([])
+        setLoadingFriends(false)
+        return
+      }
 
-    const timeoutPromise = new Promise<{ data: null; error: Error }>((resolve) =>
-      setTimeout(() => resolve({ data: null, error: new Error('Query timeout') }), 5000)
-    )
+      // Fetch profiles of friends
+      const friendIds = rows.map((r: any) => r.requester === uid ? r.addressee : r.requester)
+      const idsParam = friendIds.map(encodeURIComponent).join(',')
+      const profRes = await restFetch(
+        `profiles?select=id,username,display_name,sun_sign,moon_sign,rising_sign&id=in.(${idsParam})`,
+        { method: 'GET' }
+      )
+      const profiles = profRes.ok ? await profRes.json() as any[] : []
+      const profileMap = new Map(profiles.map((p: any) => [p.id, p]))
+      const enriched: FriendRow[] = rows
+        .map((r: any) => ({
+          ...r,
+          friendProfile: profileMap.get(r.requester === uid ? r.addressee : r.requester),
+        }))
+        .filter((r: FriendRow) => r.friendProfile)
 
-    const result = await Promise.race([queryPromise, timeoutPromise]) as { data: any; error: any }
-    const { data: rows, error } = result
-
-    if (error) {
-      console.error('[friends] load error:', error)
+      setFriends(enriched.filter(r => r.status === 'accepted'))
+      setPendingIncoming(enriched.filter(r => r.status === 'pending' && r.addressee === uid))
+      setPendingSent(enriched.filter(r => r.status === 'pending' && r.requester === uid))
       setLoadingFriends(false)
-      return
-    }
-
-    if (!rows || rows.length === 0) {
-      setFriends([])
-      setPendingIncoming([])
-      setPendingSent([])
+    } catch (err) {
+      console.error('[friends] reload exception:', err)
       setLoadingFriends(false)
-      return
     }
-
-    const friendIds = rows.map((r: any) => r.requester === uid ? r.addressee : r.requester)
-    const { data: profiles } = await db
-      .from('profiles')
-      .select('id, username, display_name, sun_sign, moon_sign, rising_sign')
-      .in('id', friendIds)
-
-    const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]))
-    const enriched: FriendRow[] = rows
-      .map((r: any) => ({
-        ...r,
-        friendProfile: profileMap.get(r.requester === uid ? r.addressee : r.requester),
-      }))
-      .filter((r: FriendRow) => r.friendProfile)
-
-    setFriends(enriched.filter(r => r.status === 'accepted'))
-    setPendingIncoming(enriched.filter(r => r.status === 'pending' && r.addressee === uid))
-    setPendingSent(enriched.filter(r => r.status === 'pending' && r.requester === uid))
-    setLoadingFriends(false)
   }
 
   // Initial load + polling
@@ -147,26 +169,16 @@ export default function FriendsPage() {
     // Each search gets a unique ID; only the latest one's result is applied
     const reqId = ++searchReqRef.current
     debounceRef.current = setTimeout(async () => {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000)
       try {
         // Direct REST call — bypasses the Supabase client singleton which
-        // goes stale after browser tab background. Public profiles are
-        // readable with just the anon key thanks to RLS (is_public = true).
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-        const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        // goes stale after browser tab background.
         const escaped = encodeURIComponent(`%${val}%`)
         const selectFields = 'id,username,display_name,sun_sign,moon_sign,rising_sign'
-        const url = `${supabaseUrl}/rest/v1/profiles?select=${selectFields}&username=ilike.${escaped}&id=neq.${user?.id ?? ''}&limit=10`
-
-        const res = await fetch(url, {
-          headers: {
-            apikey: anonKey ?? '',
-            Authorization: `Bearer ${anonKey}`,
-          },
-          signal: controller.signal,
-        })
-
+        const res = await restFetch(
+          `profiles?select=${selectFields}&username=ilike.${escaped}&id=neq.${user?.id ?? ''}&limit=10`,
+          { method: 'GET' },
+          5000
+        )
         if (!res.ok) throw new Error(`Search failed: ${res.status}`)
         const data = await res.json()
 
@@ -177,7 +189,6 @@ export default function FriendsPage() {
         if (!mountedRef.current || reqId !== searchReqRef.current) return
         setSearchResults([])
       } finally {
-        clearTimeout(timeoutId)
         if (mountedRef.current && reqId === searchReqRef.current) {
           setSearching(false)
         }
@@ -194,19 +205,34 @@ export default function FriendsPage() {
   async function sendRequest(addresseeId: string) {
     if (!user) return
     setActionLoading(addresseeId)
-    const { error } = await getDb().from('friendships').insert({
-      requester: user.id,
-      addressee: addresseeId,
-      status: 'pending',
-    })
-    setActionLoading(null)
-    if (error) {
-      showMsg(error.code === '23505' ? 'Request already sent.' : error.message)
-    } else {
-      showMsg('Request sent!')
-      setQuery('')
-      setSearchResults([])
-      await reload()
+    try {
+      const res = await restFetch('friendships', {
+        method: 'POST',
+        body: JSON.stringify({
+          requester: user.id,
+          addressee: addresseeId,
+          status: 'pending',
+        }),
+      })
+      if (!res.ok) {
+        const body = await res.text()
+        if (res.status === 409 || body.includes('duplicate')) {
+          showMsg('Request already sent.')
+        } else {
+          console.error('[friends] send error:', res.status, body)
+          showMsg('Failed to send request.')
+        }
+      } else {
+        showMsg('Request sent!')
+        setQuery('')
+        setSearchResults([])
+        await reload()
+      }
+    } catch (err) {
+      console.error('[friends] send exception:', err)
+      showMsg('Failed to send request.')
+    } finally {
+      setActionLoading(null)
     }
   }
 
@@ -218,53 +244,62 @@ export default function FriendsPage() {
       setFriends(prev => [...prev, { ...accepted, status: 'accepted' }])
     }
 
-    const { error } = await getDb()
-      .from('friendships')
-      .update({ status: 'accepted' })
-      .eq('id', friendshipId)
-
-    if (error) {
-      console.error('[friends] accept error:', error)
-      showMsg('Failed: ' + error.message)
-      await reload() // revert on error
-    } else {
-      showMsg('Friend added!')
+    try {
+      const res = await restFetch(`friendships?id=eq.${friendshipId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'accepted' }),
+      })
+      if (!res.ok) {
+        console.error('[friends] accept error:', res.status, await res.text())
+        showMsg('Failed to accept.')
+        await reload()
+      } else {
+        showMsg('Friend added!')
+      }
+    } catch (err) {
+      console.error('[friends] accept exception:', err)
+      await reload()
     }
   }
 
   async function declineRequest(friendshipId: string) {
-    // Optimistic: remove immediately
     setPendingIncoming(prev => prev.filter(f => f.id !== friendshipId))
     setPendingSent(prev => prev.filter(f => f.id !== friendshipId))
-
-    const { error } = await getDb().from('friendships').delete().eq('id', friendshipId)
-    if (error) {
-      console.error('[friends] decline error:', error)
+    try {
+      await restFetch(`friendships?id=eq.${friendshipId}`, { method: 'DELETE' })
+    } catch (err) {
+      console.error('[friends] decline exception:', err)
       await reload()
     }
   }
 
   async function removeFriend(friendshipId: string) {
-    // Optimistic: remove from friends list immediately
     setFriends(prev => prev.filter(f => f.id !== friendshipId))
     showMsg('Friend removed.')
-
-    const { error } = await getDb().from('friendships').delete().eq('id', friendshipId)
-    if (error) {
-      console.error('[friends] remove error:', error)
+    try {
+      await restFetch(`friendships?id=eq.${friendshipId}`, { method: 'DELETE' })
+    } catch (err) {
+      console.error('[friends] remove exception:', err)
       await reload()
     }
   }
 
   async function generateInvite() {
     if (!user) return
-    const { data, error } = await getDb()
-      .from('invite_links')
-      .insert({ creator: user.id, max_uses: 5 })
-      .select('token')
-      .single()
-    if (!error && data) {
-      setInviteLink(`${window.location.origin}/invite/${(data as any).token}`)
+    try {
+      const res = await restFetch('invite_links', {
+        method: 'POST',
+        body: JSON.stringify({ creator: user.id, max_uses: 5 }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        const row = Array.isArray(data) ? data[0] : data
+        if (row?.token) {
+          setInviteLink(`${window.location.origin}/invite/${row.token}`)
+        }
+      }
+    } catch (err) {
+      console.error('[friends] invite error:', err)
     }
   }
 
