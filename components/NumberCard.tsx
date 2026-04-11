@@ -23,7 +23,7 @@ export default function NumberCard({
   delay = 0,
 }: NumberCardProps) {
   // Derive color from the corresponding Major Arcana to match the Deck section
-  const resolvedColor = color ?? getArcana(value)?.color ?? '#8b5cf6'
+  const resolvedColor = color ?? getArcana(value)?.color ?? '#a8879d'
   const [isExpanded, setIsExpanded] = useState(false)
   const isMaster = MASTER_NUMBERS.has(value)
   const interp = INTERPRETATIONS[value]

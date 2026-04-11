@@ -73,7 +73,7 @@ export default function RadarChart({ core }: { core: CoreNumbers }) {
         <polygon
           points={polygonPoints}
           fill="rgba(139, 92, 246, 0.25)"
-          stroke="#8b5cf6"
+          stroke="#a8879d"
           strokeWidth="2"
           className="drop-shadow-[0_0_8px_rgba(139,92,246,0.4)] transition-all duration-700"
         />

@@ -90,14 +90,14 @@ function DeckCard({
     <button
       onClick={onClick}
       className="group relative flex flex-col items-center cursor-pointer focus:outline-none w-[260px] sm:w-[165px] md:w-[180px]"
-      style={{ '--card-color': arcana?.color ?? '#8b5cf6' } as React.CSSProperties}
+      style={{ '--card-color': arcana?.color ?? '#a8879d' } as React.CSSProperties}
     >
       {/* Card frame */}
       <div
         className="relative w-full aspect-[992/1583] rounded-2xl overflow-hidden transition-all duration-300
                    group-hover:scale-[1.03]"
         style={{
-          boxShadow: `0 0 22px ${arcana?.color ?? '#8b5cf6'}55`,
+          boxShadow: `0 0 22px ${arcana?.color ?? '#a8879d'}55`,
         }}
       >
 
@@ -114,7 +114,7 @@ function DeckCard({
           /* Placeholder when image is missing */
           <div
             className="w-full h-full flex flex-col items-center justify-center gap-3"
-            style={{ background: `${arcana?.color ?? '#8b5cf6'}0d` }}
+            style={{ background: `${arcana?.color ?? '#a8879d'}0d` }}
           >
             <span className="text-3xl font-black opacity-20" style={{ color: arcana?.color }}>
               {card.roman}
@@ -131,7 +131,7 @@ function DeckCard({
         <span className="text-[8px] font-mono text-slate-600 tracking-widest">{card.roman}</span>
         <span
           className="text-[10px] font-black uppercase tracking-widest text-center leading-tight"
-          style={{ color: arcana?.color ?? '#8b5cf6' }}
+          style={{ color: arcana?.color ?? '#a8879d' }}
         >
           {deckName(card)}
         </span>
@@ -177,7 +177,7 @@ function Lightbox({
             style={{
               height: 'min(45vh, 400px)',
               aspectRatio: '1.8/3',
-              boxShadow: `0 0 40px ${arcana?.color ?? '#8b5cf6'}55`
+              boxShadow: `0 0 40px ${arcana?.color ?? '#a8879d'}55`
             }}
           >
             {hasImage ? (
@@ -192,7 +192,7 @@ function Lightbox({
             ) : (
               <div
                 className="w-full h-full flex items-center justify-center"
-                style={{ background: `${arcana?.color ?? '#8b5cf6'}11` }}
+                style={{ background: `${arcana?.color ?? '#a8879d'}11` }}
               >
                 <span className="text-6xl font-black opacity-10" style={{ color: arcana?.color }}>
                   {card.roman}
@@ -565,7 +565,7 @@ export default function DeckGallery() {
         <div className="text-center flex flex-col gap-3">
           <h2 className="text-4xl font-black tracking-tight text-white uppercase">
             The <span style={{
-              background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #c084fc 100%)',
+              background: 'linear-gradient(135deg, #a8879d 0%, #a8879d 50%, #a8879d 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
             }}>Deck</span>
@@ -618,53 +618,53 @@ export default function DeckGallery() {
             {/* Sparkle stars around the border */}
             <svg className="absolute -inset-3 w-[calc(100%+24px)] h-[calc(100%+24px)] pointer-events-none" viewBox="0 0 120 60" fill="none" preserveAspectRatio="none">
               {/* Top edge stars */}
-              <circle cx="20" cy="3" r="0.8" fill="#c4b5fd" opacity="0.7">
+              <circle cx="20" cy="3" r="0.8" fill="#a8879d" opacity="0.7">
                 <animate attributeName="opacity" values="0.2;0.8;0.2" dur="3s" repeatCount="indefinite" />
               </circle>
               <circle cx="45" cy="1" r="0.5" fill="#e0d4ff" opacity="0.5">
                 <animate attributeName="opacity" values="0.1;0.6;0.1" dur="4s" begin="0.5s" repeatCount="indefinite" />
               </circle>
-              <circle cx="75" cy="2" r="0.7" fill="#a78bfa" opacity="0.6">
+              <circle cx="75" cy="2" r="0.7" fill="#a8879d" opacity="0.6">
                 <animate attributeName="opacity" values="0.15;0.7;0.15" dur="3.5s" begin="1s" repeatCount="indefinite" />
               </circle>
-              <circle cx="100" cy="4" r="0.5" fill="#c4b5fd" opacity="0.4">
+              <circle cx="100" cy="4" r="0.5" fill="#a8879d" opacity="0.4">
                 <animate attributeName="opacity" values="0.1;0.5;0.1" dur="5s" begin="2s" repeatCount="indefinite" />
               </circle>
               {/* Bottom edge stars */}
-              <circle cx="15" cy="57" r="0.6" fill="#a78bfa" opacity="0.5">
+              <circle cx="15" cy="57" r="0.6" fill="#a8879d" opacity="0.5">
                 <animate attributeName="opacity" values="0.1;0.6;0.1" dur="4.5s" begin="1.5s" repeatCount="indefinite" />
               </circle>
-              <circle cx="55" cy="59" r="0.8" fill="#c4b5fd" opacity="0.6">
+              <circle cx="55" cy="59" r="0.8" fill="#a8879d" opacity="0.6">
                 <animate attributeName="opacity" values="0.2;0.7;0.2" dur="3.2s" begin="0.8s" repeatCount="indefinite" />
               </circle>
               <circle cx="90" cy="56" r="0.5" fill="#e0d4ff" opacity="0.4">
                 <animate attributeName="opacity" values="0.1;0.55;0.1" dur="4s" begin="2.5s" repeatCount="indefinite" />
               </circle>
               {/* Left edge stars */}
-              <circle cx="2" cy="18" r="0.6" fill="#c4b5fd" opacity="0.5">
+              <circle cx="2" cy="18" r="0.6" fill="#a8879d" opacity="0.5">
                 <animate attributeName="opacity" values="0.15;0.65;0.15" dur="3.8s" begin="0.3s" repeatCount="indefinite" />
               </circle>
-              <circle cx="1" cy="40" r="0.5" fill="#a78bfa" opacity="0.4">
+              <circle cx="1" cy="40" r="0.5" fill="#a8879d" opacity="0.4">
                 <animate attributeName="opacity" values="0.1;0.5;0.1" dur="4.2s" begin="1.8s" repeatCount="indefinite" />
               </circle>
               {/* Right edge stars */}
               <circle cx="118" cy="22" r="0.7" fill="#e0d4ff" opacity="0.6">
                 <animate attributeName="opacity" values="0.2;0.7;0.2" dur="3.3s" begin="0.7s" repeatCount="indefinite" />
               </circle>
-              <circle cx="117" cy="42" r="0.5" fill="#c4b5fd" opacity="0.4">
+              <circle cx="117" cy="42" r="0.5" fill="#a8879d" opacity="0.4">
                 <animate attributeName="opacity" values="0.1;0.55;0.1" dur="5s" begin="1.2s" repeatCount="indefinite" />
               </circle>
               {/* Corner accent stars (4-point star shapes) */}
-              <path d="M8 8 L9 6.5 L10 8 L9 9.5 Z" fill="#c4b5fd" opacity="0.5">
+              <path d="M8 8 L9 6.5 L10 8 L9 9.5 Z" fill="#a8879d" opacity="0.5">
                 <animate attributeName="opacity" values="0.15;0.6;0.15" dur="4s" begin="0.4s" repeatCount="indefinite" />
               </path>
-              <path d="M110 8 L111 6.5 L112 8 L111 9.5 Z" fill="#a78bfa" opacity="0.45">
+              <path d="M110 8 L111 6.5 L112 8 L111 9.5 Z" fill="#a8879d" opacity="0.45">
                 <animate attributeName="opacity" values="0.1;0.55;0.1" dur="3.6s" begin="1.3s" repeatCount="indefinite" />
               </path>
               <path d="M8 52 L9 50.5 L10 52 L9 53.5 Z" fill="#e0d4ff" opacity="0.4">
                 <animate attributeName="opacity" values="0.1;0.5;0.1" dur="4.5s" begin="2.2s" repeatCount="indefinite" />
               </path>
-              <path d="M110 52 L111 50.5 L112 52 L111 53.5 Z" fill="#c4b5fd" opacity="0.5">
+              <path d="M110 52 L111 50.5 L112 52 L111 53.5 Z" fill="#a8879d" opacity="0.5">
                 <animate attributeName="opacity" values="0.15;0.6;0.15" dur="3.4s" begin="0.9s" repeatCount="indefinite" />
               </path>
             </svg>
@@ -672,7 +672,7 @@ export default function DeckGallery() {
               onClick={() => setDeckTab('reading')}
               className="relative z-10 flex flex-col items-center gap-1 px-6 py-2.5 rounded-xl transition-all duration-200"
               style={{
-                background: deckTab === 'reading' ? 'linear-gradient(135deg,#7c3aed,#6366f1)' : 'transparent',
+                background: deckTab === 'reading' ? 'linear-gradient(135deg,#a8879d,#a8879d)' : 'transparent',
                 color: deckTab === 'reading' ? '#fff' : '#64748b',
               }}
             >

@@ -24,7 +24,7 @@ export default function MatrixSummary({ result }: { result: DestinyMatrixResult 
         <div className="md:col-span-4 h-full">
           <SummaryCard title="Central Core" primaryNumber={points.E.number} subtitle="Comfort Zone">
             <div className="flex flex-col gap-2 mt-2">
-              <span className="text-4xl font-black" style={{ color: getArcana(points.E.number)?.color ?? '#8b5cf6' }}>
+              <span className="text-4xl font-black" style={{ color: getArcana(points.E.number)?.color ?? '#a8879d' }}>
                 {points.E.number}
               </span>
               <span className="text-sm font-bold text-slate-300">
@@ -53,9 +53,9 @@ export default function MatrixSummary({ result }: { result: DestinyMatrixResult 
           <SummaryCard title="Evolutionary Arcs" primaryNumber={points.L2.number} subtitle="Milestones of Growth">
             <div className="space-y-3">
               <div className="flex justify-between items-center p-3 rounded-xl border"
-                style={{ background: `${getArcana(points.L2.number)?.color ?? '#8b5cf6'}10`, borderColor: `${getArcana(points.L2.number)?.color ?? '#8b5cf6'}25` }}>
+                style={{ background: `${getArcana(points.L2.number)?.color ?? '#a8879d'}10`, borderColor: `${getArcana(points.L2.number)?.color ?? '#a8879d'}25` }}>
                 <span className="text-xs font-semibold text-slate-400">Light Point (30-50):</span>
-                <span className="text-sm font-bold" style={{ color: getArcana(points.L2.number)?.color ?? '#8b5cf6' }}>
+                <span className="text-sm font-bold" style={{ color: getArcana(points.L2.number)?.color ?? '#a8879d' }}>
                   {points.L2.number} — {getArcana(points.L2.number).name}
                 </span>
               </div>
@@ -69,7 +69,7 @@ export default function MatrixSummary({ result }: { result: DestinyMatrixResult 
               <div className="flex items-center justify-center gap-6 py-4 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
                 {[points.M.number, points.N.number, points.D.number].map((n, idx) => (
                   <div key={idx} className="flex flex-col items-center">
-                    <span className="text-2xl font-black" style={{ color: getArcana(n)?.color ?? '#8b5cf6' }}>{n}</span>
+                    <span className="text-2xl font-black" style={{ color: getArcana(n)?.color ?? '#a8879d' }}>{n}</span>
                     <span className="text-[9px] text-slate-600 font-bold uppercase">{['Lesson', 'Challenge', 'Root'][idx]}</span>
                   </div>
                 ))}
@@ -139,7 +139,7 @@ export default function MatrixSummary({ result }: { result: DestinyMatrixResult 
 }
 
 function SummaryCard({ title, subtitle, primaryNumber, children }: { title: string; subtitle?: string; primaryNumber: number; children: React.ReactNode }) {
-  const color = getArcana(primaryNumber)?.color ?? '#8b5cf6'
+  const color = getArcana(primaryNumber)?.color ?? '#a8879d'
   return (
     <div className="h-full rounded-2xl border border-white/[0.07] bg-bg-card p-6 shadow-xl transition-all hover:border-white/10 flex flex-col">
       <div className="flex flex-col mb-6">
@@ -156,7 +156,7 @@ function SummaryCard({ title, subtitle, primaryNumber, children }: { title: stri
 
 function TalentBox({ title, value, highlight }: { title: string; value: number; highlight?: boolean }) {
   const arcana = getArcana(value)
-  const color = arcana?.color ?? '#8b5cf6'
+  const color = arcana?.color ?? '#a8879d'
   return (
     <div
       className="p-6 flex flex-col items-center gap-2 transition-colors"
@@ -171,7 +171,7 @@ function TalentBox({ title, value, highlight }: { title: string; value: number; 
 
 function DataRow({ label, value }: { label: string; value: number }) {
   const arcana = getArcana(value)
-  const color = arcana?.color ?? '#8b5cf6'
+  const color = arcana?.color ?? '#a8879d'
   return (
     <div className="flex items-center justify-between gap-4 py-2.5 border-b border-white/[0.03] last:border-0 group transition-colors">
       <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide group-hover:text-slate-400">{label}</span>

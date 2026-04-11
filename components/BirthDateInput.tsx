@@ -54,7 +54,7 @@ export default function BirthDateInput({ value, onChange }: BirthDateInputProps)
           "
           style={{
             borderColor: focused
-              ? '#8b5cf6'
+              ? '#a8879d'
               : hasValue && isValid
               ? '#34d399'
               : hasValue

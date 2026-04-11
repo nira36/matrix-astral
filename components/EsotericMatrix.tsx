@@ -120,7 +120,7 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
         <polygon
           points={octPoints}
           className="animate-aura-breathe"
-          stroke="#8B5CF6"
+          stroke="#a8879d"
           strokeWidth="6"
           filter="url(#aura-blur)"
           strokeLinecap="round"
@@ -131,7 +131,7 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
         <polygon
           points={octPoints}
           className="animate-aura-trace"
-          stroke="#8B5CF6"
+          stroke="#a8879d"
           strokeWidth="8"
           strokeDasharray="600 1850"
           filter="url(#aura-blur)"
@@ -317,7 +317,7 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
                   className="counter-rotate-slow"
                   style={{ transformOrigin: `${oxO}px ${oyO}px` }}
                 >
-                  <text x={oxO} y={oyO} fill="#8B5CF6" fontSize="13" fontWeight="700" textAnchor="middle" dominantBaseline="middle">
+                  <text x={oxO} y={oyO} fill="#a8879d" fontSize="13" fontWeight="700" textAnchor="middle" dominantBaseline="middle">
                     {point.number}
                   </text>
                 </g>
@@ -325,7 +325,7 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
                 {/* Internal Age Range (Rotated) */}
                 {yearText && (
                   <text 
-                    x={oxI} y={oyI} fill="#C4B5FD" fontSize="10" fontWeight="800" opacity="1"
+                    x={oxI} y={oyI} fill="#a8879d" fontSize="10" fontWeight="800" opacity="1"
                     textAnchor="middle" dominantBaseline="middle"
                     transform={`rotate(${angle}, ${oxI}, ${oyI})`}
                   >
@@ -358,7 +358,7 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-lg flex items-center justify-center font-bold text-2xl"
-                  style={{ background: 'rgba(139,92,246,0.1)', color: '#8b5cf6' }}>
+                  style={{ background: 'rgba(139,92,246,0.1)', color: '#a8879d' }}>
                   {hoveredNode.number}
                 </div>
                 <div className="flex flex-col">
@@ -387,8 +387,8 @@ export default function EsotericMatrix({ result, className = "" }: { result: Des
             <feGaussianBlur stdDeviation="12" result="blur" />
           </filter>
           <radialGradient id="grad-center-esoteric" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.15" />
-            <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0" />
+            <stop offset="0%" stopColor="#a8879d" stopOpacity="0.15" />
+            <stop offset="100%" stopColor="#a8879d" stopOpacity="0" />
           </radialGradient>
         </defs>
 

@@ -30,7 +30,7 @@ function getMeaning(n: number) {
 
 function PinnacleCard({ phase }: { phase: LifePhase; index: number }) {
   const meaning = getMeaning(phase.number)
-  const color = getArcana(phase.number)?.color ?? '#8b5cf6'
+  const color = getArcana(phase.number)?.color ?? '#a8879d'
 
   return (
     <div
@@ -77,7 +77,7 @@ function PinnacleCard({ phase }: { phase: LifePhase; index: number }) {
 
 function ChallengeCard({ value, index }: { value: number; index: number }) {
   const meaning = getMeaning(value)
-  const color = getArcana(value)?.color ?? '#8b5cf6'
+  const color = getArcana(value)?.color ?? '#a8879d'
   const labels = ['Youth Challenge', 'Growth Challenge', 'Master Challenge', 'Final Challenge']
 
   return (
@@ -131,7 +131,7 @@ export default function EvolutionSection({ result }: { result: NumerologyResult 
         <div className="flex flex-col gap-4">
           {result.lifeCycles.map((c, i) => {
             const meaning = getMeaning(c.number)
-            const color = getArcana(c.number)?.color ?? '#8b5cf6'
+            const color = getArcana(c.number)?.color ?? '#a8879d'
             return (
               <div
                 key={i}

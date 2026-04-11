@@ -11,7 +11,7 @@ const RASHI_TO_ZODIAC: Record<string, ZodiacSign> = {
   Dhanu: 'Sagittarius', Makara: 'Capricorn', Kumbha: 'Aquarius', Meena: 'Pisces',
 }
 
-function RashiGlyph({ rashi, x, y, size = 20, color = '#a78bfa' }:
+function RashiGlyph({ rashi, x, y, size = 20, color = '#a8879d' }:
   { rashi: string; x: number; y: number; size?: number; color?: string }
 ) {
   const sign = RASHI_TO_ZODIAC[rashi]
@@ -391,7 +391,7 @@ function NorthIndianChart({ vedic }: { vedic: VedicChart }) {
                 y={pos.y + 2}
                 textAnchor="middle"
                 fontSize="8"
-                fill="#a78bfa"
+                fill="#a8879d"
                 fontWeight="bold"
               >
                 LAGNA

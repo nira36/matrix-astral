@@ -64,7 +64,7 @@ function Overview({ data }: { data: NatalChartData }) {
     Fire: { bar: '#EF4444', text: 'text-red-400' },
     Earth: { bar: '#F59E0B', text: 'text-amber-400' },
     Air: { bar: '#38BDF8', text: 'text-sky-400' },
-    Water: { bar: '#6366F1', text: 'text-indigo-400' },
+    Water: { bar: '#a8879d', text: 'text-indigo-400' },
   }
 
   return (

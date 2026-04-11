@@ -57,7 +57,7 @@ const ALL_CARDS: CardMeta[] = [
     return {
       type: 'major' as CardType,
       name: arcana?.name ?? `Arcana ${i}`,
-      color: arcana?.color ?? '#8b5cf6',
+      color: arcana?.color ?? '#a8879d',
       imgSrc: `/deck/${String(i).padStart(2, '0')}.jpg`,
       keywords: arcana?.keywords?.slice(0, 3),
     }
@@ -516,7 +516,7 @@ export default function TarotReading({ spread = SPREADS[0] }: { spread?: SpreadD
             onClick={drawNext}
             className="px-6 py-3 rounded-xl font-semibold text-sm tracking-wide text-white transition-all duration-200"
             style={{
-              background: 'linear-gradient(135deg, #7c3aed, #6366f1)',
+              background: 'linear-gradient(135deg, #a8879d, #a8879d)',
               boxShadow: '0 4px 28px rgba(124,58,237,0.3)',
             }}
           >

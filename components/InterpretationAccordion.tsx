@@ -64,7 +64,7 @@ export default function InterpretationAccordion({ result }: { result: DestinyMat
     {
       name: "Karma & Ancestors",
       zones: [
-        { id: 6, title: "Karmic Tail (Previous Lives)", importance: 5, color: "#A78BFA", content: (
+        { id: 6, title: "Karmic Tail (Previous Lives)", importance: 5, color: "#a8879d", content: (
           <div className="space-y-8">
             <p className="text-xs text-slate-400 leading-relaxed italic border-l-2 border-purple-400/30 pl-4 py-1">
               The weight of past experiences. These are the patterns, mistakes, and unresolved nodes you carry into this lifetime.
@@ -126,7 +126,7 @@ export default function InterpretationAccordion({ result }: { result: DestinyMat
             <PurposeInterpretation label="Spiritual Purpose" value={result.purpose.spiritual} />
           </div>
         )},
-        { id: 11, title: "The 7 Chakras", importance: 4, color: "#6366F1", content: (
+        { id: 11, title: "The 7 Chakras", importance: 4, color: "#a8879d", content: (
           <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 text-center">
             <p className="text-xs text-slate-400">Detailed Chakra Analysis is currently in development.</p>
           </div>

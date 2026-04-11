@@ -126,7 +126,7 @@ export default function ChineseAstrology({ dateStr, birthTime }: Props) {
               onClick={() => setGender(g)}
               className="px-4 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all"
               style={{
-                background: gender === g ? 'linear-gradient(135deg,#7c3aed,#6366f1)' : 'transparent',
+                background: gender === g ? 'linear-gradient(135deg,#a8879d,#a8879d)' : 'transparent',
                 color: gender === g ? '#fff' : '#64748b',
               }}
             >
@@ -794,7 +794,7 @@ function CompatibilityForm({
                 onClick={() => setPartnerGender(g)}
                 className="flex-1 py-1.5 rounded text-[9px] font-bold uppercase tracking-widest transition-all"
                 style={{
-                  background: partnerGender === g ? 'linear-gradient(135deg,#7c3aed,#6366f1)' : 'transparent',
+                  background: partnerGender === g ? 'linear-gradient(135deg,#a8879d,#a8879d)' : 'transparent',
                   color: partnerGender === g ? '#fff' : '#64748b',
                 }}
               >{g}</button>

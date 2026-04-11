@@ -331,7 +331,7 @@ export default function Home() {
             <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-4">
               <span className="text-white">Cosmic Love</span>{' '}
               <span style={{
-                background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #c084fc 100%)',
+                background: 'linear-gradient(135deg, #a8879d 0%, #a8879d 50%, #a8879d 100%)',
                 WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
               }}>
                 Matrix
@@ -411,7 +411,7 @@ export default function Home() {
                          text-white transition-all duration-200
                          disabled:opacity-40 disabled:cursor-not-allowed"
               style={{
-                background: 'linear-gradient(135deg, #7c3aed, #6366f1)',
+                background: 'linear-gradient(135deg, #a8879d, #a8879d)',
                 boxShadow: '0 4px 28px rgba(124,58,237,0.3)',
               }}
             >
@@ -574,7 +574,7 @@ export default function Home() {
                   { label: 'Karmic Tail', value: matResult.points.D.number },
                   { label: `Year ${new Date().getFullYear()}`, value: matResult.personalYear },
                 ].map(({ label, value }) => {
-                  const color = getArcana(value)?.color ?? '#8b5cf6'
+                  const color = getArcana(value)?.color ?? '#a8879d'
                   return (
                     <div key={label} className="rounded-xl border border-white/[0.07] bg-bg-card px-5 py-4 shadow-lg shadow-black/20">
                       <span className="text-[10px] font-black tracking-widest uppercase mb-1 block" style={{ color }}>{label}</span>

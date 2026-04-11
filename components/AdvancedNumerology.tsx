@@ -14,7 +14,7 @@ interface CardProps {
 }
 
 function NumCard({ label, sublabel, value, meaning }: CardProps) {
-  const color = typeof value === 'number' ? (getArcana(value)?.color ?? '#8b5cf6') : '#8b5cf6'
+  const color = typeof value === 'number' ? (getArcana(value)?.color ?? '#a8879d') : '#a8879d'
   return (
     <div
       className="flex flex-col gap-3 p-5 rounded-2xl border"
@@ -96,7 +96,7 @@ export default function AdvancedNumerology({ result }: { result: NumerologyResul
           </p>
           <div className="flex flex-wrap gap-3">
             {advanced.hiddenPassion.map(n => {
-              const c = getArcana(n)?.color ?? '#8b5cf6'
+              const c = getArcana(n)?.color ?? '#a8879d'
               return (
                 <div key={n} className="flex items-center gap-2 px-3 py-2 rounded-xl border"
                   style={{ background: `${c}12`, borderColor: `${c}30` }}>
@@ -122,7 +122,7 @@ export default function AdvancedNumerology({ result }: { result: NumerologyResul
           </p>
           <div className="flex flex-wrap gap-3">
             {advanced.karmicLessons.map(n => {
-              const c = getArcana(n)?.color ?? '#8b5cf6'
+              const c = getArcana(n)?.color ?? '#a8879d'
               return (
                 <div key={n} className="flex items-center gap-2 px-3 py-2 rounded-xl border"
                   style={{ background: `${c}12`, borderColor: `${c}30` }}>

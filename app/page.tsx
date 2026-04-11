@@ -518,7 +518,7 @@ export default function Home() {
                   { label: 'Karmic Tail', value: matResult.points.D.number },
                   { label: `Year ${new Date().getFullYear()}`, value: matResult.personalYear },
                 ].map(({ label, value }) => {
-                  const color = getArcana(value)?.color ?? '#8b5cf6'
+                  const color = getArcana(value)?.color ?? '#a8879d'
                   return (
                   <div key={label} className="rounded-xl border border-white/[0.07] bg-bg-card px-5 py-4 shadow-lg shadow-black/20">
                     <span className="text-[10px] font-black tracking-widest uppercase mb-1 block" style={{ color }}>{label}</span>
@@ -802,7 +802,7 @@ function TabNav({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
             onClick={() => setTab(key)}
             className="flex flex-col items-center gap-1 px-4 sm:px-5 py-2 rounded-xl transition-all duration-200"
             style={{
-              background: tab === key ? 'linear-gradient(135deg,#7c3aed,#6366f1)' : 'transparent',
+              background: tab === key ? 'linear-gradient(135deg,#a8879d,#a8879d)' : 'transparent',
               color: tab === key ? '#fff' : '#64748b',
             }}
           >
@@ -817,7 +817,7 @@ function TabNav({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
             onClick={() => setMenuOpen(v => !v)}
             className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all duration-200"
             style={{
-              background: activeOverflow ? 'linear-gradient(135deg,#7c3aed,#6366f1)' : 'transparent',
+              background: activeOverflow ? 'linear-gradient(135deg,#a8879d,#a8879d)' : 'transparent',
               color: activeOverflow ? '#fff' : '#64748b',
             }}
           >

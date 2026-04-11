@@ -293,7 +293,7 @@ function TransitClock({ days }: { days: { date: string; pd: number; dayLabel: st
                 <path
                   d={path}
                   fill="none"
-                  stroke="#8B5CF6"
+                  stroke="#a8879d"
                   strokeWidth="3"
                   filter="url(#clock-glow)"
                   opacity="0.7"
@@ -302,7 +302,7 @@ function TransitClock({ days }: { days: { date: string; pd: number; dayLabel: st
               <path
                 d={path}
                 fill={isToday ? 'rgba(139,92,246,0.15)' : isHovered ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.02)'}
-                stroke={isToday ? '#8B5CF6' : 'rgba(255,255,255,0.08)'}
+                stroke={isToday ? '#a8879d' : 'rgba(255,255,255,0.08)'}
                 strokeWidth={isToday ? '2' : '1'}
                 className="transition-all duration-200"
               />
@@ -312,7 +312,7 @@ function TransitClock({ days }: { days: { date: string; pd: number; dayLabel: st
                 y={ty + 2}
                 textAnchor="middle"
                 dominantBaseline="middle"
-                fill={isToday ? '#c4b5fd' : '#94a3b8'}
+                fill={isToday ? '#a8879d' : '#94a3b8'}
                 fontSize="20"
                 fontWeight="800"
               >
@@ -324,7 +324,7 @@ function TransitClock({ days }: { days: { date: string; pd: number; dayLabel: st
                 y={dy + 1}
                 textAnchor="middle"
                 dominantBaseline="middle"
-                fill={isToday ? '#a78bfa' : '#475569'}
+                fill={isToday ? '#a8879d' : '#475569'}
                 fontSize="8"
                 fontWeight="700"
               >

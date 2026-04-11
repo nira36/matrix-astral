@@ -81,7 +81,7 @@ type AspectFilter = 'all' | AspectType
 
 const FILTER_BUTTONS: { filter: AspectFilter; label: string; symbol: string; color: string }[] = [
   { filter: 'all',         label: 'All',           symbol: '●', color: '#94a3b8' },
-  { filter: 'Conjunction', label: 'Conjunctions',  symbol: '☌', color: '#c4b5fd' },
+  { filter: 'Conjunction', label: 'Conjunctions',  symbol: '☌', color: '#a8879d' },
   { filter: 'Opposition',  label: 'Oppositions',   symbol: '☍', color: '#ef4444' },
   { filter: 'Square',      label: 'Squares',        symbol: '□', color: '#ef4444' },
   { filter: 'Trine',       label: 'Trines',          symbol: '△', color: '#3b82f6' },
@@ -305,7 +305,7 @@ export default function NatalChartWheel({
                   {ZODIAC_PATHS[sign].map((d, pi) => (
                     <path key={pi} d={d}
                       fill="none"
-                      stroke={isSelected ? '#a78bfa' : 'rgba(255,255,255,0.85)'}
+                      stroke={isSelected ? '#a8879d' : 'rgba(255,255,255,0.85)'}
                       strokeWidth={isSelected ? 1.6 : 1.2}
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -637,7 +637,7 @@ export default function NatalChartWheel({
               <div className="flex items-center gap-2.5 mb-1.5">
                 <svg
                   width="22" height="22" viewBox="0 0 18 18"
-                  fill="none" stroke="#a78bfa" strokeWidth="1.4"
+                  fill="none" stroke="#a8879d" strokeWidth="1.4"
                   strokeLinecap="round" strokeLinejoin="round"
                 >
                   {ZODIAC_PATHS[s].map((d, i) => <path key={i} d={d} />)}
