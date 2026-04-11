@@ -110,8 +110,10 @@ function ToastContainer({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id
 // ─── Friend request poller ───────────────────────────────────────────────────
 function useFriendNotifications(userId: string | undefined) {
   const [toasts, setToasts] = useState<Toast[]>([])
-  const knownRequestsRef = useRef<Set<string>>(new Set())
-  const initialLoadRef = useRef(true)
+  // Track IDs we've already toasted (so we don't re-notify the same row)
+  const toastedIdsRef = useRef<Set<string>>(new Set())
+  // Timestamp since when we should consider rows "new"
+  const sinceRef = useRef<string>(new Date().toISOString())
   const toastIdRef = useRef(0)
 
   const dismiss = useCallback((id: number) => {
@@ -130,36 +132,30 @@ function useFriendNotifications(userId: string | undefined) {
   useEffect(() => {
     if (!userId) return
 
-    const supabase = createClient()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const db = supabase as any
+    // Reset session timestamp on mount — only notify for requests after this
+    sinceRef.current = new Date().toISOString()
+    toastedIdsRef.current = new Set()
 
     async function checkRequests() {
-      // 1) Fetch pending requests (simple query — no FK joins)
+      const db = createClient() as any
+      // Fetch pending requests created after session start
       const { data: rows, error } = await db
         .from('friendships')
-        .select('id, requester')
+        .select('id, requester, created_at')
         .eq('addressee', userId)
         .eq('status', 'pending')
+        .gte('created_at', sinceRef.current)
 
-      if (error || !rows) return
+      if (error || !rows || rows.length === 0) return
 
-      const currentIds = new Set<string>(rows.map((r: any) => r.id as string))
-
-      // First load: record baseline, don't toast
-      if (initialLoadRef.current) {
-        knownRequestsRef.current = currentIds
-        initialLoadRef.current = false
-        return
-      }
-
-      // Find new requests
-      const newRows = rows.filter((r: any) => !knownRequestsRef.current.has(r.id))
-      knownRequestsRef.current = currentIds
-
+      // Filter out requests we've already toasted
+      const newRows = rows.filter((r: any) => !toastedIdsRef.current.has(r.id))
       if (newRows.length === 0) return
 
-      // 2) Fetch profiles separately for the new requesters
+      // Mark as toasted immediately
+      newRows.forEach((r: any) => toastedIdsRef.current.add(r.id))
+
+      // Fetch profiles for the new requesters
       const requesterIds = newRows.map((r: any) => r.requester)
       const { data: profiles } = await db
         .from('profiles')
@@ -182,12 +178,13 @@ function useFriendNotifications(userId: string | undefined) {
     // Initial check
     checkRequests()
 
-    // Poll every 4 seconds for new requests
-    const interval = setInterval(checkRequests, 4_000)
+    // Poll every 3 seconds
+    const interval = setInterval(checkRequests, 3_000)
 
     // Realtime subscription: instant notification on INSERT
+    const supabase = createClient()
     const channel = supabase
-      .channel(`friendships_${userId}`)
+      .channel(`friendships_notif_${userId}`)
       .on(
         'postgres_changes',
         {
@@ -196,16 +193,20 @@ function useFriendNotifications(userId: string | undefined) {
           table: 'friendships',
           filter: `addressee=eq.${userId}`,
         },
-        () => {
-          // New row inserted for me — re-check to fetch details and show toast
-          checkRequests()
-        },
+        () => checkRequests(),
       )
       .subscribe()
+
+    // Check when tab regains focus (intervals are throttled when tab is hidden)
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') checkRequests()
+    }
+    document.addEventListener('visibilitychange', onVisible)
 
     return () => {
       clearInterval(interval)
       supabase.removeChannel(channel)
+      document.removeEventListener('visibilitychange', onVisible)
     }
   }, [userId])
 
