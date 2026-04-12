@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react'
 import type { NatalChartData, Aspect } from '@/lib/astrology'
-import { PLANET_GLYPHS, ZODIAC_GLYPHS, ASPECT_SYMBOLS, ASPECT_COLORS } from '@/lib/astrology'
+import { PLANET_GLYPHS, ASPECT_SYMBOLS, ASPECT_COLORS } from '@/lib/astrology'
 import { PLANET_DESCRIPTIONS, PLANET_SUBTITLES, PLANET_IN_SIGN_READINGS, PLANET_IN_HOUSE_READINGS, GENERATIONAL_PLANETS } from '@/lib/natal-readings'
+import ZodiacIcon from './ZodiacIcon'
 
 const READING_ORDER = [
   'Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn',
@@ -64,7 +65,7 @@ export default function NatalReadings({ data }: { data: NatalChartData }) {
                   <span className="text-[10px] text-slate-600">— {subtitle}</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mt-0.5">
-                  <span>{ZODIAC_GLYPHS[pd.sign]} {pd.sign}</span>
+                  <span className="inline-flex items-center gap-1"><ZodiacIcon sign={pd.sign} size={12} color="#64748b" /> {pd.sign}</span>
                   <span className="font-mono">{pd.signDegree}°{pd.minute.toString().padStart(2, '0')}'</span>
                   <span className="text-slate-600">·</span>
                   <span>House {pd.house}</span>

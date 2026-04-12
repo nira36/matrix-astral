@@ -7,6 +7,7 @@ import {
   getPlanetInterpretation, getAspectInterpretation, ELEMENT_EXCESS, ELEMENT_LACK,
   HOUSE_INTERPRETATIONS,
 } from '@/lib/astrology'
+import ZodiacIcon from './ZodiacIcon'
 
 // ─── Collapsible Section ───────────────────────────────────────────────────
 
@@ -174,7 +175,7 @@ function PlanetCards({ data }: { data: NatalChartData }) {
                   {p.retrograde && <span className="text-[7px] font-bold text-red-400/70 bg-red-400/10 px-1 py-0.5 rounded">R</span>}
                 </div>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="text-[10px] text-white/40">{ZODIAC_GLYPHS[p.sign]}</span>
+                  <ZodiacIcon sign={p.sign} size={11} color="rgba(255,255,255,0.4)" />
                   <span className="text-[10px] text-slate-500">{p.sign}</span>
                   <span className="text-[10px] font-mono text-slate-600">{p.signDegree}°{p.minute.toString().padStart(2, '0')}'</span>
                   <span className="text-[10px] text-slate-600">· Casa {p.house}</span>
@@ -247,7 +248,7 @@ function HousesTable({ data }: { data: NatalChartData }) {
                 </td>
                 <td className="py-2.5 px-3">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-sm text-white/40">{ZODIAC_GLYPHS[h.sign]}</span>
+                    <ZodiacIcon sign={h.sign} size={13} color="rgba(255,255,255,0.4)" />
                     <span className="text-[10px] text-slate-400">{h.sign}</span>
                     <span className="text-[10px] font-mono text-slate-600">{h.degree}°</span>
                   </div>
