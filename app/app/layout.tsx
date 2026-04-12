@@ -4,7 +4,6 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { AuthProvider, useAuth } from '@/components/auth/AuthProvider'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 
 const NAV_ITEMS = [
   {
@@ -107,12 +106,14 @@ function ToastContainer({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id
   )
 }
 
-// ─── Friend request poller ───────────────────────────────────────────────────
+// ─── Friend request poller (direct REST — no stale Supabase client) ─────────
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
+
 function useFriendNotifications(userId: string | undefined) {
   const [toasts, setToasts] = useState<Toast[]>([])
-  // Track IDs we've already toasted (so we don't re-notify the same row)
+  const [pendingCount, setPendingCount] = useState(0)
   const toastedIdsRef = useRef<Set<string>>(new Set())
-  // Timestamp since when we should consider rows "new"
   const sinceRef = useRef<string>(new Date().toISOString())
   const toastIdRef = useRef(0)
 
@@ -120,49 +121,74 @@ function useFriendNotifications(userId: string | undefined) {
     setToasts(prev => prev.filter(t => t.id !== id))
   }, [])
 
-  // Auto-dismiss after 8s
   useEffect(() => {
     if (toasts.length === 0) return
-    const timers = toasts.map(t =>
-      setTimeout(() => dismiss(t.id), 8000)
-    )
+    const timers = toasts.map(t => setTimeout(() => dismiss(t.id), 8000))
     return () => timers.forEach(clearTimeout)
   }, [toasts, dismiss])
 
   useEffect(() => {
     if (!userId) return
 
-    // Reset session timestamp on mount — only notify for requests after this
     sinceRef.current = new Date().toISOString()
     toastedIdsRef.current = new Set()
 
+    // Get access token from cookie (synchronous, no stale client dependency)
+    function getToken(): string {
+      if (typeof document === 'undefined') return ANON_KEY
+      const projectRef = SUPABASE_URL.replace('https://', '').split('.')[0]
+      const cookieName = `sb-${projectRef}-auth-token`
+      const match = document.cookie.split('; ').find(c => c.startsWith(cookieName + '='))
+      if (!match) return ANON_KEY
+      try {
+        const raw = decodeURIComponent(match.split('=').slice(1).join('='))
+        const jsonStr = raw.startsWith('base64-') ? atob(raw.slice(7)) : raw
+        const parsed = JSON.parse(jsonStr)
+        return parsed?.access_token ?? (Array.isArray(parsed) ? parsed[0] : ANON_KEY)
+      } catch { return ANON_KEY }
+    }
+
+    async function restGet(path: string): Promise<any[]> {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 6000)
+      try {
+        const token = getToken()
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+          headers: {
+            apikey: ANON_KEY,
+            Authorization: `Bearer ${token}`,
+          },
+          signal: controller.signal,
+        })
+        if (!res.ok) return []
+        return await res.json()
+      } catch { return [] }
+      finally { clearTimeout(timeoutId) }
+    }
+
     async function checkRequests() {
-      const db = createClient() as any
-      // Fetch pending requests created after session start
-      const { data: rows, error } = await db
-        .from('friendships')
-        .select('id, requester, created_at')
-        .eq('addressee', userId)
-        .eq('status', 'pending')
-        .gte('created_at', sinceRef.current)
+      // 1) Get ALL pending requests to update badge count
+      const allPending = await restGet(
+        `friendships?select=id,requester,created_at&addressee=eq.${userId}&status=eq.pending`
+      )
+      setPendingCount(allPending.length)
 
-      if (error || !rows || rows.length === 0) return
+      // 2) Filter for new requests (created after session start, not yet toasted)
+      const since = encodeURIComponent(sinceRef.current)
+      const newRows = allPending
+        .filter((r: any) => r.created_at >= sinceRef.current && !toastedIdsRef.current.has(r.id))
 
-      // Filter out requests we've already toasted
-      const newRows = rows.filter((r: any) => !toastedIdsRef.current.has(r.id))
       if (newRows.length === 0) return
 
-      // Mark as toasted immediately
       newRows.forEach((r: any) => toastedIdsRef.current.add(r.id))
 
-      // Fetch profiles for the new requesters
+      // 3) Fetch profiles for toasts
       const requesterIds = newRows.map((r: any) => r.requester)
-      const { data: profiles } = await db
-        .from('profiles')
-        .select('id, display_name, username')
-        .in('id', requesterIds)
-
-      const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]))
+      const idsParam = requesterIds.map(encodeURIComponent).join(',')
+      const profiles = await restGet(
+        `profiles?select=id,display_name,username&id=in.(${idsParam})`
+      )
+      const profileMap = new Map(profiles.map((p: any) => [p.id, p]))
 
       for (const row of newRows) {
         const p = profileMap.get(row.requester) as any
@@ -175,29 +201,8 @@ function useFriendNotifications(userId: string | undefined) {
       }
     }
 
-    // Initial check
     checkRequests()
-
-    // Poll every 3 seconds
-    const interval = setInterval(checkRequests, 3_000)
-
-    // Realtime subscription: instant notification on INSERT
-    const supabase = createClient()
-    const channel = supabase
-      .channel(`friendships_notif_${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'friendships',
-          filter: `addressee=eq.${userId}`,
-        },
-        () => checkRequests(),
-      )
-      .subscribe()
-
-    // Check when tab regains focus (intervals are throttled when tab is hidden)
+    const interval = setInterval(checkRequests, 5_000)
     const onVisible = () => {
       if (document.visibilityState === 'visible') checkRequests()
     }
@@ -205,12 +210,11 @@ function useFriendNotifications(userId: string | undefined) {
 
     return () => {
       clearInterval(interval)
-      supabase.removeChannel(channel)
       document.removeEventListener('visibilitychange', onVisible)
     }
   }, [userId])
 
-  return { toasts, dismiss }
+  return { toasts, dismiss, pendingCount }
 }
 
 // ─── App Shell ───────────────────────────────────────────────────────────────
@@ -218,7 +222,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const { user, profile, loading, profileLoading } = useAuth()
   const pathname = usePathname()
   const router = useRouter()
-  const { toasts, dismiss } = useFriendNotifications(user?.id)
+  const { toasts, dismiss, pendingCount } = useFriendNotifications(user?.id)
 
   useEffect(() => {
     if (loading || profileLoading) return
@@ -258,6 +262,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
         <nav className="flex flex-col gap-2 flex-1">
           {NAV_ITEMS.map((item) => {
             const active = pathname.startsWith(item.href)
+            const showBadge = item.href === '/app/friends' && pendingCount > 0
             return (
               <Link
                 key={item.href}
@@ -270,6 +275,11 @@ function AppShell({ children }: { children: React.ReactNode }) {
                 title={item.label}
               >
                 {item.icon}
+                {showBadge && (
+                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-red-500 text-[9px] font-bold text-white flex items-center justify-center">
+                    {pendingCount > 9 ? '9+' : pendingCount}
+                  </span>
+                )}
                 <span className="absolute left-full ml-3 px-2 py-1 rounded-md bg-white/10 backdrop-blur-sm
                                  text-[11px] font-medium text-white whitespace-nowrap
                                  opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
@@ -299,14 +309,20 @@ function AppShell({ children }: { children: React.ReactNode }) {
                        flex items-center justify-around px-2 py-1.5 safe-bottom">
         {NAV_ITEMS.map((item) => {
           const active = pathname.startsWith(item.href)
+          const showBadge = item.href === '/app/friends' && pendingCount > 0
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-lg transition-colors
+              className={`relative flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-lg transition-colors
                 ${active ? 'text-white' : 'text-slate-600'}`}
             >
               {item.icon}
+              {showBadge && (
+                <span className="absolute top-0.5 right-1 w-4 h-4 rounded-full bg-red-500 text-[9px] font-bold text-white flex items-center justify-center">
+                  {pendingCount > 9 ? '9+' : pendingCount}
+                </span>
+              )}
               <span className="text-[9px] font-medium tracking-wide">{item.label}</span>
             </Link>
           )
