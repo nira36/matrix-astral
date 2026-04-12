@@ -51,7 +51,7 @@ export const ARCANA: Record<number, ArcanaData> = {
     number: 6, roman: 'VI', name: 'The Lovers',
     keywords: ['Connection', 'Bond', 'Eternity', 'Mirror'],
     description: 'The red thread of Destiny leads the Soul back to itself to recognize the Divine that is inside them through the other, the Eternal within the Moment. Every form of Love unveils and asks to be experienced.',
-    energy: 'neutral', element: 'air', planet: 'Gemini / Mercury', color: '#dc2626',
+    energy: 'neutral', element: 'air', planet: 'Gemini / Mercury', color: '#BE1C1C',
   },
   7: {
     number: 7, roman: 'VII', name: 'The Chariot',
@@ -105,7 +105,7 @@ export const ARCANA: Record<number, ArcanaData> = {
     number: 15, roman: 'XV', name: 'The Devil',
     keywords: ['Ego', 'War', 'Fear', 'Compromise'],
     description: 'In the material dimension, anything can be determined and legitimized only through the definition and existence of its opposite and contrary. The identification of the Ego with individual aspects of Dualism generates the eternal War between opposites.',
-    energy: 'masculine', element: 'earth', planet: 'Capricorn / Saturn', color: '#dc2626',
+    energy: 'masculine', element: 'earth', planet: 'Capricorn / Saturn', color: '#BE1C1C',
   },
   16: {
     number: 16, roman: 'XVI', name: 'The Tower',
