@@ -54,7 +54,7 @@ export default function DailyHoroscope({ birthDate }: Props) {
     : birthSign
 
   const horoscopeText = activeSign
-    ? getHoroscopeText(activeSign.name as ZodiacSignName, dateKey)
+    ? getHoroscopeText(activeSign.name as ZodiacSignName, dateKey)?.replace(/\s*—\s*/g, ', ')
     : null
 
   return (
@@ -101,11 +101,11 @@ export default function DailyHoroscope({ birthDate }: Props) {
           <div
             className="flex-shrink-0 w-14 h-14 rounded-xl flex items-center justify-center"
             style={{
-              background: 'linear-gradient(135deg, rgba(139,92,246,0.12), rgba(99,102,241,0.08))',
-              border: '1px solid rgba(139,92,246,0.15)',
+              background: '#a8879d20',
+              border: '1px solid #a8879d30',
             }}
           >
-            <ZodiacIcon sign={activeSign.name as ZodiacSign} size={28} color="rgba(167,139,250,0.85)" />
+            <ZodiacIcon sign={activeSign.name as ZodiacSign} size={28} color="#ffffff" />
           </div>
 
           <div className="flex-1 min-w-0">

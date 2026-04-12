@@ -73,6 +73,7 @@ export default function InvitePage() {
       }
 
       // Create friendship (auto-accepted via invite)
+      // Current user becomes the addressee (they're accepting the invite)
       const { error: friendErr } = await db.from('friendships').insert({
         requester: inv.creator,
         addressee: user.id,

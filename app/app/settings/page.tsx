@@ -135,25 +135,67 @@ function SettingsForm() {
         numerology_json: numerologyResult ? JSON.parse(JSON.stringify(numerologyResult)) : null,
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const db = supabase as any
-      const { error } = profile
-        ? await db.from('profiles').update(profileData).eq('id', user.id)
-        : await db.from('profiles').insert(profileData)
+      // Direct REST fetch — bypasses stale Supabase client singleton
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+      const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
 
-      if (error) {
-        console.error('[settings] save error:', error)
-        if (error.code === '23505' && error.message.includes('username')) {
-          setMessage({ type: 'error', text: 'Username is already taken.' })
+      // Get access token from cookie
+      let token = anonKey
+      if (typeof document !== 'undefined') {
+        const projectRef = supabaseUrl.replace('https://', '').split('.')[0]
+        const cookieName = `sb-${projectRef}-auth-token`
+        const match = document.cookie.split('; ').find(c => c.startsWith(cookieName + '='))
+        if (match) {
+          try {
+            const raw = decodeURIComponent(match.split('=').slice(1).join('='))
+            const jsonStr = raw.startsWith('base64-') ? atob(raw.slice(7)) : raw
+            const parsed = JSON.parse(jsonStr)
+            token = parsed?.access_token ?? (Array.isArray(parsed) ? parsed[0] : anonKey)
+          } catch { /* use anonKey */ }
+        }
+      }
+
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000)
+
+      try {
+        const url = profile
+          ? `${supabaseUrl}/rest/v1/profiles?id=eq.${user.id}`
+          : `${supabaseUrl}/rest/v1/profiles`
+
+        const res = await fetch(url, {
+          method: profile ? 'PATCH' : 'POST',
+          headers: {
+            apikey: anonKey,
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            Prefer: 'return=representation',
+          },
+          body: JSON.stringify(profileData),
+          signal: controller.signal,
+        })
+
+        clearTimeout(timeoutId)
+
+        if (!res.ok) {
+          const body = await res.text()
+          console.error('[settings] save error:', res.status, body)
+          if (body.includes('username')) {
+            setMessage({ type: 'error', text: 'Username is already taken.' })
+          } else {
+            setMessage({ type: 'error', text: 'Failed to save profile. Please try again.' })
+          }
         } else {
-          setMessage({ type: 'error', text: error.message || 'Failed to save profile.' })
+          await refreshProfile()
+          setMessage({ type: 'success', text: 'Profile saved!' })
+          if (isOnboarding) {
+            router.push('/app/dashboard')
+          }
         }
-      } else {
-        await refreshProfile()
-        setMessage({ type: 'success', text: 'Profile saved!' })
-        if (isOnboarding) {
-          router.push('/app/dashboard')
-        }
+      } catch (fetchErr) {
+        clearTimeout(timeoutId)
+        console.error('[settings] fetch error:', fetchErr)
+        setMessage({ type: 'error', text: 'Network error. Please try again.' })
       }
     } catch (err) {
       console.error('[settings] save exception:', err)

@@ -213,7 +213,7 @@ function PointInterpretation({ label, value, section }: { label: string, value: 
 
   switch (section) {
     case "portrait":
-      content = data.general + "\n\n**Talents:** " + data.talents
+      content = data.general + "\n\nTalents: " + data.talents
       Icon = Eye
       break
     case "center":
@@ -247,7 +247,7 @@ function PointInterpretation({ label, value, section }: { label: string, value: 
       labelColor = "text-pink-400"
       break
     case "soul":
-      content = data.integration + "\n\n**Advice:** " + data.advice
+      content = data.integration + "\n\nAdvice: " + data.advice
       Icon = Compass
       labelColor = "text-indigo-400"
       break
@@ -265,7 +265,7 @@ function PointInterpretation({ label, value, section }: { label: string, value: 
 
       <div className="space-y-6 bg-white/[0.02] p-6 rounded-2xl border border-white/5">
         <p className="text-[12px] text-slate-300 leading-relaxed font-medium whitespace-pre-wrap">
-          {content}
+          {content?.replace(/\*\*/g, '').replace(/\s*—\s*/g, ', ')}
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -286,7 +286,7 @@ function PointInterpretation({ label, value, section }: { label: string, value: 
         <div className="p-4 rounded-xl bg-rose-500/5 border border-rose-500/10 space-y-2">
           <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest">The Shadow (Secret Obstacle)</span>
           <p className="text-[10px] text-rose-200/70 leading-relaxed italic">
-            {data.shadow}
+            {data.shadow?.replace(/\*\*/g, '').replace(/\s*—\s*/g, ', ')}
           </p>
         </div>
       </div>
@@ -303,7 +303,7 @@ function PurposeInterpretation({ label, value }: { label: string, value: number 
         <span className="text-[10px] font-bold text-white/40">Arcana {value}</span>
       </div>
       <p className="text-[11px] text-slate-400 leading-relaxed whitespace-pre-wrap italic">
-        {data?.integration || "Purposive energy for growth and realization."}
+        {(data?.integration || "Purposive energy for growth and realization.").replace(/\*\*/g, '').replace(/\s*—\s*/g, ', ')}
       </p>
     </div>
   )

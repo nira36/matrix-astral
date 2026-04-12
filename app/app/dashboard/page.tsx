@@ -11,26 +11,19 @@ import {
   type TransitPlanetKey,
 } from '@/lib/transit-house-descriptions'
 import { calculate as calcNumerology } from '@/lib/numerology'
+import type { NumerologyResult } from '@/lib/numerology'
+import { calcDestinyMatrix } from '@/lib/destinyMatrix'
+import type { DestinyMatrixResult } from '@/lib/destinyMatrix'
+import { getArcana } from '@/lib/arcana'
+import { calcBazi } from '@/lib/chinese-astrology'
+import type { BaziResult } from '@/lib/chinese-astrology'
+import { getHoroscopeText, toDateKey, getZodiacSign } from '@/lib/horoscope'
+import type { ZodiacSignName } from '@/lib/horoscope'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
 const ASPECT_GLYPH: Record<string, string> = {
   Conjunction: '☌', Opposition: '☍', Square: '□', Trine: '△', Sextile: '⚹',
-}
-
-const PERSONAL_YEAR_MEANING: Record<number, string> = {
-  1: 'New beginnings, independence, planting seeds.',
-  2: 'Patience, partnerships, quiet growth.',
-  3: 'Creativity, expression, social expansion.',
-  4: 'Building, discipline, laying foundations.',
-  5: 'Change, freedom, unexpected turns.',
-  6: 'Responsibility, home, love, healing.',
-  7: 'Introspection, study, spiritual deepening.',
-  8: 'Power, achievement, material results.',
-  9: 'Completion, release, letting go.',
-  11: 'Spiritual awakening and intuition.',
-  22: 'Visionary building and grand plans.',
-  33: 'Selfless service and creative mastery.',
 }
 
 interface FriendActivity {
@@ -46,6 +39,36 @@ export default function DashboardPage() {
   const [friends, setFriends] = useState<FriendActivity[]>([])
   const [friendsLoading, setFriendsLoading] = useState(true)
 
+  // ── Parse birth data ──────────────────────────────────────────────
+  const birthParts = useMemo(() => {
+    if (!profile?.birth_date) return null
+    const [yyyy, mm, dd] = profile.birth_date.split('-').map(Number)
+    return { dd, mm, yyyy }
+  }, [profile])
+
+  // ── Numerology ────────────────────────────────────────────────────
+  const numResult = useMemo<NumerologyResult | null>(() => {
+    if (!birthParts) return null
+    const name = profile?.birth_name || profile?.display_name || ''
+    if (!name) return null
+    return calcNumerology(`${birthParts.dd}/${birthParts.mm}/${birthParts.yyyy}`, name)
+  }, [birthParts, profile])
+
+  // ── Destiny Matrix ────────────────────────────────────────────────
+  const matResult = useMemo<DestinyMatrixResult | null>(() => {
+    if (!birthParts) return null
+    return calcDestinyMatrix(birthParts.dd, birthParts.mm, birthParts.yyyy)
+  }, [birthParts])
+
+  // ── Chinese Bazi ──────────────────────────────────────────────────
+  const baziResult = useMemo<BaziResult | null>(() => {
+    if (!birthParts) return null
+    const hour = profile?.birth_time ? parseInt(profile.birth_time.split(':')[0], 10) : 12
+    const min = profile?.birth_time ? parseInt(profile.birth_time.split(':')[1], 10) : 0
+    return calcBazi(birthParts.yyyy, birthParts.mm, birthParts.dd, hour, min)
+  }, [birthParts, profile])
+
+  // ── Transits ──────────────────────────────────────────────────────
   const transitInfo = useMemo(() => {
     if (!profile?.natal_chart_json) return null
     const natal = profile.natal_chart_json as unknown as NatalChartData
@@ -85,15 +108,31 @@ export default function DashboardPage() {
     return { aspects: aspects.slice(0, 5), slowInHouses, lunar, moonSign: moon?.sign }
   }, [profile])
 
-  const numInfo = useMemo(() => {
-    if (!profile?.birth_date) return null
-    const [yyyy, mm, dd] = profile.birth_date.split('-').map(Number)
-    const name = profile.birth_name || profile.display_name || ''
-    if (!name) return null
-    const result = calcNumerology(`${dd}/${mm}/${yyyy}`, name)
-    return result?.personalDay ?? null
+  // ── Current Pinnacle & Life Cycle ─────────────────────────────────
+  const currentPhases = useMemo(() => {
+    if (!numResult) return null
+    const pinnacle = numResult.pinnacles.find(p => p.isActive)
+    const cycle = numResult.lifeCycles.find(c => c.isActive)
+    return { pinnacle, cycle }
+  }, [numResult])
+
+  // ── Daily Horoscope ───────────────────────────────────────────────
+  const horoscope = useMemo(() => {
+    if (!profile?.sun_sign) return null
+    const dateKey = toDateKey(new Date())
+    const text = getHoroscopeText(profile.sun_sign as ZodiacSignName, dateKey)
+    return text?.replace(/\s*—\s*/g, ', ') || null
   }, [profile])
 
+  // ── Arcana of the Day ─────────────────────────────────────────────
+  const dayArcana = useMemo(() => {
+    if (!numResult) return null
+    const num = numResult.personalDay.day
+    const arcana = getArcana(num)
+    return arcana ? { number: num, name: arcana.name, color: arcana.color } : null
+  }, [numResult])
+
+  // ── Friends ───────────────────────────────────────────────────────
   useEffect(() => {
     if (!user) return
     const supabase = createClient()
@@ -131,12 +170,12 @@ export default function DashboardPage() {
       {/* ── Header ── */}
       <div className="mb-10">
         <h1 className="text-3xl text-white mb-1">
-          {profile?.display_name ? `${profile.display_name}` : 'Dashboard'}
+          {profile?.display_name || 'Dashboard'}
         </h1>
         <p className="text-sm text-slate-500">Your cosmic weather today.</p>
       </div>
 
-      {/* ── Identity bar (inline, not a card) ── */}
+      {/* ── Identity bar ── */}
       {profile && (
         <div className="flex items-center gap-5 flex-wrap mb-8 text-sm text-slate-400">
           {profile.sun_sign && <span>☉ {profile.sun_sign}</span>}
@@ -152,42 +191,47 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ── Bento grid ── */}
+      {/* ── Horoscope of the day ── */}
+      {horoscope && (
+        <div className="rounded-xl border border-white/5 bg-bg-card p-6 mb-4">
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-3">Daily Horoscope</p>
+          <p className="text-[13px] text-slate-300 leading-relaxed">{horoscope}</p>
+        </div>
+      )}
+
+      {/* ── Main bento grid ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* TODAY — large card */}
+
+        {/* TODAY — Personal day + arcana + transits */}
         <div className="rounded-xl border border-white/5 bg-bg-card p-6 md:row-span-2">
           <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-5">Today</p>
 
-          {/* Personal day number */}
-          {numInfo && (
-            <div className="mb-6">
-              <div className="flex items-baseline gap-3 mb-2">
-                <span className="text-4xl font-semibold text-white">{numInfo.day}</span>
-                <span className="text-xs text-slate-500">Personal Day</span>
+          {dayArcana && (
+            <div className="mb-5">
+              <div className="flex items-baseline gap-3 mb-1">
+                <span className="text-4xl font-semibold" style={{ color: dayArcana.color }}>{dayArcana.number}</span>
+                <span className="text-sm text-slate-400">{dayArcana.name}</span>
               </div>
-              <div className="flex gap-4 text-xs text-slate-500 mb-3">
-                <span>Year <span className="text-slate-300 font-medium">{numInfo.year}</span></span>
-                <span>Month <span className="text-slate-300 font-medium">{numInfo.month}</span></span>
-              </div>
-              <p className="text-[13px] text-slate-400 leading-relaxed">
-                {PERSONAL_YEAR_MEANING[numInfo.year] || ''}
-              </p>
+              <p className="text-xs text-slate-500">Arcana of the day</p>
             </div>
           )}
 
-          {/* Active transits */}
+          {numResult && (
+            <div className="flex gap-4 text-xs text-slate-500 mb-5 pb-5 border-b border-white/5">
+              <span>Year <span className="text-slate-300 font-medium">{numResult.personalDay.year}</span></span>
+              <span>Month <span className="text-slate-300 font-medium">{numResult.personalDay.month}</span></span>
+              <span>Day <span className="text-slate-300 font-medium">{numResult.personalDay.day}</span></span>
+            </div>
+          )}
+
           {transitInfo && transitInfo.aspects.length > 0 && (
             <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-3 pt-4 border-t border-white/5">
-                Active Transits
-              </p>
+              <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-3">Active Transits</p>
               <div className="space-y-2.5">
                 {transitInfo.aspects.map((asp, i) => (
                   <div key={i} className="flex items-baseline gap-2">
                     <span className="text-sm text-white/30 w-4 text-center">{ASPECT_GLYPH[asp.type] || '·'}</span>
-                    <span className="text-sm text-slate-300">
-                      {asp.transitPlanet} {asp.type} {asp.natalPlanet}
-                    </span>
+                    <span className="text-sm text-slate-300">{asp.transitPlanet} {asp.type} {asp.natalPlanet}</span>
                     <span className="text-xs text-slate-600 ml-auto">{asp.orb}°</span>
                   </div>
                 ))}
@@ -198,6 +242,59 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+
+        {/* CURRENT PHASE — Pinnacle + Life Cycle */}
+        {currentPhases && (currentPhases.pinnacle || currentPhases.cycle) && (
+          <div className="rounded-xl border border-white/5 bg-bg-card p-6">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-4">Current Phase</p>
+            {currentPhases.pinnacle && (
+              <div className="mb-3">
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className="text-2xl font-semibold" style={{ color: getArcana(currentPhases.pinnacle.number)?.color }}>{currentPhases.pinnacle.number}</span>
+                  <span className="text-xs text-slate-400">{currentPhases.pinnacle.label}</span>
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  Age {currentPhases.pinnacle.startAge}–{currentPhases.pinnacle.endAge >= 100 ? '∞' : currentPhases.pinnacle.endAge}
+                </p>
+              </div>
+            )}
+            {currentPhases.cycle && (
+              <div className="pt-3 border-t border-white/5">
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className="text-lg font-semibold" style={{ color: getArcana(currentPhases.cycle.number)?.color }}>{currentPhases.cycle.number}</span>
+                  <span className="text-xs text-slate-400">{currentPhases.cycle.label}</span>
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  Age {currentPhases.cycle.startAge}–{currentPhases.cycle.endAge >= 100 ? '∞' : currentPhases.cycle.endAge}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* DESTINY MATRIX — Quick overview */}
+        {matResult && (
+          <div className="rounded-xl border border-white/5 bg-bg-card p-6">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-4">Destiny Matrix</p>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: 'Soul', key: 'A' },
+                { label: 'Comfort', key: 'E' },
+                { label: 'Karma', key: 'D' },
+                { label: 'Year', key: null, val: matResult.personalYear },
+              ].map((item) => {
+                const val = item.key ? matResult.points[item.key].number : item.val!
+                const color = getArcana(val)?.color ?? '#a8879d'
+                return (
+                  <div key={item.label} className="flex items-baseline gap-2">
+                    <span className="text-xl font-semibold" style={{ color }}>{val}</span>
+                    <span className="text-[10px] text-slate-500">{item.label}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {/* LONG-TERM TRANSITS */}
         {transitInfo && transitInfo.slowInHouses.length > 0 && (
@@ -211,6 +308,27 @@ export default function DashboardPage() {
                   <span className="text-xs text-slate-600 ml-auto">{houseOrdinal(t.house)} House</span>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* CHINESE ASTROLOGY — Quick */}
+        {baziResult && (
+          <div className="rounded-xl border border-white/5 bg-bg-card p-6">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-4">Chinese Astrology</p>
+            <div className="space-y-2">
+              <div className="flex items-baseline gap-2">
+                <span className="text-lg text-slate-300 font-medium">{baziResult.yearAnimal}</span>
+                <span className="text-xs text-slate-500">Year Animal</span>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-sm text-slate-400">{baziResult.dayMasterElement}</span>
+                <span className="text-xs text-slate-600">Day Master</span>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-sm text-slate-400">{baziResult.dominantElement}</span>
+                <span className="text-xs text-slate-600">Dominant</span>
+              </div>
             </div>
           </div>
         )}

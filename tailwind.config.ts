@@ -15,8 +15,8 @@ const config: Config = {
           elevated: '#0d0e18',
         },
         accent: {
-          purple: '#a8879d',  // The Magician
-          indigo: '#a8879d',
+          purple: '#b08ca1',  // The Magician, slightly more vivid
+          indigo: '#b08ca1',
         },
         masc: '#1E40AF',
         fem: '#9D174D',
